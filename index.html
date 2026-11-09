@@ -1,0 +1,392 @@
+<title>Investing Aura</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: a ledger. Tabs over one dense, sortable table; profiles slide in from the right like a filed dossier. */
+:root{
+  --bg:#f3f5f4; --panel:#ffffff; --ink:#14201b; --muted:#5d6b65; --line:#dde3e0;
+  --accent:#1d6b4e; --accent-soft:#e2f0ea; --warn:#8a5a00; --warn-soft:#f6ecd6; --row-hover:#eef3f1; --chip:#e8edeb;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  --f-display:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;
+  --f-data:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1513; --panel:#151d1a; --ink:#e3ebe7; --muted:#8fa199; --line:#26322d;
+    --accent:#6fcfa5; --accent-soft:#183027; --warn:#e5b45c; --warn-soft:#33281a; --row-hover:#1b2521; --chip:#202b27; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1513; --panel:#151d1a; --ink:#e3ebe7; --muted:#8fa199; --line:#26322d;
+  --accent:#6fcfa5; --accent-soft:#183027; --warn:#e5b45c; --warn-soft:#33281a; --row-hover:#1b2521; --chip:#202b27; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 var(--f-body);
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+header{padding-block:20px 0;max-width:1400px;margin:0 auto}
+h1{font:600 30px/1.1 var(--f-display);margin:0 0 4px;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--muted);font:12px var(--f-data)}
+.date,.num,.count,nav .n{font-family:var(--f-data);font-size:12px}
+button:focus-visible,input:focus-visible,select:focus-visible,.pl:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+nav{display:flex;gap:4px;margin:18px 0 0;border-bottom:1px solid var(--line);overflow-x:auto}
+nav button{background:none;border:0;padding:10px 14px;font:inherit;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+nav button.on{color:var(--ink);border-bottom-color:var(--accent);font-weight:600}
+nav .n{font-size:11px;color:var(--muted);margin-left:4px;font-weight:400}
+main{max-width:1400px;margin:0 auto;padding-block:16px 48px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.bar input,.bar select{font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
+.bar input{flex:1;min-width:200px}
+.count{color:var(--muted);font-size:12px;align-self:center}
+.wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{position:sticky;top:0;background:var(--panel);text-align:left;font-weight:600;font-size:12px;color:var(--muted);padding:9px 12px;border-bottom:1px solid var(--line);cursor:pointer;user-select:none;white-space:nowrap}
+th.sorted{color:var(--ink)}
+th .arr{font-size:10px;margin-left:3px}
+td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--row-hover)}
+tr.click{cursor:pointer}
+.name{font-weight:600;white-space:nowrap}
+.take{color:var(--muted);max-width:520px}
+.pill{display:inline-block;font:500 11px var(--f-data);padding:1px 7px;border-radius:999px;white-space:nowrap}
+.p-high{background:var(--accent-soft);color:var(--accent)}
+.p-medium{background:var(--warn-soft);color:var(--warn)}
+.p-low,.p-skip{background:var(--chip);color:var(--muted)}
+.ins{max-width:560px}
+.quote{max-width:560px;margin-top:4px;color:var(--muted);font-style:italic;font-size:12px}
+.chip{display:inline-block;background:var(--chip);border-radius:4px;padding:1px 6px;margin:0 3px 3px 0;font-size:11px;white-space:nowrap}
+.chip.link{cursor:pointer}
+.chip.link:hover{background:var(--accent-soft);color:var(--accent)}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.date{white-space:nowrap;font-variant-numeric:tabular-nums}
+a{color:var(--accent)}
+.muted{color:var(--muted)}
+.pl{color:var(--accent);cursor:pointer;font-weight:500}
+.pl:hover{text-decoration:underline}
+/* drawer */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .15s}
+.scrim.on{opacity:1;pointer-events:auto}
+aside{position:fixed;top:0;right:0;height:100%;width:min(760px,100%);background:var(--panel);border-left:1px solid var(--line);transform:translateX(100%);transition:transform .2s;overflow-y:auto;z-index:2}
+aside.on{transform:none}
+aside{padding-top:env(safe-area-inset-top,0px);padding-right:env(safe-area-inset-right,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+aside .top{position:sticky;top:0;background:var(--panel);display:flex;justify-content:space-between;align-items:center;padding:12px 24px;border-bottom:1px solid var(--line)}
+aside .top button{font:inherit;background:var(--chip);border:0;border-radius:6px;padding:6px 10px;color:var(--ink);cursor:pointer}
+.md{padding:8px 28px 48px}
+.md h1{font:600 26px var(--f-display);margin:16px 0 8px;text-wrap:balance}
+.md{max-width:72ch}
+.md h2{font-size:15px;margin:26px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+.md table{font-size:12px;margin:8px 0;display:block;overflow-x:auto}
+.md th{position:static;cursor:default}
+.md td,.md th{padding:6px 8px;border:1px solid var(--line)}
+.md blockquote{margin:8px 0;padding:6px 12px;border-left:3px solid var(--line);color:var(--muted)}
+.md code{background:var(--chip);padding:1px 4px;border-radius:3px;font-size:12px}
+.md li{margin:3px 0}
+@media (max-width:640px){.md{padding:8px 16px 40px}.take{min-width:220px}aside .top{padding:12px 16px}}
+@media (prefers-reduced-motion: reduce){aside,.scrim{transition:none}}
+</style>
+<header>
+  <h1>Investing Aura</h1>
+  <div class="sub" id="sub"></div>
+  <nav id="tabs"></nav>
+</header>
+<main>
+  <div class="bar" id="bar"></div>
+  <div class="wrap"><table id="tbl"></table></div>
+</main>
+<div class="scrim" id="scrim"></div>
+<aside id="drawer"><div class="top"><span class="muted" id="dpath"></span><button id="close">Close</button></div><div class="md" id="dbody"></div></aside>
+
+<script src="data.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<script>
+const A = window.AURA;
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const slugify = s => String(s || "").toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const DOCS = [...A.people, ...A.firms, ...A.lps, ...A.companies, ...A.sources, ...A.patterns];
+const bySlug = Object.fromEntries(DOCS.map(p => [p.slug, p]));
+const firmShort = f => (f || "").split(/[;(]/)[0].trim();
+const normCo = c => { c = (c || "").replace(/\(.*?\)/g, "").trim(); return ({"Anysphere": "Cursor"})[c] || c; };
+const link = (s, label) => { const d = bySlug[s] || bySlug[slugify(s)]; return d ? `<span class="pl" tabindex="0" data-open="${esc(d.slug)}">${esc(label || d.name)}</span>` : esc(label || s); };
+const src = u => u ? `<a href="${esc(u)}" target="_blank" rel="noopener">src</a>` : "";
+const RANK = {high: 3, medium: 2, low: 1, skip: 0};
+const lvl = v => { const k = String(v || "").toLowerCase().split(/[^a-z]/)[0]; return k in RANK ? k : ""; };
+const pill = v => { const k = lvl(v); return k ? `<span class="pill p-${k}">${k}</span>` : `<span class="muted">${esc(v)}</span>`; };
+const clip = (s, n) => esc(String(s || "").slice(0, n)) + (String(s || "").length > n ? "…" : "");
+
+const TAG = Object.fromEntries((A.tags || []).map(t => [t.slug, t]));
+const ALIAS = {anysphere: "cursor"};
+const coSlug = c => { const s = slugify(normCo(c)); return ALIAS[s] || s; };
+const aiOf = slug => { const t = TAG[slug]; return t ? (t.is_ai === "yes" ? "AI" : "Non-AI") : "Untagged"; };
+const catOf = slug => TAG[slug]?.category || "";
+const companies = (() => {
+  const m = {};
+  for (const d of A.deals) {
+    const k = normCo(d.company); if (!k) continue;
+    (m[k] ||= {company: k, slug: coSlug(k), investors: new Set(), dates: [], rows: 0});
+    m[k].investors.add(d.investor_slug); m[k].rows++;
+    if (/^\d{4}/.test(d.date)) m[k].dates.push(d.date);
+  }
+  for (const c of A.companies) if (!Object.values(m).some(x => x.slug === c.slug)) m[c.name] = {company: c.name, slug: c.slug, investors: new Set(), dates: [], rows: 0};
+  for (const r of (A.rounds || [])) if (!Object.values(m).some(x => x.slug === r.company_slug)) m[r.company_slug] = {company: bySlug[r.company_slug]?.name || r.company_slug, slug: r.company_slug, investors: new Set(), dates: [], rows: 0};
+  return Object.values(m).map(c => {
+    c.dates.sort();
+    const first = A.deals.filter(d => normCo(d.company) === c.company && d.date === c.dates[0]).map(d => d.investor_slug);
+    const rr = (A.rounds || []).filter(r => r.company_slug === c.slug);
+    const firms = new Set(rr.map(r => r.firm).filter(Boolean));
+    const rdates = rr.map(r => r.date).filter(d => /^\d{4}/.test(d)).sort();
+    const firstRound = rdates[0] ? rr.filter(r => r.date === rdates[0]).map(r => r.partner ? `${r.partner} (${r.firm})` : r.firm) : [];
+    return {...c, investors: [...c.investors], n: c.investors.size, first: rdates[0] || c.dates[0] || "", firstWho: [...new Set(first)], firstRound: [...new Set(firstRound)], firms: firms.size, roundsN: new Set(rr.map(r => r.round + r.date)).size, last: c.dates.at(-1) || "", note: !!bySlug[c.slug], ai: aiOf(c.slug), cat: catOf(c.slug)};
+  });
+})();
+
+const fitCol = (k = "lens_fit", t = "Fit") => ({k, t, num: 1, v: r => RANK[lvl(r[k])] ?? -1, h: r => pill(r[k])});
+const VIEWS = {
+  insights: {
+    label: "Insights", rows: A.insights, search: r => Object.values(r).join(" "),
+    empty: "No insights yet. They appear here after the next research run is merged.",
+    filters: [
+      {label: "All types", val: r => r.type},
+      {label: "Any source", val: r => r.source_type},
+      {label: "Any fit", val: r => lvl(r.lens_fit)},
+    ],
+    cols: [
+      {k: "subject_slug", t: "About", h: r => `<span class="name">${link(r.subject_slug)}</span>`},
+      {k: "insight", t: "Insight", h: r => `<div class="ins">${esc(r.insight)}</div>${r.evidence_quote ? `<div class="quote">“${esc(r.evidence_quote)}”</div>` : ""}`},
+      {k: "type", t: "Type", h: r => `<span class="chip">${esc(r.type)}</span>`},
+      fitCol("non_obvious", "Non-obvious"),
+      fitCol("lens_fit", "Fit"),
+      fitCol("confidence", "Confidence"),
+      {k: "source_type", t: "Source", h: r => `<span class="muted">${esc(r.source_type)}</span> ${src(r.source_url)}${r.timestamp_in_source ? ` <span class="date muted">${esc(r.timestamp_in_source)}</span>` : ""}`},
+      {k: "derived_leads", t: "Leads", h: r => `<span class="muted">${esc(r.derived_leads)}</span>`},
+    ],
+    default: ["non_obvious", -1],
+  },
+  people: {
+    label: "People", rows: A.people, search: r => [r.name, r.firm, r.role, r.take, r.entity_type, ...r.tags].join(" "),
+    filters: [
+      {label: "All firms", val: r => firmShort(r.firm)},
+      {label: "All roles", val: r => r.entity_type},
+      {label: "Any fit", val: r => lvl(r.lens_fit)},
+    ],
+    cols: [
+      {k: "name", t: "Name", h: r => `<span class="name">${esc(r.name)}</span>`},
+      {k: "firm", t: "Firm", v: r => firmShort(r.firm), h: r => esc(firmShort(r.firm))},
+      {k: "entity_type", t: "Type", h: r => r.entity_type ? `<span class="chip">${esc(r.entity_type)}</span>` : ""},
+      fitCol(),
+      {k: "take", t: "Why follow", h: r => `<div class="take">${clip(r.take, 220)}</div>`},
+      {k: "insight_count", t: "Insights", num: 1},
+      {k: "deal_count", t: "Deals", num: 1},
+      {k: "hop", t: "Hop", num: 1, v: r => Number(r.hop) || 0, h: r => `<span class="num">${esc(r.hop)}</span>`},
+      {k: "surfaced_by", t: "Found via", h: r => `<span class="muted">${link(r.surfaced_by)}</span>`},
+    ],
+    open: r => r.slug, default: ["lens_fit", -1],
+  },
+  lps: {
+    label: "LPs", rows: A.lps, search: r => r.name + " " + r.body,
+    empty: "No LP profiles yet.",
+    filters: [{label: "Any fit", val: r => lvl(r.lens_fit)}],
+    cols: [
+      {k: "name", t: "Allocator", h: r => `<span class="name">${esc(r.name)}</span>`},
+      {k: "cio", t: "CIO", h: r => link(r.cio)},
+      {k: "aum", t: "AUM", h: r => `<span class="muted">${clip(r.aum, 50)}</span>`},
+      fitCol(),
+      {k: "take", t: "Take", h: r => `<div class="take">${clip(r.take, 220)}</div>`},
+      {k: "commit_count", t: "Managers", num: 1},
+      {k: "insight_count", t: "Insights", num: 1},
+    ],
+    open: r => r.slug, default: ["lens_fit", -1],
+  },
+  companies: {
+    label: "Companies", rows: companies, search: r => [r.company, ...r.investors].join(" "),
+    filters: [
+      {label: "AI and other", val: r => r.ai},
+      {label: "All categories", val: r => r.cat},
+      {label: "Any write-up", val: r => r.note ? "Has write-up" : "No write-up"},
+    ],
+    defaults: {0: "AI"},
+    cols: [
+      {k: "company", t: "Company", h: r => `<span class="name">${r.note ? link(r.slug, r.company) : esc(r.company)}</span>`},
+      {k: "cat", t: "Category", h: r => r.cat ? `<span class="chip">${esc(r.cat)}</span>` : ""},
+      {k: "roundsN", t: "Rounds", num: 1},
+      {k: "firms", t: "Firms", num: 1},
+      {k: "firstRound", t: "First round investors", v: r => r.firstRound.join(" "), h: r => `<div class="take">${esc(r.firstRound.join(", "))}</div>`},
+      {k: "n", t: "Our people", num: 1},
+      {k: "investors", t: "Who", v: r => r.investors.join(" "), h: r => r.investors.map(s => bySlug[s] ? `<span class="chip link" data-open="${esc(s)}">${esc(bySlug[s].name)}</span>` : `<span class="chip">${esc(s)}</span>`).join("")},
+      {k: "first", t: "Earliest round", h: r => `<span class="date">${esc(r.first)}</span>`},
+      {k: "firstWho", t: "First of ours", v: r => r.firstWho.join(" "), h: r => r.firstWho.map(s => link(s)).join(", ")},
+    ],
+    default: ["firms", -1],
+  },
+  syndicates: {
+    label: "Syndicates", rows: A.syn || [], search: r => [r.a, r.b, ...r.companies].join(" "),
+    empty: "No round data yet. Syndicates are computed from partner-level round maps once they're merged.",
+    filters: [
+      {label: "All link types", val: r => r.kind},
+      {label: "Any size", val: r => r.n >= 3 ? "3+ companies" : r.n === 2 ? "2 companies" : "1 company"},
+    ],
+    defaults: {0: "firm pair"},
+    cols: [
+      {k: "kind", t: "Link", h: r => `<span class="chip">${esc(r.kind)}</span>`},
+      {k: "a", t: "Investor A", h: r => `<span class="name">${esc(r.a)}</span>`},
+      {k: "b", t: "Investor B", h: r => `<span class="name">${r.kind === "hand-off" ? "→ " : ""}${esc(r.b)}</span>`},
+      {k: "n", t: "Companies", num: 1},
+      {k: "colead", t: "Co-leads", num: 1},
+      {k: "companies", t: "Where", v: r => r.companies.join(" "), h: r => r.companies.map(c => bySlug[c] ? `<span class="chip link" data-open="${esc(c)}">${esc(bySlug[c].name)}</span>` : `<span class="chip">${esc(c)}</span>`).join("")},
+      {k: "first", t: "First together", h: r => `<span class="date">${esc(r.first)}</span>`},
+    ],
+    default: ["n", -1],
+  },
+  leads: {
+    label: "Leads", rows: A.leads, search: r => Object.values(r).join(" "),
+    empty: "No leads yet.",
+    filters: [
+      {label: "All kinds", val: r => r.entity_type},
+      {label: "Any fit", val: r => lvl(r.lens_fit)},
+      {label: "Any status", val: r => r.status},
+    ],
+    cols: [
+      {k: "name", t: "Lead", h: r => `<span class="name">${link(r.slug || r.name, r.name)}</span>`},
+      {k: "entity_type", t: "Kind", h: r => `<span class="chip">${esc(r.entity_type)}</span>`},
+      fitCol(),
+      {k: "status", t: "Status", h: r => `<span class="muted">${esc(r.status)}</span>`},
+      {k: "why", t: "Why", h: r => `<div class="take">${esc(r.why)}</div>`},
+      {k: "surfaced_by", t: "Found via", h: r => link(r.surfaced_by)},
+      {k: "hop_depth", t: "Hop", num: 1, v: r => Number(r.hop_depth) || 0},
+      {k: "surfaced_from_url", t: "", h: r => src(r.surfaced_from_url)},
+    ],
+    default: ["lens_fit", -1],
+  },
+  deals: {
+    label: "Deals", rows: A.deals, search: r => Object.values(r).join(" "),
+    filters: [
+      {label: "AI and other", val: r => aiOf(coSlug(r.company))},
+      {label: "All investors", val: r => bySlug[r.investor_slug]?.name || r.investor_slug},
+    ],
+    defaults: {0: "AI"},
+    cols: [
+      {k: "date", t: "Date", h: r => `<span class="date">${esc(r.date)}</span>`},
+      {k: "company", t: "Company", h: r => `<span class="name">${link(coSlug(r.company), r.company)}</span>`},
+      {k: "category", t: "Category", v: r => catOf(coSlug(r.company)), h: r => catOf(coSlug(r.company)) ? `<span class="chip">${esc(catOf(coSlug(r.company)))}</span>` : ""},
+      {k: "investor_slug", t: "Investor", h: r => link(r.investor_slug)},
+      {k: "round", t: "Round"},
+      {k: "led", t: "Led?", h: r => `<span class="muted">${esc(r.led)}</span>`},
+      {k: "co_investors", t: "Co-investors", h: r => `<span class="muted">${esc(r.co_investors)}</span>`},
+      {k: "notes", t: "Notes", h: r => `<div class="take">${esc(r.notes)}</div>`},
+      {k: "source_url", t: "", h: r => src(r.source_url)},
+    ],
+    default: ["date", -1],
+  },
+  rels: {
+    label: "Relationships", rows: A.rels, search: r => Object.values(r).join(" "),
+    filters: [{label: "All people", val: r => bySlug[r.from_slug]?.name || r.from_slug}],
+    cols: [
+      {k: "from_slug", t: "Person", h: r => link(r.from_slug)},
+      {k: "to_slug_or_name", t: "Connected to", h: r => `<span class="name">${link(r.to_slug_or_name)}</span>`},
+      {k: "relationship", t: "Relationship"},
+      {k: "since", t: "Since", h: r => `<span class="date">${esc(r.since)}</span>`},
+      {k: "until", t: "Until", h: r => `<span class="date muted">${esc(r.until)}</span>`},
+      {k: "notes", t: "Notes", h: r => `<div class="take">${esc(r.notes)}</div>`},
+      {k: "source_url", t: "", h: r => src(r.source_url)},
+    ],
+    default: ["since", -1],
+  },
+  notes: {
+    label: "Firms, sources & patterns", rows: [...A.patterns, ...A.sources, ...A.firms], search: r => r.name + " " + r.body,
+    filters: [{label: "All kinds", val: r => r.kind}],
+    cols: [
+      {k: "kind", t: "Kind", h: r => `<span class="chip">${esc(r.kind)}</span>`},
+      {k: "name", t: "Title", v: r => r.name, h: r => `<span class="name">${esc(r.name || r.slug)}</span>`},
+      fitCol(),
+      {k: "take", t: "Take", h: r => `<div class="take">${clip(r.take, 200)}</div>`},
+      {k: "path", t: "File", h: r => `<span class="muted">${esc(r.path)}</span>`},
+    ],
+    open: r => r.slug, default: ["kind", 1],
+  },
+};
+
+let view = "insights", q = "", fsel = {...(VIEWS.insights.defaults || {})}, sort = null;
+const state = {};
+
+function render() {
+  const V = VIEWS[view];
+  sort ||= V.default;
+  const sel = V.filters.map((f, i) => {
+    const opts = [...new Set(V.rows.map(f.val))].filter(Boolean).sort();
+    if (fsel[i] && !opts.includes(fsel[i])) delete fsel[i];
+    return `<select id="f${i}" aria-label="${esc(f.label)}"><option value="">${esc(f.label)}</option>${opts.map(o => `<option${o === fsel[i] ? " selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
+  }).join("");
+  document.getElementById("bar").innerHTML =
+    `<input id="q" placeholder="Search ${V.label.toLowerCase()}…" value="${esc(q)}">${sel}<span class="count" id="count"></span>`;
+  document.getElementById("q").oninput = e => { q = e.target.value; body(); };
+  V.filters.forEach((f, i) => document.getElementById("f" + i).onchange = e => { fsel[i] = e.target.value; body(); });
+  body();
+}
+
+function body() {
+  const V = VIEWS[view];
+  const ql = q.toLowerCase();
+  let rows = V.rows.filter(r => (!ql || V.search(r).toLowerCase().includes(ql)) && V.filters.every((f, i) => !fsel[i] || f.val(r) === fsel[i]));
+  const [sk, dir] = sort, col = V.cols.find(c => c.k === sk) || {};
+  const val = r => col.v ? col.v(r) : r[sk];
+  rows = rows.slice().sort((a, b) => {
+    const x = val(a), y = val(b);
+    if (col.num) return ((Number(x) || 0) - (Number(y) || 0)) * dir;
+    const xs = String(x ?? ""), ys = String(y ?? "");
+    if (!xs && ys) return 1; if (xs && !ys) return -1;
+    return xs.localeCompare(ys) * dir;
+  });
+  document.getElementById("count").textContent = `${rows.length} of ${V.rows.length}`;
+  const head = `<thead><tr>${V.cols.map(c => `<th data-k="${c.k}" class="${c.k === sk ? "sorted" : ""}${c.num ? " num" : ""}">${c.t}${c.k === sk ? `<span class="arr">${dir > 0 ? "▲" : "▼"}</span>` : ""}</th>`).join("")}</tr></thead>`;
+  const rowsHtml = rows.map(r => `<tr${V.open ? ` class="click" data-open="${esc(V.open(r))}"` : ""}>${V.cols.map(c => `<td class="${c.num ? "num" : ""}">${c.h ? c.h(r) : esc(r[c.k])}</td>`).join("")}</tr>`).join("");
+  const t = document.getElementById("tbl");
+  const empty = V.rows.length ? "No matches" : (V.empty || "Nothing here yet.");
+  t.innerHTML = head + `<tbody>${rowsHtml || `<tr><td colspan="${V.cols.length}" class="muted">${esc(empty)}</td></tr>`}</tbody>`;
+  t.querySelectorAll("th").forEach(th => th.onclick = () => {
+    const k = th.dataset.k; sort = [k, sort[0] === k ? -sort[1] : (V.cols.find(c => c.k === k).num ? -1 : 1)]; body();
+  });
+}
+
+function tabs() {
+  document.getElementById("tabs").innerHTML = Object.entries(VIEWS).map(([k, V]) =>
+    `<button data-v="${k}" class="${k === view ? "on" : ""}">${V.label}<span class="n">${V.rows.length}</span></button>`).join("");
+  document.querySelectorAll("#tabs button").forEach(b => b.onclick = () => { location.hash = b.dataset.v; });
+}
+
+function openDoc(slug) {
+  const d = bySlug[slug]; if (!d) return;
+  document.getElementById("dpath").textContent = d.path;
+  const html = window.marked ? marked.parse(d.body) : `<pre>${esc(d.body)}</pre>`;
+  const dbody = document.getElementById("dbody");
+  dbody.innerHTML = window.DOMPurify ? DOMPurify.sanitize(html) : esc(d.body);
+  dbody.querySelectorAll("a").forEach(a => { a.target = "_blank"; a.rel = "noopener"; });
+  document.getElementById("drawer").classList.add("on");
+  document.getElementById("scrim").classList.add("on");
+  document.getElementById("drawer").scrollTop = 0;
+}
+function closeDoc() { document.getElementById("drawer").classList.remove("on"); document.getElementById("scrim").classList.remove("on"); }
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-open]");
+  if (t && !e.target.closest("a")) { e.stopPropagation(); openDoc(t.dataset.open); }
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") closeDoc();
+  if (e.key === "Enter" && e.target.matches?.(".pl")) openDoc(e.target.dataset.open);
+});
+document.getElementById("close").onclick = closeDoc;
+document.getElementById("scrim").onclick = closeDoc;
+
+const firmsCount = new Set(A.people.map(p => firmShort(p.firm))).size;
+document.getElementById("sub").textContent =
+  `${A.insights.length} insights · ${A.people.length} people · ${A.lps.length} LPs · ${firmsCount} firms · ${companies.filter(c => c.ai === "AI").length} AI companies · ${(A.syn || []).length} syndicate links`;
+function fromHash() {
+  const h = location.hash.slice(1);
+  if (VIEWS[h] && h !== view) { state[view] = {q, fsel, sort}; view = h; ({q = "", fsel = {...(VIEWS[h].defaults || {})}, sort = null} = state[view] || {}); }
+  tabs(); render();
+}
+window.addEventListener("hashchange", fromHash);
+fromHash();
+</script>

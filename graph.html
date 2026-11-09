@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Investing Aura Graph</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: full-bleed canvas; a compact control bar on top; details in a side panel (desktop) or bottom sheet (phone). */
+:root{
+  --bg:#f3f5f4; --panel:#ffffff; --ink:#14201b; --muted:#5d6b65; --line:#dde3e0; --chip:#e8edeb;
+  --accent:#1d6b4e; --accent-soft:#e2f0ea;
+  --n-person:#1d6b4e; --n-firm:#3b5bdb; --n-company:#b35c00; --n-lp:#9c36b5; --n-other:#8a9590;
+  --e-invest:rgba(20,32,27,.16); --e-lead:rgba(179,92,0,.55); --e-rel:rgba(59,91,219,.35); --e-lp:rgba(156,54,181,.45); --e-co:rgba(29,107,78,.5);
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  --f-display:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;
+  --f-data:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1513; --panel:#151d1a; --ink:#e3ebe7; --muted:#8fa199; --line:#26322d; --chip:#202b27;
+    --accent:#6fcfa5; --accent-soft:#183027;
+    --n-person:#6fcfa5; --n-firm:#8ea8ff; --n-company:#f0a35c; --n-lp:#d68ef0; --n-other:#7d8a85;
+    --e-invest:rgba(227,235,231,.13); --e-lead:rgba(240,163,92,.55); --e-rel:rgba(142,168,255,.4); --e-lp:rgba(214,142,240,.5); --e-co:rgba(111,207,165,.55);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1513; --panel:#151d1a; --ink:#e3ebe7; --muted:#8fa199; --line:#26322d; --chip:#202b27;
+  --accent:#6fcfa5; --accent-soft:#183027;
+  --n-person:#6fcfa5; --n-firm:#8ea8ff; --n-company:#f0a35c; --n-lp:#d68ef0; --n-other:#7d8a85;
+  --e-invest:rgba(227,235,231,.13); --e-lead:rgba(240,163,92,.55); --e-rel:rgba(142,168,255,.4); --e-lp:rgba(214,142,240,.5); --e-co:rgba(111,207,165,.55);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 var(--f-body);overflow:hidden}
+.top{position:fixed;top:0;left:0;right:0;z-index:5;background:var(--panel);border-bottom:1px solid var(--line);
+  padding:calc(env(safe-area-inset-top,0px) + 10px) max(16px, env(safe-area-inset-right,0px)) 10px max(16px, env(safe-area-inset-left,0px))}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+h1{font:600 20px/1.1 var(--f-display);margin:0;white-space:nowrap}
+h1 a{color:inherit;text-decoration:none}
+.back{font-size:12px;color:var(--accent);text-decoration:none;white-space:nowrap}
+#q{flex:1;min-width:140px;font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.tg{font:500 12px var(--f-body);border:1px solid var(--line);background:var(--bg);color:var(--muted);border-radius:999px;padding:4px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.tg[aria-pressed="true"]{background:var(--accent-soft);color:var(--ink);border-color:transparent}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.more{font:500 12px var(--f-body);background:none;border:0;color:var(--accent);cursor:pointer;padding:4px 2px}
+#graph{position:fixed;inset:0}
+.panel{position:fixed;z-index:6;background:var(--panel);border:1px solid var(--line);overflow-y:auto;
+  right:max(12px, env(safe-area-inset-right,0px));top:var(--topH,110px);bottom:calc(12px + env(safe-area-inset-bottom,0px));width:min(380px,40vw);border-radius:10px;padding:16px 18px}
+.panel[hidden]{display:none!important}
+.panel h2{font:600 20px/1.15 var(--f-display);margin:0 0 4px;text-wrap:balance}
+.panel .kind{font:500 11px var(--f-data);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.panel h3{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:16px 0 6px}
+.panel .x{float:right;font:inherit;background:var(--chip);border:0;border-radius:6px;padding:4px 10px;color:var(--ink);cursor:pointer}
+.stat{display:flex;gap:16px;margin:10px 0;font-family:var(--f-data);font-size:12px;color:var(--muted)}
+.stat b{display:block;font:600 18px var(--f-data);color:var(--ink)}
+.nb{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);font-size:13px}
+.nb span:first-child{cursor:pointer;color:var(--accent)}
+.nb small{color:var(--muted);font-family:var(--f-data);text-align:right}
+.take{color:var(--muted);font-size:13px}
+.md{font-size:13px}
+.md h1{display:none}
+.md h2{font-size:13px;margin:16px 0 6px;padding-bottom:3px;border-bottom:1px solid var(--line)}
+.md table{display:block;overflow-x:auto;font-size:11px;border-collapse:collapse}
+.md td,.md th{border:1px solid var(--line);padding:4px 6px}
+a{color:var(--accent)}
+.legend{position:fixed;left:max(12px, env(safe-area-inset-left,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:4;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--muted);max-width:min(330px,calc(100vw - 24px))}
+.legend .ln{display:inline-block;width:18px;height:0;border-top:2px solid;vertical-align:middle;margin-right:4px}
+.legend div{margin:2px 0}
+#hint{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);color:var(--muted);font-size:13px}
+.rank{counter-reset:r}
+.rank .nb::before{counter-increment:r;content:counter(r);font-family:var(--f-data);color:var(--muted);width:20px;flex:none}
+@media (max-width:640px){
+  h1{font-size:18px}
+  .panel{left:0;right:0;width:auto;top:auto;bottom:0;max-height:58vh;border-radius:14px 14px 0 0;border-bottom:0;
+    padding:14px max(16px, env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px, env(safe-area-inset-left,0px))}
+  .legend{display:none}
+  .chips.collapsible:not(.open){display:none}
+}
+@media (min-width:641px){ .more{display:none} }
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="top" id="top">
+  <div class="row">
+    <h1><a href="index.html">Investing Aura</a></h1>
+    <a class="back" href="index.html">← Tables</a>
+    <input id="q" list="names" placeholder="Find a person, fund or company…" autocomplete="off">
+    <datalist id="names"></datalist>
+    <button class="more" id="more" aria-expanded="false">Filters</button>
+  </div>
+  <div class="chips collapsible" id="chips"></div>
+</div>
+<div id="graph" role="img" aria-label="Network of investors, funds, LPs and companies"></div>
+<div id="hint">Loading graph…</div>
+<aside class="panel" id="panel" hidden></aside>
+<div class="legend" id="legend"></div>
+
+<script src="data.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<script>
+const A = window.AURA;
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const slugify = s => String(s || "").toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const SKIPFIRM = new Set(["", "angel", "angels", "undisclosed", "individual"]);
+
+// ---------- build the full graph once ----------
+const docs = {};
+for (const [list, kind] of [[A.people, "person"], [A.firms, "firm"], [A.lps, "lp"], [A.companies, "company"]])
+  for (const d of list || []) docs[d.slug] = {...d, kind};
+const tagBySlug = {};
+for (const t of A.tags || []) { tagBySlug[slugify(t.slug || t.company)] = t; tagBySlug[slugify(t.company)] = t; }
+const isAI = slug => { const t = tagBySlug[slug]; return t ? String(t.is_ai).toLowerCase() === "yes" : null; };
+
+// one node per entity: map name-slugs and known variants onto the profile slug
+const ALIAS = {
+  "university-of-michigan-endowment": "umich-endowment", "michigan-endowment": "umich-endowment",
+  "brown-university-endowment": "brown-endowment",
+  "mit-investment-management-company-mitimco": "mitimco", "mit-investment-management-company": "mitimco",
+  "stanford-management-company": "stanford-endowment", "washington-university-endowment": "washu-endowment",
+  "wustl-endowment": "washu-endowment", "anysphere": "cursor", "eclipse-ventures": "eclipse",
+};
+for (const d of Object.values(docs)) { const k = slugify(d.name); if (k && k !== d.slug && !docs[k]) ALIAS[k] = d.slug; }
+for (const k of Object.keys(ALIAS)) if (!docs[ALIAS[k]]) delete ALIAS[k];
+const R = id => ALIAS[id] || id;
+const N = new Map(), E = new Map();
+function node(id, kind, name) {
+  id = R(id);
+  if (!id) return null;
+  let n = N.get(id);
+  if (!n) { n = {id, kind: docs[id]?.kind || kind, name: docs[id]?.name || name || id, profiled: !!docs[id], deg: 0}; N.set(id, n); }
+  else if (name && n.name === n.id) n.name = name;
+  return n;
+}
+function edge(a, b, type, w, ev) {
+  a = R(a); b = R(b);
+  if (!a || !b || a === b) return;
+  const k = [a, b].sort().join("|") + "|" + type;
+  let e = E.get(k);
+  if (!e) { e = {source: a, target: b, type, w: 0, ev: []}; E.set(k, e); }
+  e.w += w; if (ev && e.ev.length < 12) e.ev.push(ev);
+}
+
+// rounds: investor (partner if named, else firm) -> company; partner -> firm
+const roundGroups = new Map();
+for (const r of A.rounds || []) {
+  const co = R(r.company_slug || slugify(r.company)); if (!co) continue;
+  node(co, "company", r.company);
+  const firmName = (r.firm || "").trim(), fid = SKIPFIRM.has(firmName.toLowerCase()) ? null : slugify(firmName);
+  const pid = r.partner_slug || (r.partner ? slugify(r.partner) : null);
+  const lead = /lead/i.test(r.role || "");
+  const ev = `${r.round || "round"} ${r.date ? "(" + r.date.slice(0, 7) + ")" : ""}${lead ? " · lead" : ""}`;
+  if (fid) node(fid, "firm", firmName);
+  if (pid) { node(pid, "person", r.partner); edge(pid, co, lead ? "lead" : "invest", lead ? 3 : 1, ev); if (fid) edge(pid, fid, "at", 1, firmName); }
+  else if (fid) edge(fid, co, lead ? "lead" : "invest", lead ? 3 : 1, ev);
+  const g = `${co}|${r.round}|${r.date}`; if (!roundGroups.has(g)) roundGroups.set(g, {co, round: r.round, date: r.date, who: new Set()});
+  roundGroups.get(g).who.add(R(pid || fid));
+}
+// deals ledger fills gaps for profiled investors
+for (const d of A.deals || []) {
+  const inv = R(d.investor_slug), co = R(slugify((d.company || "").replace(/\(.*?\)/g, "")));
+  if (!inv || !co) continue;
+  node(inv, "firm"); node(co, "company", d.company);
+  const k1 = [inv, co].sort().join("|");
+  if (!E.has(k1 + "|lead") && !E.has(k1 + "|invest")) edge(inv, co, /^yes|lead/i.test(d.led || "") ? "lead" : "invest", 1, `${d.round || ""} ${d.date || ""}`.trim());
+}
+// relationships between known entities (people, firms, LPs) — weaker, dashed
+for (const r of A.rels || []) {
+  const a = r.from_slug, raw = r.to_slug_or_name || "", b = [raw, slugify(raw)].map(R).find(x => docs[x] || N.has(x)) || null;
+  if (!a || !b) continue;
+  node(a); node(b); edge(a, b, "rel", 1, (r.relationship || "").slice(0, 60));
+}
+// LP commitments
+const lpAlias = s => docs[s] ? s : ((A.lps || []).find(l => l.slug.split("-")[0] === s.split("-")[0])?.slug || s);
+for (const c of A.lpc || []) {
+  const b = slugify(c.manager_or_fund); if (!c.lp_slug || !b) continue;
+  c.lp_slug = lpAlias(c.lp_slug);
+  node(c.lp_slug, "lp"); node(b, "firm", c.manager_or_fund); edge(c.lp_slug, b, "lp", 2, c.status);
+}
+// co-investor counts (who shares rounds with whom) for the "connected" metric
+const coinv = new Map();
+for (const g of roundGroups.values()) {
+  const who = [...g.who].filter(Boolean);
+  for (const x of who) { if (!coinv.has(x)) coinv.set(x, new Map()); const m = coinv.get(x);
+    for (const y of who) if (y !== x) { const v = m.get(y) || {n: 0, cos: new Set()}; v.n++; v.cos.add(g.co); m.set(y, v); } }
+}
+const ALL_NODES = [...N.values()], ALL_EDGES = [...E.values()];
+// company -> investors, from every invest/lead edge (rounds ledger + deals ledger)
+const backers = new Map();
+for (const e of ALL_EDGES) if (e.type === "invest" || e.type === "lead") {
+  const [inv, co] = N.get(e.source).kind === "company" ? [e.target, e.source] : [e.source, e.target];
+  if (!backers.has(co)) backers.set(co, new Set()); backers.get(co).add(inv);
+}
+for (const n of ALL_NODES) {
+  n.companies = new Set(ALL_EDGES.filter(e => (e.source === n.id || e.target === n.id) && (e.type === "invest" || e.type === "lead")).map(e => e.source === n.id ? e.target : e.source));
+  n.companies.delete(n.id);
+  // shared-company co-investors: anyone else backing the same companies (merges round-level counts where we have them)
+  const m = coinv.get(n.id) || new Map();
+  for (const co of n.companies) for (const y of backers.get(co) || []) if (y !== n.id) {
+    const v = m.get(y) || {n: 0, cos: new Set()}; if (!v.cos.has(co)) { v.cos.add(co); v.n = Math.max(v.n, 1); } m.set(y, v);
+  }
+  coinv.set(n.id, m);
+  n.coinvestors = m.size;
+  n.ai = n.kind === "company" ? isAI(n.id) : null;
+}
+
+// ---------- filters ----------
+const KINDS = {person: "People", firm: "Funds", lp: "LPs", company: "Companies"};
+const EDGES = {invest: "Invested", lead: "Led", rel: "Worked with / knows", lp: "LP in", at: "Partner at"};
+const st = {kinds: {person: 1, firm: 1, lp: 1, company: 1}, edges: {invest: 1, lead: 1, rel: 1, lp: 1, at: 1}, aiOnly: 1, profiledOnly: 0, minDeg: 2};
+try { Object.assign(st, JSON.parse(localStorage.getItem("aura-graph") || "{}")); } catch (e) {}
+const save = () => { try { localStorage.setItem("aura-graph", JSON.stringify(st)); } catch (e) {} };
+
+function visible() {
+  const keepCo = id => { const n = N.get(id); return !(st.aiOnly && n.kind === "company" && n.ai === false); };
+  let es = ALL_EDGES.filter(e => st.edges[e.type] && st.kinds[N.get(e.source).kind] && st.kinds[N.get(e.target).kind] && keepCo(e.source) && keepCo(e.target));
+  const deg = new Map();
+  for (const e of es) { deg.set(e.source, (deg.get(e.source) || 0) + 1); deg.set(e.target, (deg.get(e.target) || 0) + 1); }
+  let ns = ALL_NODES.filter(n => st.kinds[n.kind] && keepCo(n.id) && (deg.get(n.id) || 0) >= st.minDeg && (!st.profiledOnly || n.profiled || n.kind === "company"));
+  const ids = new Set(ns.map(n => n.id));
+  es = es.filter(e => ids.has(e.source) && ids.has(e.target));
+  ns.forEach(n => n.deg = deg.get(n.id) || 0);
+  return {nodes: ns, links: es.map(e => ({...e}))};
+}
+
+// ---------- render ----------
+const colors = () => ({person: css("--n-person"), firm: css("--n-firm"), company: css("--n-company"), lp: css("--n-lp"), other: css("--n-other"),
+  invest: css("--e-invest"), lead: css("--e-lead"), rel: css("--e-rel"), lp_e: css("--e-lp"), at: css("--e-invest"), ink: css("--ink"), muted: css("--muted"), bg: css("--bg")});
+let C = colors();
+let focus = null, hoverSet = null;
+const el = document.getElementById("graph");
+const G = ForceGraph()(el)
+  .backgroundColor("rgba(0,0,0,0)")
+  .nodeId("id")
+  .nodeVal(n => n.profiled ? 4 + Math.min(n.deg, 30) / 3 : 1 + Math.min(n.deg, 30) / 6)
+  .nodeLabel(n => `${esc(n.name)} · ${KINDS[n.kind] ? KINDS[n.kind].replace(/s$/, "") : n.kind}`)
+  .linkColor(l => hoverSet && !(hoverSet.has(l.source.id ?? l.source) && hoverSet.has(l.target.id ?? l.target)) ? "rgba(0,0,0,0)" : ({lead: C.lead, rel: C.rel, lp: C.lp_e}[l.type] || C.invest))
+  .linkWidth(l => l.type === "lead" ? 1.6 : l.type === "rel" || l.type === "lp" ? 1.2 : 0.6)
+  .linkLineDash(l => l.type === "rel" ? [3, 3] : l.type === "lp" ? [1, 2] : null)
+  .nodeCanvasObject((n, ctx, scale) => {
+    const r = Math.sqrt(Math.max(1, (n.profiled ? 4 + Math.min(n.deg, 30) / 3 : 1 + Math.min(n.deg, 30) / 6))) * 2.2;
+    const dim = hoverSet && !hoverSet.has(n.id);
+    ctx.globalAlpha = dim ? 0.12 : 1;
+    ctx.beginPath(); ctx.arc(n.x, n.y, r, 0, 2 * Math.PI);
+    ctx.fillStyle = C[n.kind] || C.other; ctx.fill();
+    if (n.profiled && n.kind !== "company") { ctx.lineWidth = 1.2 / scale * 2; ctx.strokeStyle = C.ink; ctx.stroke(); }
+    if (focus && focus.id === n.id) { ctx.lineWidth = 3 / scale; ctx.strokeStyle = C.ink; ctx.beginPath(); ctx.arc(n.x, n.y, r + 3 / scale, 0, 2 * Math.PI); ctx.stroke(); }
+    const inHover = hoverSet && hoverSet.has(n.id);
+    const showLabel = !dim && (inHover || scale > 3 || KEY.has(n.id) || (n.profiled && scale > 1.6));
+    if (showLabel) {
+      const fs = 11 / scale;
+      ctx.font = `${n.profiled ? 600 : 400} ${fs}px "IBM Plex Sans", system-ui, sans-serif`;
+      ctx.textAlign = "center"; ctx.textBaseline = "top"; ctx.fillStyle = C.ink;
+      ctx.fillText(n.name.length > 28 ? n.name.slice(0, 27) + "…" : n.name, n.x, n.y + r + 1.5);
+    }
+    ctx.globalAlpha = 1;
+  })
+  .nodePointerAreaPaint((n, color, ctx) => { const r = Math.sqrt(Math.max(1, n.profiled ? 4 + Math.min(n.deg, 30) / 3 : 2)) * 2.2 + 3; ctx.fillStyle = color; ctx.beginPath(); ctx.arc(n.x, n.y, r, 0, 2 * Math.PI); ctx.fill(); })
+  .onNodeHover(n => { if (focus) return; hoverSet = n ? neighborhood(n.id) : null; el.style.cursor = n ? "pointer" : ""; })
+  .onNodeClick(n => select(n.id, true))
+  .onBackgroundClick(() => { focus = null; hoverSet = null; document.getElementById("panel").hidden = true; })
+  .cooldownTicks(160)
+  .warmupTicks(60)
+  .d3VelocityDecay(0.3);
+G.d3Force("charge").strength(n => n.profiled ? -140 : -45).distanceMax(400);
+G.d3Force("link").distance(l => l.type === "at" ? 14 : l.type === "rel" ? 50 : 38).strength(0.25);
+if (window.d3) {
+  G.d3Force("x", d3.forceX(0).strength(0.025)); G.d3Force("y", d3.forceY(0).strength(0.025));
+  G.d3Force("collide", d3.forceCollide(n => (n.profiled ? 9 : 4)));
+}
+let fitted = false;
+G.onEngineStop(() => { if (!fitted && !focus) { fitted = true; G.zoomToFit(500, 30); } });
+
+function neighborhood(id) {
+  const s = new Set([id]);
+  for (const l of G.graphData().links) { const a = l.source.id ?? l.source, b = l.target.id ?? l.target; if (a === id) s.add(b); if (b === id) s.add(a); }
+  return s;
+}
+let KEY = new Set();
+function draw() {
+  const data = visible();
+  // label the most connected nodes of each kind at overview zoom; the rest appear as you zoom in
+  KEY = new Set(["person", "firm", "company", "lp"].flatMap(k => data.nodes.filter(n => n.kind === k)
+    .sort((a, b) => (b.profiled - a.profiled) || b.deg - a.deg).slice(0, k === "lp" ? 10 : k === "person" ? 14 : 10).map(n => n.id)));
+  fitted = false;
+  document.getElementById("hint").hidden = data.nodes.length > 0;
+  document.getElementById("hint").textContent = data.nodes.length ? "" : "Nothing matches these filters.";
+  G.graphData(data);
+  document.getElementById("names").innerHTML = data.nodes.filter(n => n.profiled || n.kind === "company").map(n => `<option value="${esc(n.name)}"></option>`).join("");
+}
+
+// ---------- detail panel ----------
+function select(id, fromClick) {
+  const n = N.get(id); if (!n) return;
+  focus = n; hoverSet = neighborhood(id);
+  const p = document.getElementById("panel"); p.hidden = false;
+  const d = docs[id];
+  const links = ALL_EDGES.filter(e => e.source === id || e.target === id);
+  const other = e => N.get(e.source === id ? e.target : e.source);
+  const byType = t => links.filter(e => e.type === t);
+  const co = coinv.get(id) ? [...coinv.get(id).entries()].sort((a, b) => b[1].cos.size - a[1].cos.size || b[1].n - a[1].n).slice(0, 12) : [];
+  const list = (items, fmt) => items.length ? items.map(fmt).join("") : `<div class="take">None in the data yet.</div>`;
+  const nbRow = (m, right) => `<div class="nb"><span data-go="${esc(m.id)}">${esc(m.name)}</span><small>${right}</small></div>`;
+  const invested = [...byType("lead"), ...byType("invest")].map(e => ({m: other(e), e})).filter(x => x.m.kind === "company" || n.kind === "company");
+  const body = d && window.marked ? DOMPurify.sanitize(marked.parse(d.body || "")) : "";
+  p.innerHTML = `
+    <button class="x" id="px">Close</button>
+    <div class="kind">${esc(KINDS[n.kind] ? KINDS[n.kind].replace(/s$/, "") : n.kind)}${n.profiled ? " · profiled" : ""}${n.kind === "company" && n.ai !== null ? (n.ai ? " · AI" : " · non-AI") : ""}</div>
+    <h2>${esc(n.name)}</h2>
+    ${d?.take ? `<div class="take">${esc(d.take.slice(0, 280))}${d.take.length > 280 ? "…" : ""}</div>` : ""}
+    <div class="stat">
+      ${n.kind === "company" ? `<div><b>${invested.length}</b>investors</div>` : `<div><b>${n.companies.size}</b>companies</div><div><b>${n.coinvestors}</b>co-investors</div>`}
+      <div><b>${byType("rel").length}</b>known ties</div>
+    </div>
+    ${n.kind !== "company" && co.length ? `<h3>Shares the most rounds with</h3>${co.map(([oid, v]) => nbRow(N.get(oid) || {id: oid, name: oid}, `${v.cos.size} shared ${v.cos.size === 1 ? "company" : "companies"}`)).join("")}` : ""}
+    <h3>${n.kind === "company" ? "Investors" : "Companies"}</h3>
+    ${list(invested.sort((a, b) => b.e.w - a.e.w).slice(0, 25), x => nbRow(x.m, esc(x.e.ev[0] || x.e.type)))}
+    ${byType("rel").length ? `<h3>Ties</h3>${byType("rel").slice(0, 15).map(e => nbRow(other(e), esc(e.ev[0] || ""))).join("")}` : ""}
+    ${byType("lp").length ? `<h3>LP links</h3>${byType("lp").map(e => nbRow(other(e), esc(e.ev[0] || ""))).join("")}` : ""}
+    ${byType("at").length ? `<h3>Firm</h3>${byType("at").map(e => nbRow(other(e), "")).join("")}` : ""}
+    ${body ? `<h3>Profile</h3><div class="md">${body}</div>` : ""}`;
+  p.scrollTop = 0;
+  p.querySelector("#px").onclick = () => { focus = null; hoverSet = null; p.hidden = true; };
+  p.querySelectorAll("[data-go]").forEach(s => s.onclick = () => select(s.dataset.go, true));
+  p.querySelectorAll(".md a").forEach(a => { a.target = "_blank"; a.rel = "noopener"; });
+  const gn = G.graphData().nodes.find(x => x.id === id);
+  if (gn && fromClick && gn.x != null) { G.centerAt(gn.x, gn.y, 600); if (G.zoom() < 2) G.zoom(2.4, 600); }
+  try { history.replaceState(null, "", "#" + id); } catch (e) {}
+}
+
+// ---------- top-connected list (shown when nothing is selected) ----------
+function showRanking() {
+  const p = document.getElementById("panel");
+  const ppl = ALL_NODES.filter(n => n.profiled && n.kind === "person").sort((a, b) => b.coinvestors - a.coinvestors || b.companies.size - a.companies.size).slice(0, 15);
+  p.hidden = false; focus = null; hoverSet = null;
+  p.innerHTML = `<button class="x" id="px">Close</button><div class="kind">Profiled people</div><h2>Who is actually connected</h2>
+    <div class="take">Ranked by distinct co-investors (people or funds backing the same companies), not by how many relationship notes a profile has. Coverage follows the research so far, so new profiles start low.</div>
+    <div class="rank">${ppl.map(n => `<div class="nb"><span data-go="${esc(n.id)}">${esc(n.name)}</span><small>${n.coinvestors} co-inv · ${n.companies.size} cos</small></div>`).join("")}</div>`;
+  p.querySelector("#px").onclick = () => { p.hidden = true; };
+  p.querySelectorAll("[data-go]").forEach(s => s.onclick = () => select(s.dataset.go, true));
+}
+
+// ---------- controls ----------
+function chips() {
+  const k = Object.entries(KINDS).map(([key, label]) => `<button class="tg" data-k="${key}" aria-pressed="${!!st.kinds[key]}"><span class="dot" style="background:var(--n-${key})"></span>${label}</button>`).join("");
+  const e = Object.entries(EDGES).map(([key, label]) => `<button class="tg" data-e="${key}" aria-pressed="${!!st.edges[key]}">${label}</button>`).join("");
+  document.getElementById("chips").innerHTML = k + e +
+    `<button class="tg" data-t="aiOnly" aria-pressed="${!!st.aiOnly}">AI companies only</button>` +
+    `<button class="tg" data-t="profiledOnly" aria-pressed="${!!st.profiledOnly}">Profiled people only</button>` +
+    `<button class="tg" data-t="minDeg" aria-pressed="${st.minDeg > 1}">Hide one-off nodes</button>` +
+    `<button class="tg" id="rank">Who is connected?</button>`;
+  document.querySelectorAll("[data-k]").forEach(b => b.onclick = () => { st.kinds[b.dataset.k] = !st.kinds[b.dataset.k]; save(); chips(); draw(); });
+  document.querySelectorAll("[data-e]").forEach(b => b.onclick = () => { st.edges[b.dataset.e] = !st.edges[b.dataset.e]; save(); chips(); draw(); });
+  document.querySelectorAll("[data-t]").forEach(b => b.onclick = () => { const t = b.dataset.t; st[t] = t === "minDeg" ? (st.minDeg > 1 ? 1 : 2) : !st[t]; save(); chips(); draw(); });
+  document.getElementById("rank").onclick = showRanking;
+  layoutTop();
+}
+document.getElementById("more").onclick = e => { const c = document.getElementById("chips"); c.classList.toggle("open"); e.target.setAttribute("aria-expanded", c.classList.contains("open")); layoutTop(); };
+document.getElementById("q").addEventListener("change", e => {
+  const v = e.target.value.trim().toLowerCase(); if (!v) return;
+  const n = ALL_NODES.find(n => n.name.toLowerCase() === v) || ALL_NODES.find(n => n.name.toLowerCase().includes(v));
+  if (n) { if (!G.graphData().nodes.some(x => x.id === n.id)) { st.kinds[n.kind] = 1; st.minDeg = 1; st.profiledOnly = 0; if (n.kind === "company") st.aiOnly = 0; chips(); draw(); setTimeout(() => select(n.id, true), 900); } else select(n.id, true); }
+});
+document.getElementById("legend").innerHTML =
+  Object.entries(KINDS).map(([k, l]) => `<span style="margin-right:10px"><span class="dot" style="background:var(--n-${k})"></span> ${l}</span>`).join("") +
+  `<div><span class="ln" style="border-color:var(--e-lead)"></span>led a round <span class="ln" style="border-color:var(--e-invest);margin-left:8px"></span>invested</div>
+   <div><span class="ln" style="border-color:var(--e-rel);border-top-style:dashed"></span>worked with / knows <span class="ln" style="border-color:var(--e-lp);border-top-style:dotted;margin-left:8px"></span>LP in</div>
+   <div>Outlined, labelled nodes have full profiles. Scroll or pinch to zoom.</div>`;
+
+function layoutTop() {
+  const h = document.getElementById("top").offsetHeight;
+  document.documentElement.style.setProperty("--topH", (h + 12) + "px");
+  el.style.top = h + "px";
+  G.width(window.innerWidth).height(window.innerHeight - h);
+}
+window.addEventListener("resize", layoutTop);
+matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => { C = colors(); });
+new MutationObserver(() => { C = colors(); }).observe(document.documentElement, {attributes: true, attributeFilter: ["data-theme"]});
+document.addEventListener("keydown", e => { if (e.key === "Escape") { document.getElementById("panel").hidden = true; focus = null; hoverSet = null; } });
+
+chips(); draw();
+const start = decodeURIComponent(location.hash.slice(1));
+if (start && N.has(start)) setTimeout(() => select(start, true), 1800);
+</script>
+</body>
+</html>
