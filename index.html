@@ -7,29 +7,29 @@
 <style>
 /* Layout: a ledger. A brief of grouped insight cards up front; dense tables behind it; a focus-first network graph; dossiers slide in from the right. */
 :root{
-  --bg:#f3f5f4; --panel:#ffffff; --ink:#14201b; --muted:#5d6b65; --line:#dde3e0; --chip:#e8edeb; --row-hover:#eef3f1;
-  --accent:#1d6b4e; --accent-soft:#e2f0ea; --warn:#8a5a00; --warn-soft:#f6ecd6;
-  --n-person:#1d6b4e; --n-firm:#3b5bdb; --n-company:#b35c00; --n-lp:#9c36b5;
-  --e-co:rgba(29,107,78,.55); --e-inv:rgba(179,92,0,.35); --e-knows:rgba(59,91,219,.35); --e-lp:rgba(156,54,181,.45);
+  --bg:#f4f5f8; --panel:#ffffff; --ink:#151a24; --muted:#5a6273; --line:#e2e5eb; --chip:#eef0f5; --row-hover:#f3f5fa;
+  --accent:#3346d3; --accent-soft:#e9ecfd; --good:#0b7a6c; --good-soft:#dcf4ef; --warn:#9a5b00; --warn-soft:#fbf0dc;
+  --n-person:#0e8f7e; --n-firm:#4054e0; --n-company:#e08a12; --n-lp:#b4359f; --glow:rgba(51,70,211,.16);
+  --e-co:rgba(14,143,126,.62); --e-inv:rgba(224,138,18,.42); --e-at:rgba(64,84,224,.38); --e-knows:rgba(90,98,115,.28); --e-lp:rgba(180,53,159,.5);
   --f-body:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
   --f-display:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;
   --f-data:"IBM Plex Mono",ui-monospace,Menlo,monospace;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#0f1513; --panel:#151d1a; --ink:#e3ebe7; --muted:#8fa199; --line:#26322d; --chip:#202b27; --row-hover:#1b2521;
-    --accent:#6fcfa5; --accent-soft:#183027; --warn:#e5b45c; --warn-soft:#33281a;
-    --n-person:#6fcfa5; --n-firm:#8ea8ff; --n-company:#f0a35c; --n-lp:#d68ef0;
-    --e-co:rgba(111,207,165,.6); --e-inv:rgba(240,163,92,.35); --e-knows:rgba(142,168,255,.4); --e-lp:rgba(214,142,240,.5);
+    --bg:#0c0f16; --panel:#141924; --ink:#e8ebf2; --muted:#8e97a9; --line:#252c3a; --chip:#1c2331; --row-hover:#1a2030;
+    --accent:#8f9dff; --accent-soft:#1f2550; --good:#5fe0cd; --good-soft:#113530; --warn:#f3c46d; --warn-soft:#382a10;
+    --n-person:#36d1bb; --n-firm:#8a98ff; --n-company:#f7b03c; --n-lp:#e27ad2; --glow:rgba(143,157,255,.22);
+    --e-co:rgba(54,209,187,.6); --e-inv:rgba(247,176,60,.38); --e-at:rgba(138,152,255,.4); --e-knows:rgba(142,151,169,.28); --e-lp:rgba(226,122,210,.5);
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#0f1513; --panel:#151d1a; --ink:#e3ebe7; --muted:#8fa199; --line:#26322d; --chip:#202b27; --row-hover:#1b2521;
-  --accent:#6fcfa5; --accent-soft:#183027; --warn:#e5b45c; --warn-soft:#33281a;
-  --n-person:#6fcfa5; --n-firm:#8ea8ff; --n-company:#f0a35c; --n-lp:#d68ef0;
-  --e-co:rgba(111,207,165,.6); --e-inv:rgba(240,163,92,.35); --e-knows:rgba(142,168,255,.4); --e-lp:rgba(214,142,240,.5);
-  color-scheme:dark;
+  --bg:#0c0f16; --panel:#141924; --ink:#e8ebf2; --muted:#8e97a9; --line:#252c3a; --chip:#1c2331; --row-hover:#1a2030;
+    --accent:#8f9dff; --accent-soft:#1f2550; --good:#5fe0cd; --good-soft:#113530; --warn:#f3c46d; --warn-soft:#382a10;
+    --n-person:#36d1bb; --n-firm:#8a98ff; --n-company:#f7b03c; --n-lp:#e27ad2; --glow:rgba(143,157,255,.22);
+    --e-co:rgba(54,209,187,.6); --e-inv:rgba(247,176,60,.38); --e-at:rgba(138,152,255,.4); --e-knows:rgba(142,151,169,.28); --e-lp:rgba(226,122,210,.5);
+    color-scheme:dark;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 var(--f-body);
@@ -76,8 +76,10 @@ tr.click{cursor:pointer}
 .chip{display:inline-block;background:var(--chip);border-radius:4px;padding:1px 6px;margin:0 3px 3px 0;font-size:11px;white-space:nowrap}
 .chip.link{cursor:pointer} .chip.link:hover{background:var(--accent-soft);color:var(--accent)}
 .pill{display:inline-block;font:500 11px var(--f-data);padding:1px 7px;border-radius:999px;white-space:nowrap}
-.p-high,.t-1{background:var(--accent-soft);color:var(--accent)}
-.p-medium,.t-2{background:var(--warn-soft);color:var(--warn)}
+.p-high{background:var(--good-soft);color:var(--good)}
+.t-1{background:var(--accent-soft);color:var(--accent)}
+.t-2{background:var(--good-soft);color:var(--good)}
+.p-medium{background:var(--warn-soft);color:var(--warn)}
 .p-low,.p-skip,.t-3,.t-4,.t-5{background:var(--chip);color:var(--muted)}
 a{color:var(--accent)}
 .pl{color:var(--accent);cursor:pointer;font-weight:500}
@@ -93,18 +95,49 @@ a{color:var(--accent)}
 .ins .meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--muted)}
 .card .toggle{margin-top:8px}
 
-.gwrap{display:grid;grid-template-columns:1fr 340px;gap:12px;min-height:640px}
-#graph{position:relative;border:1px solid var(--line);border-radius:10px;background:var(--panel);overflow:hidden;min-height:640px;min-width:0}
-.gpanel{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:14px;overflow-y:auto;max-height:78vh;min-width:0}
-.gpanel h3{margin:0 0 4px;font:600 18px var(--f-display)}
-.gpanel h4{margin:14px 0 6px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
-.nb{display:grid;gap:2px;padding:6px 0;border-top:1px solid var(--line)}
+.gtop{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.gtop input[type=search],.gtop select{font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
+.gtop input[type=search]{flex:1 1 240px;min-width:200px}
+.gchips{display:flex;gap:4px;flex-wrap:wrap}
+.gchip{font:inherit;font-size:12px;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel);color:var(--muted);border-radius:999px;padding:4px 10px;cursor:pointer;opacity:.55}
+.gchip.on{opacity:1;color:var(--ink);border-color:color-mix(in srgb, var(--c) 55%, var(--line))}
+.gchip .sw{color:var(--c);font-size:12px;line-height:1}
+.gchip .ln{display:inline-block;width:16px;height:3px;border-radius:2px;background:var(--c)}
+.gwrap{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:12px}
+.gbox{position:relative;min-width:0}
+#graph{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;height:min(76vh,820px);min-height:520px;min-width:0;
+  background:radial-gradient(circle, color-mix(in srgb, var(--muted) 22%, transparent) 1px, transparent 1.2px) 0 0/22px 22px, var(--panel)}
+.gnote{position:absolute;left:12px;top:10px;font:12px var(--f-data);color:var(--muted);background:var(--panel);padding:3px 8px;border-radius:6px;border:1px solid var(--line)}
+.gzoom{position:absolute;right:10px;top:10px;display:flex;gap:6px}
+.gpanel{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:16px;overflow-y:auto;height:min(76vh,820px);min-height:520px;min-width:0}
+.gpanel h3{margin:0;font:600 20px/1.2 var(--f-display)}
+.gpanel h4{margin:16px 0 6px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.gcard-head{display:flex;gap:10px;align-items:flex-start}
+.kdot{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:7px;background:color-mix(in srgb, var(--c) 16%, transparent);color:var(--c);font-size:13px;flex:none}
+.kdot.sm{width:9px;height:9px;border-radius:50%;background:var(--c);margin-right:6px;vertical-align:1px}
+.gpills{margin:8px 0 0;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--muted)}
+.gcrux{margin:10px 0 0;color:var(--ink);font-size:13.5px;line-height:1.5}
+.gstats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:12px}
+.gs{background:var(--chip);border-radius:8px;padding:8px 10px;display:grid;gap:1px}
+.gs b{font:600 17px var(--f-data)} .gs span{font-size:11px;color:var(--muted)}
+.tl{display:grid;gap:5px}
+.tlr{display:grid;grid-template-columns:64px 1fr;gap:8px;font-size:13px;padding-left:10px;border-left:2px solid var(--line)}
+.gbtns{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.gpath{margin-top:10px}
+.gpath input{width:100%;font:inherit;font-size:13px;padding:7px 10px;border:1px dashed var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+.gi{border-top:1px solid var(--line);padding:8px 0;display:grid;gap:3px;font-size:13px}
+.gi .q{color:var(--muted);font-style:italic}
+.gi .meta{font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center}
+.nb{display:grid;gap:2px;padding:6px 0;border-top:1px solid var(--line);font-size:13px}
 .nb .ev{font-size:12px;color:var(--muted)}
-.rank{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-top:1px solid var(--line);font-size:13px}
-.legend{position:absolute;left:10px;bottom:10px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--muted);display:grid;gap:3px}
-.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:-1px}
-.legend b{display:inline-block;width:16px;height:2px;margin-right:5px;vertical-align:3px}
+.rank{display:grid;grid-template-columns:1fr 70px;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--line);font-size:13px}
+.bar-mini{height:6px;background:var(--chip);border-radius:3px;overflow:hidden}
+.bar-mini i{display:block;height:100%;background:var(--n-person);border-radius:3px}
+.chain{margin:12px 0;display:grid;gap:0}
+.cn{font-weight:600;padding:6px 0}
+.ce{margin-left:4px;padding:2px 0 2px 14px;border-left:2px solid var(--e-co);font-size:12px;color:var(--muted)}
 .gloading{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted)}
+.float-tooltip-kap{font-family:var(--f-body)!important}
 
 .scrim{position:fixed;inset:0;background:rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .15s;z-index:4}
 .scrim.on{opacity:1;pointer-events:auto}
@@ -123,7 +156,7 @@ aside .top{position:sticky;top:0;background:var(--panel);display:flex;justify-co
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}
 .toast.on{opacity:1}
 textarea.copy{width:100%;min-height:120px;font:12px var(--f-data);margin-top:8px}
-@media (max-width:860px){.gwrap{grid-template-columns:1fr}#graph{min-height:460px}.gpanel{max-height:none}}
+@media (max-width:900px){.gwrap{grid-template-columns:1fr}#graph{height:62vh;min-height:420px}.gpanel{height:auto;min-height:0}}
 .btn.filt{display:none}
 @media (max-width:640px){
   .md{padding:8px 16px 40px}aside .top{padding:12px 16px}
@@ -471,113 +504,216 @@ VIEWS.raw = {
 
 let FG = null;
 function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+const ETYPES = [
+  ["co-invested", "Co-invested", "--e-co", true],
+  ["invested", "Invested", "--e-inv", true],
+  ["at", "Works at", "--e-at", true],
+  ["lp", "LP in", "--e-lp", true],
+  ["knows", "Knows", "--e-knows", false],
+];
+const NKINDS = [["person", "People", "--n-person", "●"], ["firm", "Funds", "--n-firm", "◆"], ["lp", "LPs", "--n-lp", "▲"], ["company", "Companies", "--n-company", "■"]];
 function renderGraph(m) {
   const G = V.graph;
-  m.innerHTML = `<p class="intro">Connections weighted by evidence. <b>Co-invested in the same round</b> counts most, then <b>invested in the company</b>, then <b>LP in a fund</b>, then <b>worked together or knows</b>. Node size is deal links (co-investing and investing only), so someone with lots of relationship notes but few shared deals stays small. Click anyone to see only their connections and the evidence for each.</p>
-    <div class="bar"><input type="search" id="gq" list="gnames" placeholder="Find a person, fund, LP or company…"><datalist id="gnames">${G.nodes.map(n => `<option value="${esc(n.name)}">`).join("")}</datalist>
-    <label class="tog"><input type="checkbox" id="gk" checked> Co-invested</label>
-    <label class="tog"><input type="checkbox" id="gi" checked> Invested</label>
-    <label class="tog"><input type="checkbox" id="gl" checked> LP</label>
-    <label class="tog"><input type="checkbox" id="gr"> Knows</label>
-    <label class="tog"><input type="checkbox" id="ga"> Include AI apps</label>
-    <button class="btn" id="greset">Show everyone</button></div>
-    <div class="gwrap"><div id="graph"><div class="gloading">Loading graph…</div>
-      <div class="legend"><span><i style="background:var(--n-person)"></i>Person <i style="background:var(--n-firm)"></i>Fund <i style="background:var(--n-lp)"></i>LP <i style="background:var(--n-company)"></i>Company</span>
-      <span><b style="background:var(--e-co)"></b>co-invested <b style="background:var(--e-inv)"></b>invested <b style="background:var(--e-lp)"></b>LP <b style="background:var(--e-knows)"></b>knows</span>
-      <span>Outlined nodes have a full profile</span></div></div>
+  const nodeById = Object.fromEntries(G.nodes.map(n => [n.id, n]));
+  const cardOf = Object.fromEntries(V.cards.map(c => [c.slug, c]));
+  const rankStrong = G.nodes.filter(n => n.kind === "person").sort((a, b) => b.strong - a.strong);
+  const gs = store.get("graph", {});
+  const st = {
+    etypes: gs.etypes || Object.fromEntries(ETYPES.map(([k, , , on]) => [k, on])),
+    kinds: gs.kinds || {person: true, firm: true, lp: true, company: true},
+    apps: gs.apps ?? false, top: gs.top || 90, hops: gs.hops || 1,
+  };
+  const saveG = () => store.set("graph", {etypes: st.etypes, kinds: st.kinds, apps: st.apps, top: st.top, hops: st.hops});
+  m.innerHTML = `<div class="gtop">
+      <input type="search" id="gq" list="gnames" placeholder="Find a person, fund, LP or company…" aria-label="Find in graph">
+      <datalist id="gnames">${G.nodes.map(n => `<option value="${esc(n.name)}">`).join("")}</datalist>
+      <div class="gchips" aria-label="Show node kinds">${NKINDS.map(([k, l, c, s]) => `<button class="gchip${st.kinds[k] ? " on" : ""}" data-kind="${k}" style="--c:var(${c})"><span class="sw">${s}</span>${l}</button>`).join("")}</div>
+      <div class="gchips" aria-label="Show link types">${ETYPES.map(([k, l, c]) => `<button class="gchip line${st.etypes[k] ? " on" : ""}" data-et="${k}" style="--c:var(${c})"><span class="ln"></span>${l}</button>`).join("")}</div>
+      <label class="tog"><input type="checkbox" id="ga" ${st.apps ? "checked" : ""}> AI apps</label>
+      <label class="tog">Show <select id="gtop" aria-label="How many nodes">${[60, 90, 150, 250, 1000].map(v => `<option value="${v}"${v === st.top ? " selected" : ""}>${v === 1000 ? "all" : "top " + v}</option>`).join("")}</select></label>
+    </div>
+    <div class="gwrap"><div class="gbox"><div id="graph"><div class="gloading">Loading graph…</div></div>
+      <div class="gnote" id="gnote"></div>
+      <div class="gzoom"><button class="btn sm" id="gfit" title="Fit to screen">Fit</button><button class="btn sm" id="greset">Everyone</button></div></div>
     <div class="gpanel" id="gpanel"></div></div>`;
   if (!window.ForceGraph) { $("graph").querySelector(".gloading").textContent = "The graph library didn't load. Check your connection and reload."; return; }
-  const nodeById = Object.fromEntries(G.nodes.map(n => [n.id, n]));
-  const rankStrong = G.nodes.filter(n => n.kind === "person").sort((a, b) => b.strong - a.strong);
-  const posOf = id => rankStrong.findIndex(n => n.id === id) + 1;
-  const size = n => Math.sqrt(1 + Math.sqrt(n.strong || n.deg || 1) * 1.6) * 4;
-  let focus = null, hover = null, hoverSet = new Set(), labelCut = 0;
-  const types = () => ({"co-invested": $("gk").checked, invested: $("gi").checked, lp: $("gl").checked, knows: $("gr").checked});
+
+  let focus = null, path = null, hover = null, hoverSet = new Set(), labelCut = 0, needFit = true;
+  const okNode = n => n && st.kinds[n.kind] && (n.kind !== "company" || (n.tier || 9) <= (st.apps ? 3 : 2));
+  const okEdge = e => e.types.some(t => st.etypes[t]) && okNode(nodeById[e.source]) && okNode(nodeById[e.target]);
+  const adj = () => { const a = {}; G.edges.filter(okEdge).forEach(e => { (a[e.source] ||= []).push(e); (a[e.target] ||= []).push(e); }); return a; };
   function data() {
-    const t = types(), apps = $("ga").checked;
-    const okNode = n => n && (n.kind !== "company" || (n.tier || 9) <= (apps ? 3 : 2));
-    let edges = G.edges.filter(e => e.types.some(x => t[x]) && okNode(nodeById[e.source]) && okNode(nodeById[e.target]));
-    let ids;
-    if (focus) {
-      edges = edges.filter(e => e.source === focus || e.target === focus);
-      ids = new Set([focus, ...edges.flatMap(e => [e.source, e.target])]);
+    let edges = G.edges.filter(okEdge), ids;
+    if (path) {
+      ids = new Set(path.nodes);
+      const pairs = new Set(path.nodes.slice(1).map((x, i) => [path.nodes[i], x].sort().join("|")));
+      edges = edges.filter(e => pairs.has([e.source, e.target].sort().join("|")));
+    } else if (focus) {
+      ids = new Set([focus]);
+      let frontier = [focus];
+      for (let h = 0; h < st.hops; h++) {
+        const next = [];
+        edges.forEach(e => {
+          if (frontier.includes(e.source) && !ids.has(e.target)) next.push(e.target);
+          if (frontier.includes(e.target) && !ids.has(e.source)) next.push(e.source);
+        });
+        next.forEach(x => ids.add(x));
+        frontier = next;
+        if (ids.size > 220) break;
+      }
+      edges = edges.filter(e => ids.has(e.source) && ids.has(e.target) && (st.hops > 1 || e.source === focus || e.target === focus));
     } else {
       const deg = {}; edges.forEach(e => { deg[e.source] = (deg[e.source] || 0) + e.w; deg[e.target] = (deg[e.target] || 0) + e.w; });
-      ids = new Set(Object.entries(deg).sort((a, b) => b[1] - a[1]).slice(0, 90).map(x => x[0]));
+      ids = new Set(Object.entries(deg).sort((a, b) => b[1] - a[1]).slice(0, st.top).map(x => x[0]));
       edges = edges.filter(e => ids.has(e.source) && ids.has(e.target));
     }
-    return {nodes: [...ids].map(id => ({...nodeById[id]})), links: edges.map(e => ({...e}))};
+    return {nodes: [...ids].filter(id => nodeById[id]).map(id => ({...nodeById[id]})), links: edges.map(e => ({...e}))};
   }
-  const col = k => css({person: "--n-person", firm: "--n-firm", lp: "--n-lp", company: "--n-company"}[k] || "--muted");
-  const ecol = e => css(e.types.includes("co-invested") ? "--e-co" : e.types.includes("invested") ? "--e-inv" : e.types.includes("lp") ? "--e-lp" : "--e-knows");
-  const el = $("graph");
-  el.querySelector(".gloading").remove();
+  const NC = {person: "--n-person", firm: "--n-firm", lp: "--n-lp", company: "--n-company"};
+  const ecolor = e => css((ETYPES.find(([k]) => e.types.includes(k) && st.etypes[k]) || ETYPES[4])[2]);
+  const size = n => Math.min(14, 3.2 + Math.sqrt(n.strong || n.deg || 1) * 1.05);
   const font = css("--f-body") || "sans-serif";
+  function shape(ctx, n, r) {
+    ctx.beginPath();
+    if (n.kind === "company") { const s = r * 0.9; ctx.roundRect ? ctx.roundRect(n.x - s, n.y - s, s * 2, s * 2, s * 0.35) : ctx.rect(n.x - s, n.y - s, s * 2, s * 2); }
+    else if (n.kind === "firm") { ctx.moveTo(n.x, n.y - r * 1.2); ctx.lineTo(n.x + r * 1.2, n.y); ctx.lineTo(n.x, n.y + r * 1.2); ctx.lineTo(n.x - r * 1.2, n.y); ctx.closePath(); }
+    else if (n.kind === "lp") { ctx.moveTo(n.x, n.y - r * 1.25); ctx.lineTo(n.x + r * 1.15, n.y + r * 0.85); ctx.lineTo(n.x - r * 1.15, n.y + r * 0.85); ctx.closePath(); }
+    else ctx.arc(n.x, n.y, r, 0, 2 * Math.PI);
+  }
+  const el = $("graph");
+  el.innerHTML = "";
   FG = ForceGraph()(el)
     .width(el.clientWidth).height(el.clientHeight)
     .backgroundColor("rgba(0,0,0,0)")
-    .nodeId("id").linkSource("source").linkTarget("target")
-    .nodeLabel(n => `${esc(n.name)} · ${KIND[n.kind]}${n.kind === "person" && n.strong ? ` · ${n.strong} deal links` : ""}`)
-    .linkColor(ecol)
-    .linkWidth(e => Math.min(6, 0.6 + Math.sqrt(e.w)))
+    .nodeId("id")
+    .nodeLabel(n => `<b>${esc(n.name)}</b><br>${KIND[n.kind]}${n.firm ? " · " + esc(n.firm) : ""}${n.kind === "person" && n.strong ? `<br>${n.strong} deal links` : ""}`)
+    .linkColor(ecolor)
+    .linkVisibility(e => !!(focus || path) || e.w >= 2 || (hover && ((e.source.id ?? e.source) === hover || (e.target.id ?? e.target) === hover)))
+    .linkWidth(e => (hover && (e.source.id === hover || e.target.id === hover) ? 2 : (focus || path) ? 1 : 0.55) * Math.min(5, 0.5 + Math.sqrt(e.w) * 0.9))
+    .linkCurvature(e => e.types.includes("knows") && !e.types.includes("co-invested") ? 0.18 : 0)
     .linkLabel(e => e.ev.map(esc).join("<br>"))
+    .linkDirectionalParticles(e => (focus || path) && e.types.includes("co-invested") ? 2 : 0)
+    .linkDirectionalParticleWidth(2.2)
+    .linkDirectionalParticleColor(() => css("--e-co"))
     .nodeCanvasObject((n, ctx, scale) => {
-      const r = size(n);
+      const r = size(n), isF = n.id === focus || (path && (n.id === path.nodes[0] || n.id === path.nodes.at(-1)));
       const dim = hover && hover !== n.id && !hoverSet.has(n.id);
-      ctx.globalAlpha = dim ? 0.15 : 1;
-      ctx.beginPath(); ctx.arc(n.x, n.y, r, 0, 2 * Math.PI); ctx.fillStyle = col(n.kind); ctx.fill();
-      if (n.profiled) { ctx.lineWidth = 1.5 / scale; ctx.strokeStyle = css("--ink"); ctx.stroke(); }
-      const show = focus || scale > 2.2 || (n.strong || n.deg) >= labelCut || n.id === hover || hoverSet.has(n.id);
+      ctx.globalAlpha = dim ? 0.14 : 1;
+      if (isF) { ctx.beginPath(); ctx.arc(n.x, n.y, r * 2.1, 0, 2 * Math.PI); ctx.fillStyle = css("--glow"); ctx.fill(); }
+      shape(ctx, n, r); ctx.fillStyle = css(NC[n.kind] || "--muted"); ctx.fill();
+      ctx.lineWidth = (n.profiled ? 1.6 : 0.8) / scale; ctx.strokeStyle = n.profiled ? css("--ink") : css("--panel"); ctx.stroke();
+      if (n.kind === "company" && n.tier === 1) { ctx.beginPath(); ctx.arc(n.x, n.y, r * 0.32, 0, 2 * Math.PI); ctx.fillStyle = css("--panel"); ctx.fill(); }
+      const show = isF || (focus || path ? true : (scale > 2.4 || (n.strong || n.deg) >= labelCut)) || n.id === hover || hoverSet.has(n.id);
       if (show && !dim) {
-        const fs = Math.max(11 / scale, 2.5);
-        ctx.font = `${n.id === focus ? 600 : 500} ${fs}px ${font}`;
-        ctx.textAlign = "center"; ctx.textBaseline = "top"; ctx.fillStyle = css("--ink");
-        ctx.fillText(n.name, n.x, n.y + r + 1.5 / scale);
+        const fs = Math.max(11.5 / scale, 2.2);
+        ctx.font = `${isF ? 600 : 500} ${fs}px ${font}`;
+        ctx.textAlign = "center"; ctx.textBaseline = "top";
+        const y = n.y + r * 1.3 + 1.5 / scale;
+        const label = n.name.replace(/\s*\(.*$/, "").slice(0, 28);
+        ctx.lineJoin = "round"; ctx.lineWidth = 3.5 / scale; ctx.strokeStyle = css("--panel"); ctx.strokeText(label, n.x, y);
+        ctx.fillStyle = css("--ink"); ctx.fillText(label, n.x, y);
       }
       ctx.globalAlpha = 1;
     })
-    .nodePointerAreaPaint((n, color, ctx) => { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(n.x, n.y, size(n) + 2, 0, 2 * Math.PI); ctx.fill(); })
+    .nodePointerAreaPaint((n, color, ctx) => { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(n.x, n.y, size(n) * 1.4 + 2, 0, 2 * Math.PI); ctx.fill(); })
     .onNodeHover(n => {
       hover = n ? n.id : null; hoverSet = new Set();
       if (n) FG.graphData().links.forEach(l => { const s = l.source.id ?? l.source, t = l.target.id ?? l.target; if (s === n.id) hoverSet.add(t); if (t === n.id) hoverSet.add(s); });
       el.style.cursor = n ? "pointer" : "";
     })
     .onNodeClick(n => setFocus(n.id))
-    .cooldownTicks(140);
-  FG.d3Force("charge").strength(-160);
-  FG.d3Force("link").distance(l => 34 + 70 / Math.sqrt(l.w || 1));
-  function load() {
+    .onBackgroundClick(() => { if (path) { path = null; load(); } })
+    .cooldownTicks(160)
+    .onEngineStop(() => { if (needFit) { needFit = false; FG.zoomToFit(500, 50); } });
+  FG.d3Force("charge").strength(n => -150 - size(n) * 22).distanceMax(420);
+  FG.d3Force("link").distance(l => 26 + 70 / Math.sqrt(l.w || 1));
+
+  function load(fit = true) {
     const d = data();
     const vals = d.nodes.map(n => n.strong || n.deg).sort((a, b) => b - a);
-    labelCut = focus ? 0 : (vals[Math.min(20, vals.length - 1)] || 0);
+    labelCut = vals[Math.min(22, vals.length - 1)] || 0;
     FG.graphData(d);
-    setTimeout(() => FG && FG.zoomToFit(500, 50), 800);
+    $("gnote").textContent = path ? `Path: ${path.nodes.length - 1} step${path.nodes.length === 2 ? "" : "s"}. Click the background to leave it.`
+      : focus ? `${d.nodes.length - 1} connections${st.hops > 1 ? " within 2 steps" : ""}` : `Showing the ${d.nodes.length} most connected of ${G.nodes.length}`;
+    if (fit) needFit = true;
     store.set("gfocus", focus);
+    saveG();
     panel();
   }
-  function setFocus(id) { focus = id; $("gq").value = id ? nodeById[id].name : ""; load(); }
+  function setFocus(id) { focus = id; path = null; $("gq").value = id ? nodeById[id].name : ""; load(); }
+  function findPath(a, b) {
+    const A = adj(), prev = {[a]: null}, q = [a];
+    while (q.length) {
+      const x = q.shift(); if (x === b) break;
+      for (const e of A[x] || []) { const y = e.source === x ? e.target : e.source; if (!(y in prev)) { prev[y] = {x, e}; q.push(y); } }
+    }
+    if (!(b in prev)) return null;
+    const nodes = [b], edges = []; let c = b;
+    while (prev[c]) { edges.unshift(prev[c].e); c = prev[c].x; nodes.unshift(c); }
+    return {nodes, edges};
+  }
+
+  const stat = (v, l) => `<div class="gs"><b>${v}</b><span>${l}</span></div>`;
+  const insightList = (slug, n = 3) => {
+    const c = cardOf[slug]; if (!c) return "";
+    return `<h4>Best insights <span class="muted">(${c.n})</span></h4>${c.items.slice(0, n).map(i => `<div class="gi"><div>${esc(i.insight)}</div>${i.evidence_quote ? `<div class="q">“${esc(i.evidence_quote)}”</div>` : ""}<div class="meta">${pill(i.non_obvious)} <span>${esc(i.source_type)}</span> ${src(i.source_url)}</div></div>`).join("")}`;
+  };
+  function card(n) {
+    const d = bySlug[n.id], co = coBySlug[n.id];
+    const crux = (d && (d.crux || d.take)) || cardOf[n.id]?.crux || "";
+    const pos = n.kind === "person" ? rankStrong.findIndex(x => x.id === n.id) + 1 : 0;
+    let h = `<div class="gcard-head"><span class="kdot" style="--c:var(${NC[n.kind]})">${NKINDS.find(k => k[0] === n.kind)?.[3] || ""}</span><div><h3>${esc(n.name)}</h3>
+      <div class="muted">${KIND[n.kind]}${n.firm ? " · " + esc(n.firm) : ""}${d?.role ? " · " + clip(d.role.split(/[(;]/)[0].trim(), 60) : ""}</div></div></div>
+      <div class="gpills">${co ? tierPill(co) + (co.category ? ` <span class="chip">${esc(co.category)}</span>` : "") : ""}${d?.lens_fit ? `fit ${pill(d.lens_fit)}` : ""}${n.profiled ? ` <span class="chip">profiled</span>` : ""}</div>
+      ${crux ? `<p class="gcrux">${clip(crux, 420)}</p>` : ""}`;
+    if (n.kind === "person") h += `<div class="gstats">${stat(n.strong, "deal links")}${stat("#" + pos, "of " + rankStrong.length + " people")}${stat(cardOf[n.id]?.n || 0, "insights")}</div>`;
+    if (co) {
+      h += `<div class="gstats">${stat(co.n_rounds, "rounds")}${stat(esc(co.first.slice(0, 7) || "–"), "first round")}${stat(co.people.length, "people profiled")}</div>`;
+      if (co.rounds.length) h += `<h4>Rounds</h4><div class="tl">${co.rounds.slice(-6).reverse().map(r => `<div class="tlr"><span class="date">${esc(r.date.slice(0, 7))}</span><span><b>${esc(r.round)}</b>${r.amount ? " · " + esc(r.amount) : ""}<span class="muted">${r.leads.length ? " · led by " + esc(r.leads.slice(0, 2).join(", ")) : ""}</span></span></div>`).join("")}${co.rounds.length > 6 ? `<div class="muted">+${co.rounds.length - 6} earlier rounds</div>` : ""}</div>`;
+      if (co.first_in.length) h += `<p class="muted">First in: ${esc(co.first_in.join(", "))}</p>`;
+    }
+    h += `<div class="gbtns"><button class="btn sm on" id="gopen">Open full page</button>${focus ? `<div class="seg" id="ghops"><button data-v="1" class="${st.hops === 1 ? "on" : ""}">1 step</button><button data-v="2" class="${st.hops === 2 ? "on" : ""}">2 steps</button></div>` : ""}</div>
+      <div class="gpath"><input id="gpq" list="gnames" placeholder="How is ${esc(n.name.split(" ")[0])} connected to…" aria-label="Find a path to"><div id="gpres"></div></div>`;
+    h += insightList(n.id);
+    const es = G.edges.filter(e => (e.source === n.id || e.target === n.id) && okEdge(e)).map(e => ({...e, other: e.source === n.id ? e.target : e.source})).sort((a, b) => b.w - a.w);
+    const groups = [["co-invested", "Co-invested with"], ["invested", n.kind === "company" ? "Investors" : "Invested in"], ["at", n.kind === "firm" ? "People at this fund" : "Works at"], ["lp", "LP links"], ["knows", "Knows"]];
+    const seen = new Set();
+    h += groups.map(([t, label]) => {
+      const g = es.filter(e => e.types.includes(t) && !seen.has(e.other)); g.forEach(e => seen.add(e.other));
+      return g.length ? `<h4>${label} <span class="muted">(${g.length})</span></h4>${g.slice(0, 30).map(e => `<div class="nb"><span><span class="kdot sm" style="--c:var(${NC[nodeById[e.other]?.kind]})"></span><span class="pl" data-focus="${esc(e.other)}">${esc(nodeById[e.other]?.name || e.other)}</span></span><span class="ev">${e.ev.slice(0, 2).map(esc).join(" · ")}</span></div>`).join("")}${g.length > 30 ? `<div class="muted">+${g.length - 30} more</div>` : ""}` : "";
+    }).join("");
+    return h;
+  }
   function panel() {
     const p = $("gpanel");
-    if (!focus) {
-      p.innerHTML = `<h3>Most connected people</h3><div class="muted">Ranked by deal links: co-investing and investing, weighted toward lead roles. Relationship notes don't count. Click a name to see their network.</div>
-        ${rankStrong.slice(0, 30).map((n, i) => `<div class="rank"><span>${i + 1}. <span class="pl" data-focus="${esc(n.id)}">${esc(n.name)}</span> <span class="muted">${esc(n.firm || "")}</span></span><span class="num">${n.strong}</span></div>`).join("")}`;
+    if (path) {
+      p.innerHTML = `<h3>How they're connected</h3><div class="muted">Shortest chain through the links you have switched on.</div><div class="chain">${path.nodes.map((id, i) => `<div class="cn"><span class="kdot sm" style="--c:var(${NC[nodeById[id].kind]})"></span><span class="pl" data-focus="${esc(id)}">${esc(nodeById[id].name)}</span></div>${i < path.edges.length ? `<div class="ce">${esc(path.edges[i].ev[0] || path.edges[i].types.join(", "))}</div>` : ""}`).join("")}</div><button class="btn sm" id="gback">Back</button>`;
+      $("gback").onclick = () => { path = null; load(); };
+    } else if (!focus) {
+      p.innerHTML = `<h3>Most connected people</h3><div class="muted">Ranked by deal links: investing together and investing, weighted toward lead roles. Relationship notes don't count. Tap any node, or a name below, to open its card.</div>
+        ${rankStrong.slice(0, 30).map((n, i) => `<div class="rank"><span><span class="num muted">${i + 1}</span> <span class="pl" data-focus="${esc(n.id)}">${esc(n.name)}</span> <span class="muted">${esc(n.firm || "")}</span></span><span class="bar-mini"><i style="width:${Math.round(100 * n.strong / (rankStrong[0].strong || 1))}%"></i></span></div>`).join("")}`;
     } else {
-      const n = nodeById[focus];
-      const es = G.edges.filter(e => e.source === focus || e.target === focus).map(e => ({...e, other: e.source === focus ? e.target : e.source})).sort((a, b) => b.w - a.w);
-      const groups = [["co-invested", "Co-invested with"], ["invested", n.kind === "company" ? "Investors" : "Invested in"], ["lp", "LP links"], ["knows", "Worked with or knows"]];
-      const pos = n.kind === "person" ? posOf(focus) : 0;
-      p.innerHTML = `<h3>${esc(n.name)}</h3><div class="muted">${KIND[n.kind]}${n.firm ? " · " + esc(n.firm) : ""}</div>
-        ${n.kind === "person" ? `<p><b>${n.strong}</b> deal links, ranked <b>#${pos}</b> of ${rankStrong.length} people in the graph.</p>` : ""}
-        <div class="bar"><button class="btn sm" id="gopen">Open ${n.kind === "company" ? "company" : "profile"}</button><button class="btn sm" id="gback">Back to everyone</button></div>
-        ${groups.map(([t, label]) => { const g = es.filter(e => e.types.includes(t) && (t !== "invested" || !e.types.includes("co-invested"))); return g.length ? `<h4>${label} (${g.length})</h4>${g.slice(0, 40).map(e => `<div class="nb"><span><span class="pl" data-focus="${esc(e.other)}">${esc(nodeById[e.other]?.name || e.other)}</span> <span class="chip">${KIND[nodeById[e.other]?.kind] || ""}</span></span><span class="ev">${e.ev.slice(0, 3).map(esc).join(" · ")}</span></div>`).join("")}` : ""; }).join("")}`;
-      $("gopen").onclick = () => openDoc(n.kind === "company" ? "co:" + n.id : n.id);
-      $("gback").onclick = () => setFocus(null);
+      p.innerHTML = card(nodeById[focus]);
+      $("gopen").onclick = () => openDoc(coBySlug[focus] && nodeById[focus].kind === "company" ? "co:" + focus : focus);
+      const hs = $("ghops"); if (hs) hs.querySelectorAll("button").forEach(b => b.onclick = () => { st.hops = +b.dataset.v; load(); });
+      $("gpq").onchange = e => {
+        const t = G.nodes.find(x => x.name.toLowerCase() === e.target.value.toLowerCase());
+        if (!t) return;
+        const r = findPath(focus, t.id);
+        if (!r) { $("gpres").innerHTML = `<p class="muted">No chain found with the links switched on. Try enabling "Knows".</p>`; return; }
+        path = r; load();
+      };
     }
+    p.scrollTop = 0;
     p.querySelectorAll("[data-focus]").forEach(x => x.onclick = e => { e.stopPropagation(); setFocus(x.dataset.focus); });
   }
   $("gq").onchange = e => { const n = G.nodes.find(n => n.name.toLowerCase() === e.target.value.toLowerCase()); if (n) setFocus(n.id); };
-  ["gk", "gi", "gl", "gr", "ga"].forEach(id => $(id).onchange = load);
+  m.querySelectorAll("[data-kind]").forEach(b => b.onclick = () => { st.kinds[b.dataset.kind] = !st.kinds[b.dataset.kind]; b.classList.toggle("on"); load(); });
+  m.querySelectorAll("[data-et]").forEach(b => b.onclick = () => { st.etypes[b.dataset.et] = !st.etypes[b.dataset.et]; b.classList.toggle("on"); load(); });
+  $("ga").onchange = e => { st.apps = e.target.checked; load(); };
+  $("gtop").onchange = e => { st.top = +e.target.value; load(); };
   $("greset").onclick = () => setFocus(null);
+  $("gfit").onclick = () => FG.zoomToFit(500, 60);
   new ResizeObserver(() => FG && FG.width(el.clientWidth).height(el.clientHeight)).observe(el);
   const want = store.get("gfocus", null); focus = want && nodeById[want] ? want : null;
   if (focus) $("gq").value = nodeById[focus].name;
