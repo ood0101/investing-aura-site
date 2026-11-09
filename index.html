@@ -86,6 +86,23 @@ a{color:var(--accent)}
 .pl:hover{text-decoration:underline}
 .more{display:block;margin:14px auto 0}
 
+.av{position:relative;display:inline-grid;place-items:center;flex:none;width:30px;height:30px;border-radius:50%;overflow:hidden;
+  background:hsl(var(--h,200) 45% 88%);color:hsl(var(--h,200) 45% 28%);font:600 11px var(--f-body);vertical-align:middle}
+.av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:transparent;color:transparent}
+.av.lg{width:52px;height:52px;font-size:17px} .av.md{width:40px;height:40px;font-size:14px}
+.who{display:inline-flex;align-items:center;gap:9px}
+.funds{display:grid;gap:14px}
+.fund{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
+.fund h3{margin:0;font:600 19px var(--f-display);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fund .crux{color:var(--muted);margin:6px 0 12px;max-width:100ch;font-size:13.5px}
+.team{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.mem{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;border:1px solid var(--line);border-radius:10px;padding:10px;min-width:0}
+.mem .nm{font-weight:600} .mem .rl{font-size:12px;color:var(--muted)}
+.mem .dl{margin-top:6px;display:flex;flex-wrap:wrap;gap:3px}
+.chip.lead{background:var(--accent-soft);color:var(--accent)}
+.chip.t1{border:1px solid color-mix(in srgb, var(--accent) 40%, transparent)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .av{background:hsl(var(--h,200) 30% 24%);color:hsl(var(--h,200) 60% 82%)}}
+:root[data-theme="dark"] .av{background:hsl(var(--h,200) 30% 24%);color:hsl(var(--h,200) 60% 82%)}
 .cards{display:grid;gap:12px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;min-width:0}
 .card h3{margin:0;font:600 17px/1.3 var(--f-display);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -214,6 +231,10 @@ const link = (s, label) => {
   const name = label || (k && (bySlug[k]?.name || coBySlug[k]?.name)) || s;
   return k ? `<span class="pl" tabindex="0" data-open="${esc(k)}">${esc(name)}</span>` : esc(name);
 };
+const hue = s => { let h = 0; for (const ch of String(s)) h = (h * 31 + ch.charCodeAt(0)) % 360; return h; };
+const initials = n => String(n || "?").replace(/\(.*?\)/g, "").trim().split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase();
+const avatar = (name, photo, cls = "") => `<span class="av ${cls}" style="--h:${hue(name)}" aria-hidden="true">${esc(initials(name))}${photo ? `<img src="${esc(photo)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ""}</span>`;
+const photoOf = slug => bySlug[slug]?.photo || "";
 const src = u => u ? `<a href="${esc(u)}" target="_blank" rel="noopener">source</a>` : "";
 const store = {
   get(k, d) { try { const v = localStorage.getItem("aura:" + k); return v ? JSON.parse(v) : d; } catch { return d; } },
@@ -279,7 +300,7 @@ VIEWS.brief = {
         const items = c.items.filter(i => !ST.bs || i.source_type === ST.bs);
         const ins = i => `<div class="ins"><div>${esc(i.insight)}</div>${i.evidence_quote ? `<div class="q">“${esc(i.evidence_quote)}”</div>` : ""}
           <div class="meta"><span class="chip">${esc(i.type)}</span>${i.non_obvious ? `non-obvious ${pill(i.non_obvious)}` : ""}<span>${esc(i.source_type)}${i.timestamp_in_source ? " · " + esc(i.timestamp_in_source) : ""}</span>${src(i.source_url)}</div></div>`;
-        return `<article class="card"><h3>${link(c.slug, c.name)} <span class="chip">${KIND[c.kind] || c.kind}</span>${pill(c.fit)}<span class="muted num">${items.length} insight${items.length === 1 ? "" : "s"}</span></h3>
+        return `<article class="card"><h3>${c.kind === "person" ? avatar(c.name, photoOf(c.slug), "md") : ""}${link(c.slug, c.name)} <span class="chip">${KIND[c.kind] || c.kind}</span>${pill(c.fit)}<span class="muted num">${items.length} insight${items.length === 1 ? "" : "s"}</span></h3>
           ${c.crux ? `<div class="crux">${clip(c.crux, 360)}</div>` : ""}
           ${items.slice(0, 3).map(ins).join("")}
           ${items.length > 3 ? `<div class="rest" hidden>${items.slice(3).map(ins).join("")}</div><button class="btn sm toggle" data-n="${items.length - 3}">Show ${items.length - 3} more</button>` : ""}</article>`;
@@ -301,29 +322,42 @@ VIEWS.brief = {
 VIEWS.people = {
   label: "People", n: A.people.length,
   render(m) {
-    m.innerHTML = `<div class="bar"><input type="search" id="pq" placeholder="Search people…" value="${esc(S("pq", ""))}">
+    const SEN = ["associate", "principal", "vp", "partner", "gp", "mp", "angel"];
+    const CAP = {"sub-10m": "Under $10M", "10m-plus": "$10M+", "growth": "Growth"};
+    const isAlpha = p => ["10m-plus", "growth"].includes(p.check_capacity) &&
+      (["principal", "vp"].includes(p.seniority) || (["partner", "gp"].includes(p.seniority) && p.fast_promotion === "yes"));
+    const nAlpha = A.people.filter(isAlpha).length, nTagged = A.people.filter(p => p.seniority).length;
+    m.innerHTML = `<p class="intro"><b>Alpha</b> means principals, VPs and fast-promoted partners at funds that can write $10M+ or growth checks: people with real check-writing power who aren't famous yet. ${nTagged < A.people.length ? `${A.people.length - nTagged} older profiles don't have seniority filled in yet, so they won't match these filters.` : ""}</p>
+      <div class="bar"><input type="search" id="pq" placeholder="Search people…" value="${esc(S("pq", ""))}">
+      <button class="btn sm${S("palpha", false) ? " on" : ""}" id="palpha">Alpha group <span class="num">${nAlpha}</span></button>
       ${sel("pf", "All firms", [...new Set(A.people.map(p => firmShort(p.firm)))].filter(Boolean).sort(), S("pf", ""))}
-      ${sel("pt", "All roles", [...new Set(A.people.map(p => p.entity_type))].filter(Boolean).sort(), S("pt", ""))}
+      ${sel("psen", "Any seniority", SEN.filter(x => A.people.some(p => p.seniority === x)), S("psen", ""))}
+      ${sel("pcap", "Any check size", Object.keys(CAP).filter(x => A.people.some(p => p.check_capacity === x)), S("pcap", ""))}
+      <label class="tog"><input type="checkbox" id="pfast" ${S("pfast", false) ? "checked" : ""}> Fast promoters</label>
       ${sel("pfit", "Any fit", ["high", "medium", "low"], S("pfit", ""))}<span class="count" id="pc"></span></div><div id="pt-t"></div>`;
     const gn = Object.fromEntries(V.graph.nodes.map(n => [n.id, n]));
     const draw = () => {
       const q = ST.pq.toLowerCase();
-      const rows = A.people.filter(p => (!q || [p.name, p.firm, p.role, p.crux, p.take, ...(p.tags || [])].join(" ").toLowerCase().includes(q))
-        && (!ST.pf || firmShort(p.firm) === ST.pf) && (!ST.pt || p.entity_type === ST.pt) && (!ST.pfit || lvl(p.lens_fit) === ST.pfit));
+      const rows = A.people.filter(p => (!q || [p.name, p.firm, p.role, p.crux, p.take, p.promotion_path, ...(p.tags || [])].join(" ").toLowerCase().includes(q))
+        && (!ST.palpha || isAlpha(p)) && (!ST.pf || firmShort(p.firm) === ST.pf) && (!ST.psen || p.seniority === ST.psen)
+        && (!ST.pcap || p.check_capacity === ST.pcap) && (!ST.pfast || p.fast_promotion === "yes") && (!ST.pfit || lvl(p.lens_fit) === ST.pfit));
       $("pc").textContent = `${rows.length} of ${A.people.length}`;
       table($("pt-t"), [
-        {k: "name", t: "Name", h: r => `<span class="name">${esc(r.name)}</span><div class="muted">${esc(firmShort(r.firm))}</div>`},
+        {k: "name", t: "Name", h: r => `<span class="who">${avatar(r.name, r.photo, "md")}<span><span class="name">${esc(r.name)}</span>${isAlpha(r) ? ` <span class="pill p-high">alpha</span>` : ""}<div class="muted">${esc(firmShort(r.firm))}</div></span></span>`},
         {k: "lens_fit", t: "Fit", num: 1, v: r => RANK[lvl(r.lens_fit)] ?? -1, h: r => pill(r.lens_fit)},
-        {k: "entity_type", t: "Role", h: r => r.entity_type ? `<span class="chip">${esc(r.entity_type)}</span>` : ""},
-        {k: "crux", t: "Crux", h: r => `<div class="take">${clip(r.crux || r.take, 260)}</div>`},
+        {k: "seniority", t: "Seniority", v: r => SEN.indexOf(r.seniority) + 1 || 99, num: 1, h: r => r.seniority ? `<span class="chip">${esc(r.seniority)}</span>${r.fast_promotion === "yes" ? ` <span class="pill p-medium">fast</span>` : ""}` : `<span class="muted">–</span>`},
+        {k: "check_capacity", t: "Checks", h: r => r.check_capacity ? `<span class="chip">${esc(CAP[r.check_capacity] || r.check_capacity)}</span>` : ""},
+        {k: "promotion_path", t: "Path", h: r => `<span class="muted">${clip(r.promotion_path, 110)}</span>`},
+        {k: "crux", t: "Crux", h: r => `<div class="take">${clip(r.crux || r.take, 220)}</div>`},
         {k: "strong", t: "Deal links", num: 1, v: r => gn[r.slug]?.strong || 0, h: r => `<span class="num">${gn[r.slug]?.strong || 0}</span>`},
         {k: "insight_count", t: "Insights", num: 1},
-        {k: "surfaced_by", t: "Found via", h: r => `<span class="muted">${link(r.surfaced_by)}</span>`},
       ], rows, {open: r => r.slug, sort: ["lens_fit", -1]});
       save();
     };
     $("pq").oninput = e => { ST.pq = e.target.value; draw(); };
-    ["pf", "pt", "pfit"].forEach(id => $(id).onchange = e => { ST[id] = e.target.value; draw(); });
+    $("palpha").onclick = e => { ST.palpha = !ST.palpha; e.currentTarget.classList.toggle("on", ST.palpha); draw(); };
+    $("pfast").onchange = e => { ST.pfast = e.target.checked; draw(); };
+    ["pf", "psen", "pcap", "pfit"].forEach(id => $(id).onchange = e => { ST[id] = e.target.value; draw(); });
     draw();
   },
 };
@@ -356,6 +390,34 @@ VIEWS.companies = {
     m.querySelectorAll("[data-t]").forEach(b => b.onclick = () => {
       const t = +b.dataset.t; ST.ct = ST.ct.includes(t) ? ST.ct.filter(x => x !== t) : [...ST.ct, t]; b.classList.toggle("on"); draw();
     });
+    draw();
+  },
+};
+
+function teamGrid(firm, max = 99) {
+  const t = V.teams[firm] || [];
+  if (!t.length) return "";
+  return `<div class="team">${t.slice(0, max).map(m => `<div class="mem">${avatar(m.name, m.photo, "md")}<div style="min-width:0"><div class="nm">${m.slug ? link(m.slug, m.name) : esc(m.name)}${m.fit ? " " + pill(m.fit) : ""}</div>
+    <div class="rl">${esc([m.seniority, m.role].filter(Boolean).join(" · ") || (m.slug ? "" : "Named on deals, no profile yet"))}</div>
+    <div class="dl">${m.deals.slice(0, 8).map(d => `<span class="chip link${d.lead ? " lead" : ""}${d.tier === 1 ? " t1" : ""}" data-open="co:${esc(d.slug)}" title="${esc(d.round || "")}${d.lead ? " · led" : ""}">${esc(d.name)}</span>`).join("")}${m.deals.length > 8 ? `<span class="muted">+${m.deals.length - 8}</span>` : ""}${m.deals.length ? "" : `<span class="muted">No named deals yet</span>`}</div></div></div>`).join("")}${t.length > max ? `<div class="muted">+${t.length - max} more people</div>` : ""}</div>`;
+}
+
+VIEWS.funds = {
+  label: "Funds", n: A.firms.length,
+  render(m) {
+    m.innerHTML = `<p class="intro">Each fund's team and the deals each person is personally named on. Highlighted chips are rounds they led, and outlined chips are frontier companies. Tap a person for their profile or a company for its rounds.</p>
+      <div class="bar"><input type="search" id="fq" placeholder="Search funds, people or companies…" value="${esc(S("fq", ""))}">${sel("ffit", "Any fit", ["high", "medium", "low"], S("ffit", ""))}<span class="count" id="fc"></span></div><div class="funds" id="funds"></div>`;
+    const firms = A.firms.slice().sort((a, b) => ((RANK[lvl(b.lens_fit)] ?? 0) - (RANK[lvl(a.lens_fit)] ?? 0)) || ((V.teams[b.slug] || []).length - (V.teams[a.slug] || []).length));
+    const draw = () => {
+      const q = ST.fq.toLowerCase();
+      const rows = firms.filter(f => (!ST.ffit || lvl(f.lens_fit) === ST.ffit) && (!q || (f.name + " " + (V.teams[f.slug] || []).map(x => x.name + " " + x.deals.map(d => d.name).join(" ")).join(" ")).toLowerCase().includes(q)));
+      $("fc").textContent = `${rows.length} funds`;
+      $("funds").innerHTML = rows.map(f => `<section class="fund"><h3>${link(f.slug, f.name)} ${pill(f.lens_fit)}<span class="muted num">${(V.teams[f.slug] || []).length} people</span></h3>
+        ${f.crux || f.take ? `<div class="crux">${clip(f.crux || f.take, 320)}</div>` : ""}${teamGrid(f.slug) || `<p class="muted">No team mapped yet.</p>`}</section>`).join("");
+      save();
+    };
+    $("fq").oninput = e => { ST.fq = e.target.value; draw(); };
+    $("ffit").onchange = e => { ST.ffit = e.target.value; draw(); };
     draw();
   },
 };
@@ -512,6 +574,11 @@ const ETYPES = [
   ["knows", "Knows", "--e-knows", false],
 ];
 const NKINDS = [["person", "People", "--n-person", "●"], ["firm", "Funds", "--n-firm", "◆"], ["lp", "LPs", "--n-lp", "▲"], ["company", "Companies", "--n-company", "■"]];
+const IMGS = {};
+function imgOf(url) {
+  if (!(url in IMGS)) { const im = new Image(); im.referrerPolicy = "no-referrer"; im.onload = () => FG && FG.refresh && FG.refresh(); im.onerror = () => { IMGS[url] = null; }; im.src = url; IMGS[url] = im; }
+  return IMGS[url];
+}
 function renderGraph(m) {
   const G = V.graph;
   const nodeById = Object.fromEntries(G.nodes.map(n => [n.id, n]));
@@ -601,6 +668,12 @@ function renderGraph(m) {
       ctx.globalAlpha = dim ? 0.14 : 1;
       if (isF) { ctx.beginPath(); ctx.arc(n.x, n.y, r * 2.1, 0, 2 * Math.PI); ctx.fillStyle = css("--glow"); ctx.fill(); }
       shape(ctx, n, r); ctx.fillStyle = css(NC[n.kind] || "--muted"); ctx.fill();
+      const im = n.photo && imgOf(n.photo);
+      if (im && im.complete && im.naturalWidth && (focus || path || scale > 1.6 || r > 9)) {
+        ctx.save(); ctx.beginPath(); ctx.arc(n.x, n.y, r - 0.6 / scale, 0, 2 * Math.PI); ctx.clip();
+        try { ctx.drawImage(im, n.x - r, n.y - r, r * 2, r * 2); } catch (e) {}
+        ctx.restore(); ctx.beginPath(); ctx.arc(n.x, n.y, r, 0, 2 * Math.PI);
+      }
       ctx.lineWidth = (n.profiled ? 1.6 : 0.8) / scale; ctx.strokeStyle = n.profiled ? css("--ink") : css("--panel"); ctx.stroke();
       if (n.kind === "company" && n.tier === 1) { ctx.beginPath(); ctx.arc(n.x, n.y, r * 0.32, 0, 2 * Math.PI); ctx.fillStyle = css("--panel"); ctx.fill(); }
       const show = isF || (focus || path ? true : (scale > 2.4 || (n.strong || n.deg) >= labelCut)) || n.id === hover || hoverSet.has(n.id);
@@ -662,7 +735,7 @@ function renderGraph(m) {
     const d = bySlug[n.id], co = coBySlug[n.id];
     const crux = (d && (d.crux || d.take)) || cardOf[n.id]?.crux || "";
     const pos = n.kind === "person" ? rankStrong.findIndex(x => x.id === n.id) + 1 : 0;
-    let h = `<div class="gcard-head"><span class="kdot" style="--c:var(${NC[n.kind]})">${NKINDS.find(k => k[0] === n.kind)?.[3] || ""}</span><div><h3>${esc(n.name)}</h3>
+    let h = `<div class="gcard-head">${n.kind === "person" ? avatar(n.name, n.photo, "lg") : `<span class="kdot" style="--c:var(${NC[n.kind]})">${NKINDS.find(k => k[0] === n.kind)?.[3] || ""}</span>`}<div><h3>${esc(n.name)}</h3>
       <div class="muted">${KIND[n.kind]}${n.firm ? " · " + esc(n.firm) : ""}${d?.role ? " · " + clip(d.role.split(/[(;]/)[0].trim(), 60) : ""}</div></div></div>
       <div class="gpills">${co ? tierPill(co) + (co.category ? ` <span class="chip">${esc(co.category)}</span>` : "") : ""}${d?.lens_fit ? `fit ${pill(d.lens_fit)}` : ""}${n.profiled ? ` <span class="chip">profiled</span>` : ""}</div>
       ${crux ? `<p class="gcrux">${clip(crux, 420)}</p>` : ""}`;
@@ -738,6 +811,8 @@ function openDoc(key) {
     if (!d || (d.kind === "company" && coBySlug[key])) { if (coBySlug[key]) return openDoc("co:" + key); return; }
     path = d.path;
     html = window.marked ? marked.parse(d.body) : `<pre>${esc(d.body)}</pre>`;
+    if (d.kind === "person") html = `<div class="who" style="margin-top:14px">${avatar(d.name, d.photo, "lg")}<span class="muted">${esc(firmShort(d.firm))}${d.seniority ? " · " + esc(d.seniority) : ""}</span></div>` + html;
+    if (d.kind === "firm" && V.teams[d.slug]) html = html.replace(/(<h1[^>]*>.*?<\/h1>)/, `$1${teamGrid(d.slug, 8)}`);
   }
   $("dpath").textContent = path;
   $("dbody").innerHTML = window.DOMPurify ? DOMPurify.sanitize(html) : html;
