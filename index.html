@@ -5,388 +5,644 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-/* Layout: a ledger. Tabs over one dense, sortable table; profiles slide in from the right like a filed dossier. */
+/* Layout: a ledger. A brief of grouped insight cards up front; dense tables behind it; a focus-first network graph; dossiers slide in from the right. */
 :root{
-  --bg:#f3f5f4; --panel:#ffffff; --ink:#14201b; --muted:#5d6b65; --line:#dde3e0;
-  --accent:#1d6b4e; --accent-soft:#e2f0ea; --warn:#8a5a00; --warn-soft:#f6ecd6; --row-hover:#eef3f1; --chip:#e8edeb;
+  --bg:#f3f5f4; --panel:#ffffff; --ink:#14201b; --muted:#5d6b65; --line:#dde3e0; --chip:#e8edeb; --row-hover:#eef3f1;
+  --accent:#1d6b4e; --accent-soft:#e2f0ea; --warn:#8a5a00; --warn-soft:#f6ecd6;
+  --n-person:#1d6b4e; --n-firm:#3b5bdb; --n-company:#b35c00; --n-lp:#9c36b5;
+  --e-co:rgba(29,107,78,.55); --e-inv:rgba(179,92,0,.35); --e-knows:rgba(59,91,219,.35); --e-lp:rgba(156,54,181,.45);
   --f-body:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
   --f-display:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;
   --f-data:"IBM Plex Mono",ui-monospace,Menlo,monospace;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#0f1513; --panel:#151d1a; --ink:#e3ebe7; --muted:#8fa199; --line:#26322d;
-    --accent:#6fcfa5; --accent-soft:#183027; --warn:#e5b45c; --warn-soft:#33281a; --row-hover:#1b2521; --chip:#202b27; color-scheme:dark;
+    --bg:#0f1513; --panel:#151d1a; --ink:#e3ebe7; --muted:#8fa199; --line:#26322d; --chip:#202b27; --row-hover:#1b2521;
+    --accent:#6fcfa5; --accent-soft:#183027; --warn:#e5b45c; --warn-soft:#33281a;
+    --n-person:#6fcfa5; --n-firm:#8ea8ff; --n-company:#f0a35c; --n-lp:#d68ef0;
+    --e-co:rgba(111,207,165,.6); --e-inv:rgba(240,163,92,.35); --e-knows:rgba(142,168,255,.4); --e-lp:rgba(214,142,240,.5);
+    color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#0f1513; --panel:#151d1a; --ink:#e3ebe7; --muted:#8fa199; --line:#26322d;
-  --accent:#6fcfa5; --accent-soft:#183027; --warn:#e5b45c; --warn-soft:#33281a; --row-hover:#1b2521; --chip:#202b27; color-scheme:dark;
+  --bg:#0f1513; --panel:#151d1a; --ink:#e3ebe7; --muted:#8fa199; --line:#26322d; --chip:#202b27; --row-hover:#1b2521;
+  --accent:#6fcfa5; --accent-soft:#183027; --warn:#e5b45c; --warn-soft:#33281a;
+  --n-person:#6fcfa5; --n-firm:#8ea8ff; --n-company:#f0a35c; --n-lp:#d68ef0;
+  --e-co:rgba(111,207,165,.6); --e-inv:rgba(240,163,92,.35); --e-knows:rgba(142,168,255,.4); --e-lp:rgba(214,142,240,.5);
+  color-scheme:dark;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 var(--f-body);
   padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
-header{padding-block:20px 0;max-width:1400px;margin:0 auto}
-h1{font:600 30px/1.1 var(--f-display);margin:0 0 4px;letter-spacing:-.01em;text-wrap:balance}
+header,main{max-width:1400px;margin:0 auto}
+header{padding-block:20px 0}
+h1{font:600 30px/1.1 var(--f-display);margin:0 0 4px;letter-spacing:-.01em}
 .sub{color:var(--muted);font:12px var(--f-data)}
-.date,.num,.count,nav .n{font-family:var(--f-data);font-size:12px}
-button:focus-visible,input:focus-visible,select:focus-visible,.pl:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-nav{display:flex;gap:4px;margin:18px 0 0;border-bottom:1px solid var(--line);overflow-x:auto}
-nav button{background:none;border:0;padding:10px 14px;font:inherit;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+nav{display:flex;gap:2px;margin-top:16px;border-bottom:1px solid var(--line);overflow-x:auto}
+nav button{background:none;border:0;padding:10px 12px;font:inherit;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
 nav button.on{color:var(--ink);border-bottom-color:var(--accent);font-weight:600}
-nav .n{font-size:11px;color:var(--muted);margin-left:4px;font-weight:400}
-main{max-width:1400px;margin:0 auto;padding-block:16px 48px}
-.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-.bar input,.bar select{font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
-.bar input{flex:1;min-width:200px}
-.count{color:var(--muted);font-size:12px;align-self:center}
+nav .n{font:11px var(--f-data);color:var(--muted);margin-left:5px}
+main{padding-block:14px 56px}
+.intro{color:var(--muted);font-size:13px;margin:0 0 12px;max-width:80ch}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.bar input[type=search],.bar select{font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
+.bar input[type=search]{flex:1;min-width:200px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--panel)}
+.seg button{border:0;background:none;padding:6px 11px;font:inherit;font-size:13px;color:var(--muted);cursor:pointer}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.tog{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--muted);cursor:pointer;user-select:none}
+.count{color:var(--muted);font:12px var(--f-data);margin-left:auto}
+.btn{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:6px;padding:6px 11px;cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.sm{padding:2px 8px;font-size:12px}
+.btn.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+.btn.no.on{background:var(--chip);color:var(--muted);border-color:var(--muted)}
+button:focus-visible,input:focus-visible,select:focus-visible,.pl:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
 .wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
 table{border-collapse:collapse;width:100%;font-size:13px}
 th{position:sticky;top:0;background:var(--panel);text-align:left;font-weight:600;font-size:12px;color:var(--muted);padding:9px 12px;border-bottom:1px solid var(--line);cursor:pointer;user-select:none;white-space:nowrap}
-th.sorted{color:var(--ink)}
-th .arr{font-size:10px;margin-left:3px}
+th.sorted{color:var(--ink)} th .arr{font-size:10px;margin-left:3px}
 td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
 tr:last-child td{border-bottom:0}
 tbody tr:hover{background:var(--row-hover)}
 tr.click{cursor:pointer}
-.name{font-weight:600;white-space:nowrap}
-.take{color:var(--muted);max-width:520px}
-.pill{display:inline-block;font:500 11px var(--f-data);padding:1px 7px;border-radius:999px;white-space:nowrap}
-.p-high{background:var(--accent-soft);color:var(--accent)}
-.p-medium{background:var(--warn-soft);color:var(--warn)}
-.p-low,.p-skip{background:var(--chip);color:var(--muted)}
-.ins{max-width:560px}
-.quote{max-width:560px;margin-top:4px;color:var(--muted);font-style:italic;font-size:12px}
-.chip{display:inline-block;background:var(--chip);border-radius:4px;padding:1px 6px;margin:0 3px 3px 0;font-size:11px;white-space:nowrap}
-.chip.link{cursor:pointer}
-.chip.link:hover{background:var(--accent-soft);color:var(--accent)}
-.num{text-align:right;font-variant-numeric:tabular-nums}
-.date{white-space:nowrap;font-variant-numeric:tabular-nums}
-a{color:var(--accent)}
+.name{font-weight:600}
 .muted{color:var(--muted)}
+.take{color:var(--muted);max-width:520px}
+.num,.date{font:12px var(--f-data);white-space:nowrap}
+.num{text-align:right}
+.chip{display:inline-block;background:var(--chip);border-radius:4px;padding:1px 6px;margin:0 3px 3px 0;font-size:11px;white-space:nowrap}
+.chip.link{cursor:pointer} .chip.link:hover{background:var(--accent-soft);color:var(--accent)}
+.pill{display:inline-block;font:500 11px var(--f-data);padding:1px 7px;border-radius:999px;white-space:nowrap}
+.p-high,.t-1{background:var(--accent-soft);color:var(--accent)}
+.p-medium,.t-2{background:var(--warn-soft);color:var(--warn)}
+.p-low,.p-skip,.t-3,.t-4,.t-5{background:var(--chip);color:var(--muted)}
+a{color:var(--accent)}
 .pl{color:var(--accent);cursor:pointer;font-weight:500}
 .pl:hover{text-decoration:underline}
-/* drawer */
-.scrim{position:fixed;inset:0;background:rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .15s}
+.more{display:block;margin:14px auto 0}
+
+.cards{display:grid;gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;min-width:0}
+.card h3{margin:0;font:600 17px/1.3 var(--f-display);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.card .crux{color:var(--muted);margin:6px 0 10px;max-width:90ch}
+.ins{border-top:1px solid var(--line);padding:9px 0 2px;display:grid;gap:3px;max-width:100ch}
+.ins .q{color:var(--muted);font-style:italic;font-size:13px}
+.ins .meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--muted)}
+.card .toggle{margin-top:8px}
+
+.gwrap{display:grid;grid-template-columns:1fr 340px;gap:12px;min-height:640px}
+#graph{position:relative;border:1px solid var(--line);border-radius:10px;background:var(--panel);overflow:hidden;min-height:640px;min-width:0}
+.gpanel{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:14px;overflow-y:auto;max-height:78vh;min-width:0}
+.gpanel h3{margin:0 0 4px;font:600 18px var(--f-display)}
+.gpanel h4{margin:14px 0 6px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.nb{display:grid;gap:2px;padding:6px 0;border-top:1px solid var(--line)}
+.nb .ev{font-size:12px;color:var(--muted)}
+.rank{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-top:1px solid var(--line);font-size:13px}
+.legend{position:absolute;left:10px;bottom:10px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--muted);display:grid;gap:3px}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.legend b{display:inline-block;width:16px;height:2px;margin-right:5px;vertical-align:3px}
+.gloading{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted)}
+
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .15s;z-index:4}
 .scrim.on{opacity:1;pointer-events:auto}
-aside{position:fixed;top:0;right:0;height:100%;width:min(760px,100%);background:var(--panel);border-left:1px solid var(--line);transform:translateX(100%);transition:transform .2s;overflow-y:auto;z-index:2}
+aside{position:fixed;top:0;right:0;height:100%;width:min(780px,100%);background:var(--panel);border-left:1px solid var(--line);transform:translateX(100%);transition:transform .2s;overflow-y:auto;z-index:5;
+  padding-top:env(safe-area-inset-top,0px);padding-right:env(safe-area-inset-right,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 aside.on{transform:none}
-aside{padding-top:env(safe-area-inset-top,0px);padding-right:env(safe-area-inset-right,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-aside .top{position:sticky;top:0;background:var(--panel);display:flex;justify-content:space-between;align-items:center;padding:12px 24px;border-bottom:1px solid var(--line)}
-aside .top button{font:inherit;background:var(--chip);border:0;border-radius:6px;padding:6px 10px;color:var(--ink);cursor:pointer}
-.md{padding:8px 28px 48px}
-.md h1{font:600 26px var(--f-display);margin:16px 0 8px;text-wrap:balance}
-.md{max-width:72ch}
+aside .top{position:sticky;top:0;background:var(--panel);display:flex;justify-content:space-between;align-items:center;padding:12px 24px;border-bottom:1px solid var(--line);z-index:1}
+.md{padding:8px 28px 48px;max-width:80ch}
+.md h1{font:600 26px var(--f-display);margin:16px 0 8px}
 .md h2{font-size:15px;margin:26px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--line)}
 .md table{font-size:12px;margin:8px 0;display:block;overflow-x:auto}
 .md th{position:static;cursor:default}
 .md td,.md th{padding:6px 8px;border:1px solid var(--line)}
 .md blockquote{margin:8px 0;padding:6px 12px;border-left:3px solid var(--line);color:var(--muted)}
 .md code{background:var(--chip);padding:1px 4px;border-radius:3px;font-size:12px}
-.md li{margin:3px 0}
-@media (max-width:640px){.md{padding:8px 16px 40px}.take{min-width:220px}aside .top{padding:12px 16px}}
-@media (prefers-reduced-motion: reduce){aside,.scrim{transition:none}}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}
+.toast.on{opacity:1}
+textarea.copy{width:100%;min-height:120px;font:12px var(--f-data);margin-top:8px}
+@media (max-width:860px){.gwrap{grid-template-columns:1fr}#graph{min-height:460px}.gpanel{max-height:none}}
+.btn.filt{display:none}
+@media (max-width:640px){
+  .md{padding:8px 16px 40px}aside .top{padding:12px 16px}
+  nav{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:3}
+  .btn.filt{display:inline-block}
+  .bar > :not(input[type=search]):not(.filt):not(.count){display:none}
+  .bar.open > *{display:revert}
+  .bar .count{margin-left:0;width:100%}
+  .wrap{border:0;background:none;overflow:visible}
+  .wrap table,.wrap tbody{display:block}
+  .wrap thead{display:none}
+  .wrap tr{display:block;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px}
+  .wrap td{display:block;position:relative;border:0;padding:3px 0 3px 100px;text-align:left;white-space:normal;overflow-wrap:anywhere;min-height:22px}
+  .wrap td::before{content:attr(data-label);position:absolute;left:0;top:5px;width:92px;color:var(--muted);font-size:11px}
+  .wrap td[data-label=""]{padding-left:0}
+  .wrap td[data-label=""]::before{display:none}
+  .wrap td .chip,.wrap td .date,.wrap td .num{white-space:normal}
+  .wrap td:empty{display:none}
+  .take{max-width:none}
+}
+@media (prefers-reduced-motion: reduce){aside,.scrim,.toast{transition:none}}
 </style>
+
 <header>
   <h1>Investing Aura</h1>
   <div class="sub" id="sub"></div>
   <nav id="tabs"></nav>
 </header>
-<main>
-  <div class="bar" id="bar"></div>
-  <div class="wrap"><table id="tbl"></table></div>
-</main>
+<main id="main"></main>
 <div class="scrim" id="scrim"></div>
-<aside id="drawer"><div class="top"><span class="muted" id="dpath"></span><button id="close">Close</button></div><div class="md" id="dbody"></div></aside>
+<aside id="drawer" aria-label="Details"><div class="top"><span class="muted" id="dpath"></span><button class="btn" id="close">Close</button></div><div class="md" id="dbody"></div></aside>
+<div class="toast" id="toast" role="status"></div>
 
 <script src="data.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
 <script>
-const A = window.AURA;
+const A = window.AURA, V = A.v;
+const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const slugify = s => String(s || "").toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const slugify = s => String(s || "").replace(/\(.*?\)/g, "").toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const DOCS = [...A.people, ...A.firms, ...A.lps, ...A.companies, ...A.sources, ...A.patterns];
-const bySlug = Object.fromEntries(DOCS.map(p => [p.slug, p]));
-const firmShort = f => (f || "").split(/[;(]/)[0].trim();
-const normCo = c => { c = (c || "").replace(/\(.*?\)/g, "").trim(); return ({"Anysphere": "Cursor"})[c] || c; };
-const link = (s, label) => { const d = bySlug[s] || bySlug[slugify(s)]; return d ? `<span class="pl" tabindex="0" data-open="${esc(d.slug)}">${esc(label || d.name)}</span>` : esc(label || s); };
-const src = u => u ? `<a href="${esc(u)}" target="_blank" rel="noopener">src</a>` : "";
+const bySlug = Object.fromEntries(DOCS.map(d => [d.slug, d]));
+const coBySlug = Object.fromEntries(V.cos.map(c => [c.slug, c]));
 const RANK = {high: 3, medium: 2, low: 1, skip: 0};
 const lvl = v => { const k = String(v || "").toLowerCase().split(/[^a-z]/)[0]; return k in RANK ? k : ""; };
-const pill = v => { const k = lvl(v); return k ? `<span class="pill p-${k}">${k}</span>` : `<span class="muted">${esc(v)}</span>`; };
+const pill = v => { const k = lvl(v); return k ? `<span class="pill p-${k}">${k}</span>` : ""; };
+const tierPill = c => `<span class="pill t-${c.tier}">${esc(c.tier_name)}</span>`;
+const firmShort = f => (f || "").split(/[;(]/)[0].trim();
 const clip = (s, n) => esc(String(s || "").slice(0, n)) + (String(s || "").length > n ? "…" : "");
+const KIND = {person: "Person", firm: "Fund", lp: "LP", company: "Company", source: "Source", pattern: "Pattern", other: "Other"};
+const link = (s, label) => {
+  const k = bySlug[s] ? s : bySlug[slugify(s)] ? slugify(s) : coBySlug[slugify(s)] ? slugify(s) : null;
+  const name = label || (k && (bySlug[k]?.name || coBySlug[k]?.name)) || s;
+  return k ? `<span class="pl" tabindex="0" data-open="${esc(k)}">${esc(name)}</span>` : esc(name);
+};
+const src = u => u ? `<a href="${esc(u)}" target="_blank" rel="noopener">source</a>` : "";
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("aura:" + k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("aura:" + k, JSON.stringify(v)); } catch {} },
+};
+function toast(m) { const t = $("toast"); t.textContent = m; t.classList.add("on"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("on"), 1800); }
 
-const TAG = Object.fromEntries((A.tags || []).map(t => [t.slug, t]));
-const ALIAS = {anysphere: "cursor"};
-const coSlug = c => { const s = slugify(normCo(c)); return ALIAS[s] || s; };
-const aiOf = slug => { const t = TAG[slug]; return t ? (t.is_ai === "yes" ? "AI" : "Non-AI") : "Untagged"; };
-const catOf = slug => TAG[slug]?.category || "";
-const companies = (() => {
-  const m = {};
-  for (const d of A.deals) {
-    const k = normCo(d.company); if (!k) continue;
-    (m[k] ||= {company: k, slug: coSlug(k), investors: new Set(), dates: [], rows: 0});
-    m[k].investors.add(d.investor_slug); m[k].rows++;
-    if (/^\d{4}/.test(d.date)) m[k].dates.push(d.date);
+function table(el, cols, rows, opts = {}) {
+  let sort = opts.sort || [cols[0].k, 1], limit = opts.limit || 400;
+  function draw() {
+    const [sk, dir] = sort, col = cols.find(c => c.k === sk) || {};
+    const val = r => col.v ? col.v(r) : r[sk];
+    const sorted = rows.slice().sort((a, b) => {
+      const x = val(a), y = val(b);
+      if (col.num) return ((Number(x) || 0) - (Number(y) || 0)) * dir;
+      const xs = String(x ?? ""), ys = String(y ?? "");
+      if (!xs && ys) return 1; if (xs && !ys) return -1;
+      return xs.localeCompare(ys) * dir;
+    });
+    const shown = sorted.slice(0, limit);
+    el.innerHTML = `<div class="wrap"><table><thead><tr>${cols.map(c => `<th data-k="${c.k}" class="${c.k === sk ? "sorted" : ""}${c.num ? " num" : ""}">${c.t}${c.k === sk ? `<span class="arr">${dir > 0 ? "▲" : "▼"}</span>` : ""}</th>`).join("")}</tr></thead><tbody>${
+      shown.map(r => `<tr class="${opts.open ? "click" : ""}"${opts.open ? ` data-open="${esc(opts.open(r))}"` : ""}>${cols.map(c => `<td class="${c.num ? "num" : ""}" data-label="${esc(c.t)}">${c.h ? c.h(r) : esc(r[c.k])}</td>`).join("")}</tr>`).join("")
+      || `<tr><td colspan="${cols.length}" class="muted">${esc(opts.empty || "No matches")}</td></tr>`}</tbody></table></div>` +
+      (sorted.length > limit ? `<button class="btn more" data-more="1">Show ${Math.min(400, sorted.length - limit)} more (${sorted.length - limit} hidden)</button>` : "");
+    el.querySelectorAll("th").forEach(th => th.onclick = () => {
+      const k = th.dataset.k; const c = cols.find(c => c.k === k);
+      sort = [k, sort[0] === k ? -sort[1] : (c.num ? -1 : 1)]; draw();
+    });
+    const m = el.querySelector("[data-more]"); if (m) m.onclick = () => { limit += 400; draw(); };
   }
-  for (const c of A.companies) if (!Object.values(m).some(x => x.slug === c.slug)) m[c.name] = {company: c.name, slug: c.slug, investors: new Set(), dates: [], rows: 0};
-  for (const r of (A.rounds || [])) if (!Object.values(m).some(x => x.slug === r.company_slug)) m[r.company_slug] = {company: bySlug[r.company_slug]?.name || r.company_slug, slug: r.company_slug, investors: new Set(), dates: [], rows: 0};
-  return Object.values(m).map(c => {
-    c.dates.sort();
-    const first = A.deals.filter(d => normCo(d.company) === c.company && d.date === c.dates[0]).map(d => d.investor_slug);
-    const rr = (A.rounds || []).filter(r => r.company_slug === c.slug);
-    const firms = new Set(rr.map(r => r.firm).filter(Boolean));
-    const rdates = rr.map(r => r.date).filter(d => /^\d{4}/.test(d)).sort();
-    const firstRound = rdates[0] ? rr.filter(r => r.date === rdates[0]).map(r => r.partner ? `${r.partner} (${r.firm})` : r.firm) : [];
-    return {...c, investors: [...c.investors], n: c.investors.size, first: rdates[0] || c.dates[0] || "", firstWho: [...new Set(first)], firstRound: [...new Set(firstRound)], firms: firms.size, roundsN: new Set(rr.map(r => r.round + r.date)).size, last: c.dates.at(-1) || "", note: !!bySlug[c.slug], ai: aiOf(c.slug), cat: catOf(c.slug)};
-  });
-})();
+  draw();
+}
+const seg = (id, opts, cur) => `<div class="seg" id="${id}">${opts.map(([v, l]) => `<button data-v="${esc(v)}" class="${v === cur ? "on" : ""}">${esc(l)}</button>`).join("")}</div>`;
+const sel = (id, label, opts, cur) => `<select id="${id}" aria-label="${esc(label)}"><option value="">${esc(label)}</option>${opts.map(o => `<option${o === cur ? " selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
+function onSeg(id, fn) { $(id).querySelectorAll("button").forEach(b => b.onclick = () => { $(id).querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); fn(b.dataset.v); }); }
 
-const fitCol = (k = "lens_fit", t = "Fit") => ({k, t, num: 1, v: r => RANK[lvl(r[k])] ?? -1, h: r => pill(r[k])});
-const VIEWS = {
-  insights: {
-    label: "Insights", rows: A.insights, search: r => Object.values(r).join(" "),
-    empty: "No insights yet. They appear here after the next research run is merged.",
-    filters: [
-      {label: "All types", val: r => r.type},
-      {label: "Any source", val: r => r.source_type},
-      {label: "Any fit", val: r => lvl(r.lens_fit)},
-    ],
-    cols: [
-      {k: "subject_slug", t: "About", h: r => `<span class="name">${link(r.subject_slug)}</span>`},
-      {k: "insight", t: "Insight", h: r => `<div class="ins">${esc(r.insight)}</div>${r.evidence_quote ? `<div class="quote">“${esc(r.evidence_quote)}”</div>` : ""}`},
-      {k: "type", t: "Type", h: r => `<span class="chip">${esc(r.type)}</span>`},
-      fitCol("non_obvious", "Non-obvious"),
-      fitCol("lens_fit", "Fit"),
-      fitCol("confidence", "Confidence"),
-      {k: "source_type", t: "Source", h: r => `<span class="muted">${esc(r.source_type)}</span> ${src(r.source_url)}${r.timestamp_in_source ? ` <span class="date muted">${esc(r.timestamp_in_source)}</span>` : ""}`},
-      {k: "derived_leads", t: "Leads", h: r => `<span class="muted">${esc(r.derived_leads)}</span>`},
-    ],
-    default: ["non_obvious", -1],
-  },
-  people: {
-    label: "People", rows: A.people, search: r => [r.name, r.firm, r.role, r.take, r.entity_type, ...r.tags].join(" "),
-    filters: [
-      {label: "All firms", val: r => firmShort(r.firm)},
-      {label: "All roles", val: r => r.entity_type},
-      {label: "Any fit", val: r => lvl(r.lens_fit)},
-    ],
-    cols: [
-      {k: "name", t: "Name", h: r => `<span class="name">${esc(r.name)}</span>`},
-      {k: "firm", t: "Firm", v: r => firmShort(r.firm), h: r => esc(firmShort(r.firm))},
-      {k: "entity_type", t: "Type", h: r => r.entity_type ? `<span class="chip">${esc(r.entity_type)}</span>` : ""},
-      fitCol(),
-      {k: "take", t: "Why follow", h: r => `<div class="take">${clip(r.take, 220)}</div>`},
-      {k: "insight_count", t: "Insights", num: 1},
-      {k: "deal_count", t: "Deals", num: 1},
-      {k: "hop", t: "Hop", num: 1, v: r => Number(r.hop) || 0, h: r => `<span class="num">${esc(r.hop)}</span>`},
-      {k: "surfaced_by", t: "Found via", h: r => `<span class="muted">${link(r.surfaced_by)}</span>`},
-    ],
-    open: r => r.slug, default: ["lens_fit", -1],
-  },
-  lps: {
-    label: "LPs", rows: A.lps, search: r => r.name + " " + r.body,
-    empty: "No LP profiles yet.",
-    filters: [{label: "Any fit", val: r => lvl(r.lens_fit)}],
-    cols: [
-      {k: "name", t: "Allocator", h: r => `<span class="name">${esc(r.name)}</span>`},
-      {k: "cio", t: "CIO", h: r => link(r.cio)},
-      {k: "aum", t: "AUM", h: r => `<span class="muted">${clip(r.aum, 50)}</span>`},
-      fitCol(),
-      {k: "take", t: "Take", h: r => `<div class="take">${clip(r.take, 220)}</div>`},
-      {k: "commit_count", t: "Managers", num: 1},
-      {k: "insight_count", t: "Insights", num: 1},
-    ],
-    open: r => r.slug, default: ["lens_fit", -1],
-  },
-  companies: {
-    label: "Companies", rows: companies, search: r => [r.company, ...r.investors].join(" "),
-    filters: [
-      {label: "AI and other", val: r => r.ai},
-      {label: "All categories", val: r => r.cat},
-      {label: "Any write-up", val: r => r.note ? "Has write-up" : "No write-up"},
-    ],
-    defaults: {0: "AI"},
-    cols: [
-      {k: "company", t: "Company", h: r => `<span class="name">${r.note ? link(r.slug, r.company) : esc(r.company)}</span>`},
-      {k: "cat", t: "Category", h: r => r.cat ? `<span class="chip">${esc(r.cat)}</span>` : ""},
-      {k: "roundsN", t: "Rounds", num: 1},
-      {k: "firms", t: "Firms", num: 1},
-      {k: "firstRound", t: "First round investors", v: r => r.firstRound.join(" "), h: r => `<div class="take">${esc(r.firstRound.join(", "))}</div>`},
-      {k: "n", t: "Our people", num: 1},
-      {k: "investors", t: "Who", v: r => r.investors.join(" "), h: r => r.investors.map(s => bySlug[s] ? `<span class="chip link" data-open="${esc(s)}">${esc(bySlug[s].name)}</span>` : `<span class="chip">${esc(s)}</span>`).join("")},
-      {k: "first", t: "Earliest round", h: r => `<span class="date">${esc(r.first)}</span>`},
-      {k: "firstWho", t: "First of ours", v: r => r.firstWho.join(" "), h: r => r.firstWho.map(s => link(s)).join(", ")},
-    ],
-    default: ["firms", -1],
-  },
-  syndicates: {
-    label: "Syndicates", rows: A.syn || [], search: r => [r.a, r.b, ...r.companies].join(" "),
-    empty: "No round data yet. Syndicates are computed from partner-level round maps once they're merged.",
-    filters: [
-      {label: "All link types", val: r => r.kind},
-      {label: "Any size", val: r => r.n >= 3 ? "3+ companies" : r.n === 2 ? "2 companies" : "1 company"},
-    ],
-    defaults: {0: "firm pair"},
-    cols: [
-      {k: "kind", t: "Link", h: r => `<span class="chip">${esc(r.kind)}</span>`},
-      {k: "a", t: "Investor A", h: r => `<span class="name">${esc(r.a)}</span>`},
-      {k: "b", t: "Investor B", h: r => `<span class="name">${r.kind === "hand-off" ? "→ " : ""}${esc(r.b)}</span>`},
-      {k: "n", t: "Companies", num: 1},
-      {k: "colead", t: "Co-leads", num: 1},
-      {k: "companies", t: "Where", v: r => r.companies.join(" "), h: r => r.companies.map(c => bySlug[c] ? `<span class="chip link" data-open="${esc(c)}">${esc(bySlug[c].name)}</span>` : `<span class="chip">${esc(c)}</span>`).join("")},
-      {k: "first", t: "First together", h: r => `<span class="date">${esc(r.first)}</span>`},
-    ],
-    default: ["n", -1],
-  },
-  leads: {
-    label: "Leads", rows: A.leads, search: r => Object.values(r).join(" "),
-    empty: "No leads yet.",
-    filters: [
-      {label: "All kinds", val: r => r.entity_type},
-      {label: "Any fit", val: r => lvl(r.lens_fit)},
-      {label: "Any status", val: r => r.status},
-    ],
-    cols: [
-      {k: "name", t: "Lead", h: r => `<span class="name">${link(r.slug || r.name, r.name)}</span>`},
-      {k: "entity_type", t: "Kind", h: r => `<span class="chip">${esc(r.entity_type)}</span>`},
-      fitCol(),
-      {k: "status", t: "Status", h: r => `<span class="muted">${esc(r.status)}</span>`},
-      {k: "why", t: "Why", h: r => `<div class="take">${esc(r.why)}</div>`},
-      {k: "surfaced_by", t: "Found via", h: r => link(r.surfaced_by)},
-      {k: "hop_depth", t: "Hop", num: 1, v: r => Number(r.hop_depth) || 0},
-      {k: "surfaced_from_url", t: "", h: r => src(r.surfaced_from_url)},
-    ],
-    default: ["lens_fit", -1],
-  },
-  deals: {
-    label: "Deals", rows: A.deals, search: r => Object.values(r).join(" "),
-    filters: [
-      {label: "AI and other", val: r => aiOf(coSlug(r.company))},
-      {label: "All investors", val: r => bySlug[r.investor_slug]?.name || r.investor_slug},
-    ],
-    defaults: {0: "AI"},
-    cols: [
-      {k: "date", t: "Date", h: r => `<span class="date">${esc(r.date)}</span>`},
-      {k: "company", t: "Company", h: r => `<span class="name">${link(coSlug(r.company), r.company)}</span>`},
-      {k: "category", t: "Category", v: r => catOf(coSlug(r.company)), h: r => catOf(coSlug(r.company)) ? `<span class="chip">${esc(catOf(coSlug(r.company)))}</span>` : ""},
-      {k: "investor_slug", t: "Investor", h: r => link(r.investor_slug)},
-      {k: "round", t: "Round"},
-      {k: "led", t: "Led?", h: r => `<span class="muted">${esc(r.led)}</span>`},
-      {k: "co_investors", t: "Co-investors", h: r => `<span class="muted">${esc(r.co_investors)}</span>`},
-      {k: "notes", t: "Notes", h: r => `<div class="take">${esc(r.notes)}</div>`},
-      {k: "source_url", t: "", h: r => src(r.source_url)},
-    ],
-    default: ["date", -1],
-  },
-  rels: {
-    label: "Relationships", rows: A.rels, search: r => Object.values(r).join(" "),
-    filters: [{label: "All people", val: r => bySlug[r.from_slug]?.name || r.from_slug}],
-    cols: [
-      {k: "from_slug", t: "Person", h: r => link(r.from_slug)},
-      {k: "to_slug_or_name", t: "Connected to", h: r => `<span class="name">${link(r.to_slug_or_name)}</span>`},
-      {k: "relationship", t: "Relationship"},
-      {k: "since", t: "Since", h: r => `<span class="date">${esc(r.since)}</span>`},
-      {k: "until", t: "Until", h: r => `<span class="date muted">${esc(r.until)}</span>`},
-      {k: "notes", t: "Notes", h: r => `<div class="take">${esc(r.notes)}</div>`},
-      {k: "source_url", t: "", h: r => src(r.source_url)},
-    ],
-    default: ["since", -1],
-  },
-  notes: {
-    label: "Firms, sources & patterns", rows: [...A.patterns, ...A.sources, ...A.firms], search: r => r.name + " " + r.body,
-    filters: [{label: "All kinds", val: r => r.kind}],
-    cols: [
-      {k: "kind", t: "Kind", h: r => `<span class="chip">${esc(r.kind)}</span>`},
-      {k: "name", t: "Title", v: r => r.name, h: r => `<span class="name">${esc(r.name || r.slug)}</span>`},
-      fitCol(),
-      {k: "take", t: "Take", h: r => `<div class="take">${clip(r.take, 200)}</div>`},
-      {k: "path", t: "File", h: r => `<span class="muted">${esc(r.path)}</span>`},
-    ],
-    open: r => r.slug, default: ["kind", 1],
+const ST = store.get("state", {});
+const S = (k, d) => (ST[k] ??= d);
+const save = () => store.set("state", ST);
+const VIEWS = {};
+
+VIEWS.brief = {
+  label: "Brief", n: V.cards.length,
+  render(m) {
+    const kinds = [["", "All"], ["person", "People"], ["firm", "Funds"], ["lp", "LPs"], ["company", "Companies"]];
+    const fitR = c => RANK[c.fit] ?? 1;
+    const ordered = V.cards.slice().sort((a, b) => (fitR(b) * 2 + b.score) - (fitR(a) * 2 + a.score) || b.n - a.n);
+    m.innerHTML = `<p class="intro">One card per person, fund, LP or company. Cards are ordered by fit with your lens, then by how non-obvious their insights are. Within a card, the most non-obvious insights come first. Every insight carries a verbatim quote and a source.</p>
+      <div class="bar"><input type="search" id="bq" placeholder="Search people, funds, insights…" value="${esc(S("bq", ""))}">
+      ${seg("bk", kinds, S("bk", ""))}
+      ${sel("bf", "Any fit", ["high", "medium", "low"], S("bf", ""))}
+      ${sel("bs", "Any source", [...new Set(A.insights.map(i => i.source_type).filter(Boolean))].sort(), S("bs", ""))}
+      <span class="count" id="bc"></span></div><div class="cards" id="cards"></div>`;
+    let limit = 30;
+    const draw = () => {
+      const q = ST.bq.toLowerCase();
+      const cards = ordered.filter(c =>
+        (!ST.bk || c.kind === ST.bk) && (!ST.bf || c.fit === ST.bf) &&
+        (!ST.bs || c.items.some(i => i.source_type === ST.bs)) &&
+        (!q || (c.name + " " + c.crux + " " + c.items.map(i => i.insight + " " + i.evidence_quote).join(" ")).toLowerCase().includes(q)));
+      $("bc").textContent = `${cards.length} of ${V.cards.length}`;
+      $("cards").innerHTML = cards.slice(0, limit).map(c => {
+        const items = c.items.filter(i => !ST.bs || i.source_type === ST.bs);
+        const ins = i => `<div class="ins"><div>${esc(i.insight)}</div>${i.evidence_quote ? `<div class="q">“${esc(i.evidence_quote)}”</div>` : ""}
+          <div class="meta"><span class="chip">${esc(i.type)}</span>${i.non_obvious ? `non-obvious ${pill(i.non_obvious)}` : ""}<span>${esc(i.source_type)}${i.timestamp_in_source ? " · " + esc(i.timestamp_in_source) : ""}</span>${src(i.source_url)}</div></div>`;
+        return `<article class="card"><h3>${link(c.slug, c.name)} <span class="chip">${KIND[c.kind] || c.kind}</span>${pill(c.fit)}<span class="muted num">${items.length} insight${items.length === 1 ? "" : "s"}</span></h3>
+          ${c.crux ? `<div class="crux">${clip(c.crux, 360)}</div>` : ""}
+          ${items.slice(0, 3).map(ins).join("")}
+          ${items.length > 3 ? `<div class="rest" hidden>${items.slice(3).map(ins).join("")}</div><button class="btn sm toggle" data-n="${items.length - 3}">Show ${items.length - 3} more</button>` : ""}</article>`;
+      }).join("") + (cards.length > limit ? `<button class="btn more" id="cmore">Show more cards</button>` : "");
+      $("cards").querySelectorAll(".toggle").forEach(b => b.onclick = () => {
+        const r = b.previousElementSibling; r.hidden = !r.hidden; b.textContent = r.hidden ? `Show ${b.dataset.n} more` : "Show fewer";
+      });
+      const cm = $("cmore"); if (cm) cm.onclick = () => { limit += 30; draw(); };
+      save();
+    };
+    $("bq").oninput = e => { ST.bq = e.target.value; limit = 30; draw(); };
+    onSeg("bk", v => { ST.bk = v; limit = 30; draw(); });
+    $("bf").onchange = e => { ST.bf = e.target.value; draw(); };
+    $("bs").onchange = e => { ST.bs = e.target.value; draw(); };
+    draw();
   },
 };
 
-let view = "insights", q = "", fsel = {...(VIEWS.insights.defaults || {})}, sort = null;
-const state = {};
+VIEWS.people = {
+  label: "People", n: A.people.length,
+  render(m) {
+    m.innerHTML = `<div class="bar"><input type="search" id="pq" placeholder="Search people…" value="${esc(S("pq", ""))}">
+      ${sel("pf", "All firms", [...new Set(A.people.map(p => firmShort(p.firm)))].filter(Boolean).sort(), S("pf", ""))}
+      ${sel("pt", "All roles", [...new Set(A.people.map(p => p.entity_type))].filter(Boolean).sort(), S("pt", ""))}
+      ${sel("pfit", "Any fit", ["high", "medium", "low"], S("pfit", ""))}<span class="count" id="pc"></span></div><div id="pt-t"></div>`;
+    const gn = Object.fromEntries(V.graph.nodes.map(n => [n.id, n]));
+    const draw = () => {
+      const q = ST.pq.toLowerCase();
+      const rows = A.people.filter(p => (!q || [p.name, p.firm, p.role, p.crux, p.take, ...(p.tags || [])].join(" ").toLowerCase().includes(q))
+        && (!ST.pf || firmShort(p.firm) === ST.pf) && (!ST.pt || p.entity_type === ST.pt) && (!ST.pfit || lvl(p.lens_fit) === ST.pfit));
+      $("pc").textContent = `${rows.length} of ${A.people.length}`;
+      table($("pt-t"), [
+        {k: "name", t: "Name", h: r => `<span class="name">${esc(r.name)}</span><div class="muted">${esc(firmShort(r.firm))}</div>`},
+        {k: "lens_fit", t: "Fit", num: 1, v: r => RANK[lvl(r.lens_fit)] ?? -1, h: r => pill(r.lens_fit)},
+        {k: "entity_type", t: "Role", h: r => r.entity_type ? `<span class="chip">${esc(r.entity_type)}</span>` : ""},
+        {k: "crux", t: "Crux", h: r => `<div class="take">${clip(r.crux || r.take, 260)}</div>`},
+        {k: "strong", t: "Deal links", num: 1, v: r => gn[r.slug]?.strong || 0, h: r => `<span class="num">${gn[r.slug]?.strong || 0}</span>`},
+        {k: "insight_count", t: "Insights", num: 1},
+        {k: "surfaced_by", t: "Found via", h: r => `<span class="muted">${link(r.surfaced_by)}</span>`},
+      ], rows, {open: r => r.slug, sort: ["lens_fit", -1]});
+      save();
+    };
+    $("pq").oninput = e => { ST.pq = e.target.value; draw(); };
+    ["pf", "pt", "pfit"].forEach(id => $(id).onchange = e => { ST[id] = e.target.value; draw(); });
+    draw();
+  },
+};
 
-function render() {
-  const V = VIEWS[view];
-  sort ||= V.default;
-  const sel = V.filters.map((f, i) => {
-    const opts = [...new Set(V.rows.map(f.val))].filter(Boolean).sort();
-    if (fsel[i] && !opts.includes(fsel[i])) delete fsel[i];
-    return `<select id="f${i}" aria-label="${esc(f.label)}"><option value="">${esc(f.label)}</option>${opts.map(o => `<option${o === fsel[i] ? " selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
-  }).join("");
-  document.getElementById("bar").innerHTML =
-    `<input id="q" placeholder="Search ${V.label.toLowerCase()}…" value="${esc(q)}">${sel}<span class="count" id="count"></span>`;
-  document.getElementById("q").oninput = e => { q = e.target.value; body(); };
-  V.filters.forEach((f, i) => document.getElementById("f" + i).onchange = e => { fsel[i] = e.target.value; body(); });
-  body();
+VIEWS.companies = {
+  label: "Companies", n: V.cos.filter(c => c.tier <= 2).length,
+  render(m) {
+    const tiers = [[1, "Frontier"], [2, "Applied AI"], [3, "AI apps"], [4, "Untagged"], [5, "Non-AI"]];
+    const on = S("ct", [1, 2]);
+    m.innerHTML = `<p class="intro">One row per company. <b>Frontier</b> means labs, pre-training, AI chips and compute. <b>Applied AI</b> means automation, robotics and bio. AI apps (like Gumloop), untagged and non-AI companies are hidden until you switch them on. Click a company for its round-by-round history.</p>
+      <div class="bar"><input type="search" id="cq" placeholder="Search companies or investors…" value="${esc(S("cq", ""))}">
+      ${tiers.map(([t, l]) => `<button class="btn sm${on.includes(t) ? " on" : ""}" data-t="${t}">${l} <span class="num">${V.cos.filter(c => c.tier === t).length}</span></button>`).join("")}
+      <span class="count" id="cc"></span></div><div id="ct-t"></div>`;
+    const draw = () => {
+      const q = ST.cq.toLowerCase();
+      const rows = V.cos.filter(c => ST.ct.includes(c.tier) && (!q || (c.name + " " + c.rounds.map(r => r.leads.join(" ") + " " + r.others.join(" ")).join(" ")).toLowerCase().includes(q)));
+      $("cc").textContent = `${rows.length} shown`;
+      table($("ct-t"), [
+        {k: "name", t: "Company", h: r => `<span class="name">${esc(r.name)}</span>${r.note ? ` <span class="chip">write-up</span>` : ""}`},
+        {k: "tier", t: "Tier", num: 1, v: r => -r.tier, h: r => tierPill(r) + (r.category && r.category !== "non-ai" ? `<div class="muted">${esc(r.category)}</div>` : "")},
+        {k: "first", t: "First round", h: r => `<span class="date">${esc(r.first)}</span>`},
+        {k: "first_in", t: "First in", v: r => r.first_in.join(" "), h: r => `<span class="muted">${esc(r.first_in.join(", "))}</span>`},
+        {k: "latest", t: "Latest", h: r => `<span class="muted">${esc(r.latest)}</span>`},
+        {k: "n_rounds", t: "Rounds", num: 1},
+        {k: "people", t: "People we profiled", v: r => r.people.length, h: r => r.people.map(s => `<span class="chip link" data-open="${esc(s)}">${esc(bySlug[s]?.name || s)}</span>`).join("")},
+      ], rows, {open: r => "co:" + r.slug, sort: ["tier", -1], empty: "No companies in the selected tiers."});
+      save();
+    };
+    $("cq").oninput = e => { ST.cq = e.target.value; draw(); };
+    m.querySelectorAll("[data-t]").forEach(b => b.onclick = () => {
+      const t = +b.dataset.t; ST.ct = ST.ct.includes(t) ? ST.ct.filter(x => x !== t) : [...ST.ct, t]; b.classList.toggle("on"); draw();
+    });
+    draw();
+  },
+};
+
+VIEWS.coinvest = {
+  label: "Co-investors", n: (A.syn || []).filter(s => s.kind === "partner pair").length,
+  render(m) {
+    const syn = (A.syn || []).filter(s => s.n >= (s.kind === "hand-off" ? 1 : 2));
+    const kinds = [["firm pair", "Firms"], ["partner pair", "Partners"], ["hand-off", "Lead hand-offs"], ["angel pair", "Angels"]];
+    m.innerHTML = `<p class="intro">Who moves together. A pair shows up here when both invested in the same funding round at two or more companies. <b>Partners</b> are named people, <b>Firms</b> are whole firms, and <b>Lead hand-offs</b> mean one firm led a round and the other led the next one. Based on partner-level round maps for ${new Set(A.rounds.map(r => r.company_slug)).size} AI companies.${bySlug["co-investor-gangs"] ? ` <span class="pl" tabindex="0" data-open="co-investor-gangs">Read the findings in plain language</span>.` : ""}</p>
+      <div class="bar"><input type="search" id="sq" placeholder="Search a person or firm…" value="${esc(S("sq", ""))}">${seg("sk", kinds, S("sk", "firm pair"))}
+      <label class="tog"><input type="checkbox" id="sf" ${S("sf", true) ? "checked" : ""}> Frontier and applied AI only</label><span class="count" id="sc"></span></div><p class="intro" id="snote"></p><div id="st-t"></div>`;
+    const draw = () => {
+      const q = ST.sq.toLowerCase();
+      const rows = syn.filter(s => s.kind === ST.sk && (!q || (s.a + " " + s.b).toLowerCase().includes(q)))
+        .map(s => ({...s, cos: s.companies.filter(c => !ST.sf || (coBySlug[c]?.tier ?? 9) <= 2)})).filter(s => !ST.sf || s.cos.length >= (ST.sk === "hand-off" ? 1 : 2));
+      $("sc").textContent = `${rows.length} ${ST.sk === "hand-off" ? "hand-offs" : "pairs"}`;
+      $("snote").textContent = ST.sk === "partner pair" ? "Few named partners overlap at two or more companies so far. Most rounds name a firm but not the partner, so this list grows as round maps add partner names." : "";
+      table($("st-t"), [
+        {k: "a", t: ST.sk === "hand-off" ? "Led one round" : "Investor", h: r => `<span class="name">${link(r.a.replace(/\s*\(.*\)$/, ""), r.a)}</span>`},
+        {k: "b", t: ST.sk === "hand-off" ? "Led the next" : "Investor", h: r => `<span class="name">${link(r.b.replace(/\s*\(.*\)$/, ""), r.b)}</span>`},
+        {k: "n", t: "Companies together", num: 1, v: r => r.cos.length, h: r => `<span class="num">${r.cos.length}</span>`},
+        {k: "colead", t: "Co-led", num: 1},
+        {k: "cos", t: "Where", v: r => r.cos.join(" "), h: r => r.cos.map(c => `<span class="chip link" data-open="co:${esc(c)}">${esc(coBySlug[c]?.name || c)}</span>`).join("")},
+        {k: "first", t: "First together", h: r => `<span class="date">${esc(r.first)}</span>`},
+      ], rows, {sort: ["n", -1], empty: "No pairs match."});
+      save();
+    };
+    $("sq").oninput = e => { ST.sq = e.target.value; draw(); };
+    onSeg("sk", v => { ST.sk = v; draw(); });
+    $("sf").onchange = e => { ST.sf = e.target.checked; draw(); };
+    draw();
+  },
+};
+
+VIEWS.graph = { label: "Graph", n: V.graph.nodes.length, render: m => renderGraph(m) };
+
+VIEWS.leads = {
+  label: "Leads", n: V.leadrows.filter(l => !l.profiled).length,
+  render(m) {
+    const kinds = [["person", "People"], ["firm", "Funds"], ["lp", "LPs"], ["company", "Companies"]];
+    const tri = store.get("triage", {});
+    m.innerHTML = `<p class="intro">Names our sources mentioned that we haven't profiled yet, merged so each appears once. Mark <b>Keep</b> or <b>Skip</b>, then copy your picks and paste them to Claude to steer the next research run. Picks are saved in this browser only.</p>
+      <div class="bar"><input type="search" id="lq" placeholder="Search leads…" value="${esc(S("lq", ""))}">${seg("lk", kinds, S("lk", "person"))}
+      ${sel("lf", "Any fit", ["high", "medium", "low", "skip"], S("lf", ""))}
+      ${sel("lt", "Any pick", ["Keep", "Skip", "Not picked"], S("lt", ""))}
+      <label class="tog"><input type="checkbox" id="lp" ${S("lp", true) ? "checked" : ""}> Hide profiled</label>
+      <button class="btn" id="lcopy">Copy my picks</button><span class="count" id="lc"></span></div><div id="lcopybox"></div><div id="lt-t"></div>`;
+    const draw = () => {
+      const q = ST.lq.toLowerCase();
+      const rows = V.leadrows.filter(l => l.kind === ST.lk && (!ST.lp || !l.profiled) && (!ST.lf || l.fit === ST.lf)
+        && (!ST.lt || (ST.lt === "Not picked" ? !tri[l.slug] : tri[l.slug] === ST.lt.toLowerCase()))
+        && (ST.lk !== "company" || l.tier <= 3 || ST.lf === "skip")
+        && (!q || (l.name + " " + l.whys.join(" ") + " " + l.via.join(" ")).toLowerCase().includes(q)));
+      $("lc").textContent = `${rows.length} ${KIND[ST.lk].toLowerCase()} leads`;
+      table($("lt-t"), [
+        {k: "name", t: "Lead", h: r => `<span class="name">${link(r.slug, r.name)}</span>${r.profiled ? ` <span class="chip">profiled</span>` : ""}${r.kind === "company" && coBySlug[r.slug] ? " " + tierPill(coBySlug[r.slug]) : ""}`},
+        {k: "fit", t: "Fit", num: 1, v: r => RANK[r.fit] ?? -1, h: r => pill(r.fit)},
+        {k: "n_via", t: "Mentioned by", num: 1, h: r => `<span class="num">${r.n_via}</span>`},
+        {k: "whys", t: "Why it came up", v: r => r.whys[0], h: r => `<div class="take">${clip(r.whys[0], 220)}</div>`},
+        {k: "via", t: "Found via", v: r => r.via.join(" "), h: r => r.via.slice(0, 3).map(s => `<span class="chip">${link(s)}</span>`).join("") + (r.via.length > 3 ? `<span class="muted">+${r.via.length - 3}</span>` : "")},
+        {k: "pick", t: "Your pick", v: r => tri[r.slug] || "", h: r => `<span style="white-space:nowrap"><button class="btn sm${tri[r.slug] === "keep" ? " on" : ""}" data-pick="keep" data-s="${esc(r.slug)}">Keep</button> <button class="btn sm no${tri[r.slug] === "skip" ? " on" : ""}" data-pick="skip" data-s="${esc(r.slug)}">Skip</button></span>`},
+      ], rows, {sort: ["fit", -1], limit: 200, empty: "No leads match."});
+      save();
+    };
+    $("lt-t").addEventListener("click", e => {
+      const b = e.target.closest("[data-pick]"); if (!b) return;
+      e.stopPropagation();
+      const s = b.dataset.s; if (tri[s] === b.dataset.pick) delete tri[s]; else tri[s] = b.dataset.pick;
+      store.set("triage", tri); draw();
+    });
+    $("lcopy").onclick = async () => {
+      const name = s => V.leadrows.find(l => l.slug === s)?.name || s;
+      const keep = Object.keys(tri).filter(s => tri[s] === "keep").map(name), skip = Object.keys(tri).filter(s => tri[s] === "skip").map(name);
+      const text = `Investing Aura lead picks\nKeep (research next): ${keep.join("; ") || "none"}\nSkip (not my type): ${skip.join("; ") || "none"}`;
+      try { await navigator.clipboard.writeText(text); toast("Picks copied"); }
+      catch { $("lcopybox").innerHTML = `<textarea class="copy" readonly>${esc(text)}</textarea>`; $("lcopybox").querySelector("textarea").select(); toast("Select and copy the text below"); }
+    };
+    $("lq").oninput = e => { ST.lq = e.target.value; draw(); };
+    onSeg("lk", v => { ST.lk = v; draw(); });
+    ["lf", "lt"].forEach(id => $(id).onchange = e => { ST[id] = e.target.value; draw(); });
+    $("lp").onchange = e => { ST.lp = e.target.checked; draw(); };
+    draw();
+  },
+};
+
+VIEWS.lps = {
+  label: "LPs", n: A.lps.length,
+  render(m) {
+    m.innerHTML = `<p class="intro">Endowments and allocators: how they size commitments, which managers they back, and whether they'd back an early-stage frontier-AI manager.</p><div id="lp-t"></div>`;
+    table($("lp-t"), [
+      {k: "name", t: "Allocator", h: r => `<span class="name">${esc(r.name)}</span>`},
+      {k: "lens_fit", t: "Fit for you", num: 1, v: r => RANK[lvl(r.lens_fit)] ?? -1, h: r => pill(r.lens_fit)},
+      {k: "cio", t: "CIO", h: r => link(r.cio)},
+      {k: "crux", t: "How they decide", h: r => `<div class="take">${clip(r.crux || r.take, 280)}</div>`},
+      {k: "commit_count", t: "Managers", num: 1},
+      {k: "insight_count", t: "Insights", num: 1},
+    ], A.lps, {open: r => r.slug, sort: ["lens_fit", -1]});
+  },
+};
+
+VIEWS.library = {
+  label: "Library", n: A.firms.length + A.sources.length + A.patterns.length,
+  render(m) {
+    const rows = [...A.patterns, ...A.firms, ...A.sources];
+    m.innerHTML = `<div class="bar">${seg("yk", [["", "All"], ["pattern", "Patterns"], ["firm", "Funds"], ["source", "Sources"]], S("yk", ""))}<span class="count" id="yc"></span></div><div id="y-t"></div>`;
+    const draw = () => {
+      const r = rows.filter(d => !ST.yk || d.kind === ST.yk);
+      $("yc").textContent = `${r.length} documents`;
+      table($("y-t"), [
+        {k: "kind", t: "Kind", h: r => `<span class="chip">${KIND[r.kind] || r.kind}</span>`},
+        {k: "name", t: "Title", h: r => `<span class="name">${esc(r.name)}</span>`},
+        {k: "lens_fit", t: "Fit", num: 1, v: r => RANK[lvl(r.lens_fit)] ?? -1, h: r => pill(r.lens_fit)},
+        {k: "crux", t: "Summary", h: r => `<div class="take">${clip(r.crux || r.take, 240)}</div>`},
+      ], r, {open: r => r.slug, sort: ["kind", 1]});
+      save();
+    };
+    onSeg("yk", v => { ST.yk = v; draw(); });
+    draw();
+  },
+};
+
+VIEWS.raw = {
+  label: "Raw data", n: "",
+  render(m) {
+    const sets = {
+      deals: {rows: A.deals, cols: ["date", "company", "investor_slug", "round", "led", "co_investors", "source_url"]},
+      rounds: {rows: A.rounds, cols: ["date", "company", "round", "amount", "firm", "partner", "role", "source_url"]},
+      relationships: {rows: A.rels, cols: ["from_slug", "to_slug_or_name", "relationship", "since", "until", "source_url"]},
+      insights: {rows: A.insights, cols: ["subject_slug", "insight", "type", "non_obvious", "lens_fit", "source_type", "source_url"]},
+      lp_commitments: {rows: A.lpc, cols: ["lp_slug", "manager_or_fund", "status", "since", "detail", "source_url"]},
+    };
+    m.innerHTML = `<p class="intro">The underlying ledgers, for checking a fact against its source.</p><div class="bar">${seg("rk", Object.keys(sets).map(k => [k, k.replace("_", " ")]), S("rk", "deals"))}<input type="search" id="rq" placeholder="Search…" value="${esc(S("rq", ""))}"><span class="count" id="rc"></span></div><div id="r-t"></div>`;
+    const draw = () => {
+      const s = sets[ST.rk], q = ST.rq.toLowerCase();
+      const rows = s.rows.filter(r => !q || Object.values(r).join(" ").toLowerCase().includes(q));
+      $("rc").textContent = `${rows.length} rows`;
+      table($("r-t"), s.cols.map(c => ({k: c, t: c.replace(/_/g, " "), h: c === "source_url" ? (r => src(r[c])) : (r => c.endsWith("slug") ? link(r[c]) : `<span class="${c === "date" || c === "since" ? "date" : ""}">${clip(r[c], 220)}</span>`)})), rows, {sort: [s.cols[0], s.cols[0] === "date" ? -1 : 1]});
+      save();
+    };
+    onSeg("rk", v => { ST.rk = v; draw(); });
+    $("rq").oninput = e => { ST.rq = e.target.value; draw(); };
+    draw();
+  },
+};
+
+let FG = null;
+function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+function renderGraph(m) {
+  const G = V.graph;
+  m.innerHTML = `<p class="intro">Connections weighted by evidence. <b>Co-invested in the same round</b> counts most, then <b>invested in the company</b>, then <b>LP in a fund</b>, then <b>worked together or knows</b>. Node size is deal links (co-investing and investing only), so someone with lots of relationship notes but few shared deals stays small. Click anyone to see only their connections and the evidence for each.</p>
+    <div class="bar"><input type="search" id="gq" list="gnames" placeholder="Find a person, fund, LP or company…"><datalist id="gnames">${G.nodes.map(n => `<option value="${esc(n.name)}">`).join("")}</datalist>
+    <label class="tog"><input type="checkbox" id="gk" checked> Co-invested</label>
+    <label class="tog"><input type="checkbox" id="gi" checked> Invested</label>
+    <label class="tog"><input type="checkbox" id="gl" checked> LP</label>
+    <label class="tog"><input type="checkbox" id="gr"> Knows</label>
+    <label class="tog"><input type="checkbox" id="ga"> Include AI apps</label>
+    <button class="btn" id="greset">Show everyone</button></div>
+    <div class="gwrap"><div id="graph"><div class="gloading">Loading graph…</div>
+      <div class="legend"><span><i style="background:var(--n-person)"></i>Person <i style="background:var(--n-firm)"></i>Fund <i style="background:var(--n-lp)"></i>LP <i style="background:var(--n-company)"></i>Company</span>
+      <span><b style="background:var(--e-co)"></b>co-invested <b style="background:var(--e-inv)"></b>invested <b style="background:var(--e-lp)"></b>LP <b style="background:var(--e-knows)"></b>knows</span>
+      <span>Outlined nodes have a full profile</span></div></div>
+    <div class="gpanel" id="gpanel"></div></div>`;
+  if (!window.ForceGraph) { $("graph").querySelector(".gloading").textContent = "The graph library didn't load. Check your connection and reload."; return; }
+  const nodeById = Object.fromEntries(G.nodes.map(n => [n.id, n]));
+  const rankStrong = G.nodes.filter(n => n.kind === "person").sort((a, b) => b.strong - a.strong);
+  const posOf = id => rankStrong.findIndex(n => n.id === id) + 1;
+  const size = n => Math.sqrt(1 + Math.sqrt(n.strong || n.deg || 1) * 1.6) * 4;
+  let focus = null, hover = null, hoverSet = new Set(), labelCut = 0;
+  const types = () => ({"co-invested": $("gk").checked, invested: $("gi").checked, lp: $("gl").checked, knows: $("gr").checked});
+  function data() {
+    const t = types(), apps = $("ga").checked;
+    const okNode = n => n && (n.kind !== "company" || (n.tier || 9) <= (apps ? 3 : 2));
+    let edges = G.edges.filter(e => e.types.some(x => t[x]) && okNode(nodeById[e.source]) && okNode(nodeById[e.target]));
+    let ids;
+    if (focus) {
+      edges = edges.filter(e => e.source === focus || e.target === focus);
+      ids = new Set([focus, ...edges.flatMap(e => [e.source, e.target])]);
+    } else {
+      const deg = {}; edges.forEach(e => { deg[e.source] = (deg[e.source] || 0) + e.w; deg[e.target] = (deg[e.target] || 0) + e.w; });
+      ids = new Set(Object.entries(deg).sort((a, b) => b[1] - a[1]).slice(0, 90).map(x => x[0]));
+      edges = edges.filter(e => ids.has(e.source) && ids.has(e.target));
+    }
+    return {nodes: [...ids].map(id => ({...nodeById[id]})), links: edges.map(e => ({...e}))};
+  }
+  const col = k => css({person: "--n-person", firm: "--n-firm", lp: "--n-lp", company: "--n-company"}[k] || "--muted");
+  const ecol = e => css(e.types.includes("co-invested") ? "--e-co" : e.types.includes("invested") ? "--e-inv" : e.types.includes("lp") ? "--e-lp" : "--e-knows");
+  const el = $("graph");
+  el.querySelector(".gloading").remove();
+  const font = css("--f-body") || "sans-serif";
+  FG = ForceGraph()(el)
+    .width(el.clientWidth).height(el.clientHeight)
+    .backgroundColor("rgba(0,0,0,0)")
+    .nodeId("id").linkSource("source").linkTarget("target")
+    .nodeLabel(n => `${esc(n.name)} · ${KIND[n.kind]}${n.kind === "person" && n.strong ? ` · ${n.strong} deal links` : ""}`)
+    .linkColor(ecol)
+    .linkWidth(e => Math.min(6, 0.6 + Math.sqrt(e.w)))
+    .linkLabel(e => e.ev.map(esc).join("<br>"))
+    .nodeCanvasObject((n, ctx, scale) => {
+      const r = size(n);
+      const dim = hover && hover !== n.id && !hoverSet.has(n.id);
+      ctx.globalAlpha = dim ? 0.15 : 1;
+      ctx.beginPath(); ctx.arc(n.x, n.y, r, 0, 2 * Math.PI); ctx.fillStyle = col(n.kind); ctx.fill();
+      if (n.profiled) { ctx.lineWidth = 1.5 / scale; ctx.strokeStyle = css("--ink"); ctx.stroke(); }
+      const show = focus || scale > 2.2 || (n.strong || n.deg) >= labelCut || n.id === hover || hoverSet.has(n.id);
+      if (show && !dim) {
+        const fs = Math.max(11 / scale, 2.5);
+        ctx.font = `${n.id === focus ? 600 : 500} ${fs}px ${font}`;
+        ctx.textAlign = "center"; ctx.textBaseline = "top"; ctx.fillStyle = css("--ink");
+        ctx.fillText(n.name, n.x, n.y + r + 1.5 / scale);
+      }
+      ctx.globalAlpha = 1;
+    })
+    .nodePointerAreaPaint((n, color, ctx) => { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(n.x, n.y, size(n) + 2, 0, 2 * Math.PI); ctx.fill(); })
+    .onNodeHover(n => {
+      hover = n ? n.id : null; hoverSet = new Set();
+      if (n) FG.graphData().links.forEach(l => { const s = l.source.id ?? l.source, t = l.target.id ?? l.target; if (s === n.id) hoverSet.add(t); if (t === n.id) hoverSet.add(s); });
+      el.style.cursor = n ? "pointer" : "";
+    })
+    .onNodeClick(n => setFocus(n.id))
+    .cooldownTicks(140);
+  FG.d3Force("charge").strength(-160);
+  FG.d3Force("link").distance(l => 34 + 70 / Math.sqrt(l.w || 1));
+  function load() {
+    const d = data();
+    const vals = d.nodes.map(n => n.strong || n.deg).sort((a, b) => b - a);
+    labelCut = focus ? 0 : (vals[Math.min(20, vals.length - 1)] || 0);
+    FG.graphData(d);
+    setTimeout(() => FG && FG.zoomToFit(500, 50), 800);
+    store.set("gfocus", focus);
+    panel();
+  }
+  function setFocus(id) { focus = id; $("gq").value = id ? nodeById[id].name : ""; load(); }
+  function panel() {
+    const p = $("gpanel");
+    if (!focus) {
+      p.innerHTML = `<h3>Most connected people</h3><div class="muted">Ranked by deal links: co-investing and investing, weighted toward lead roles. Relationship notes don't count. Click a name to see their network.</div>
+        ${rankStrong.slice(0, 30).map((n, i) => `<div class="rank"><span>${i + 1}. <span class="pl" data-focus="${esc(n.id)}">${esc(n.name)}</span> <span class="muted">${esc(n.firm || "")}</span></span><span class="num">${n.strong}</span></div>`).join("")}`;
+    } else {
+      const n = nodeById[focus];
+      const es = G.edges.filter(e => e.source === focus || e.target === focus).map(e => ({...e, other: e.source === focus ? e.target : e.source})).sort((a, b) => b.w - a.w);
+      const groups = [["co-invested", "Co-invested with"], ["invested", n.kind === "company" ? "Investors" : "Invested in"], ["lp", "LP links"], ["knows", "Worked with or knows"]];
+      const pos = n.kind === "person" ? posOf(focus) : 0;
+      p.innerHTML = `<h3>${esc(n.name)}</h3><div class="muted">${KIND[n.kind]}${n.firm ? " · " + esc(n.firm) : ""}</div>
+        ${n.kind === "person" ? `<p><b>${n.strong}</b> deal links, ranked <b>#${pos}</b> of ${rankStrong.length} people in the graph.</p>` : ""}
+        <div class="bar"><button class="btn sm" id="gopen">Open ${n.kind === "company" ? "company" : "profile"}</button><button class="btn sm" id="gback">Back to everyone</button></div>
+        ${groups.map(([t, label]) => { const g = es.filter(e => e.types.includes(t) && (t !== "invested" || !e.types.includes("co-invested"))); return g.length ? `<h4>${label} (${g.length})</h4>${g.slice(0, 40).map(e => `<div class="nb"><span><span class="pl" data-focus="${esc(e.other)}">${esc(nodeById[e.other]?.name || e.other)}</span> <span class="chip">${KIND[nodeById[e.other]?.kind] || ""}</span></span><span class="ev">${e.ev.slice(0, 3).map(esc).join(" · ")}</span></div>`).join("")}` : ""; }).join("")}`;
+      $("gopen").onclick = () => openDoc(n.kind === "company" ? "co:" + n.id : n.id);
+      $("gback").onclick = () => setFocus(null);
+    }
+    p.querySelectorAll("[data-focus]").forEach(x => x.onclick = e => { e.stopPropagation(); setFocus(x.dataset.focus); });
+  }
+  $("gq").onchange = e => { const n = G.nodes.find(n => n.name.toLowerCase() === e.target.value.toLowerCase()); if (n) setFocus(n.id); };
+  ["gk", "gi", "gl", "gr", "ga"].forEach(id => $(id).onchange = load);
+  $("greset").onclick = () => setFocus(null);
+  new ResizeObserver(() => FG && FG.width(el.clientWidth).height(el.clientHeight)).observe(el);
+  const want = store.get("gfocus", null); focus = want && nodeById[want] ? want : null;
+  if (focus) $("gq").value = nodeById[focus].name;
+  load();
 }
 
-function body() {
-  const V = VIEWS[view];
-  const ql = q.toLowerCase();
-  let rows = V.rows.filter(r => (!ql || V.search(r).toLowerCase().includes(ql)) && V.filters.every((f, i) => !fsel[i] || f.val(r) === fsel[i]));
-  const [sk, dir] = sort, col = V.cols.find(c => c.k === sk) || {};
-  const val = r => col.v ? col.v(r) : r[sk];
-  rows = rows.slice().sort((a, b) => {
-    const x = val(a), y = val(b);
-    if (col.num) return ((Number(x) || 0) - (Number(y) || 0)) * dir;
-    const xs = String(x ?? ""), ys = String(y ?? "");
-    if (!xs && ys) return 1; if (xs && !ys) return -1;
-    return xs.localeCompare(ys) * dir;
-  });
-  document.getElementById("count").textContent = `${rows.length} of ${V.rows.length}`;
-  const head = `<thead><tr>${V.cols.map(c => `<th data-k="${c.k}" class="${c.k === sk ? "sorted" : ""}${c.num ? " num" : ""}">${c.t}${c.k === sk ? `<span class="arr">${dir > 0 ? "▲" : "▼"}</span>` : ""}</th>`).join("")}</tr></thead>`;
-  const rowsHtml = rows.map(r => `<tr${V.open ? ` class="click" data-open="${esc(V.open(r))}"` : ""}>${V.cols.map(c => `<td class="${c.num ? "num" : ""}">${c.h ? c.h(r) : esc(r[c.k])}</td>`).join("")}</tr>`).join("");
-  const t = document.getElementById("tbl");
-  const empty = V.rows.length ? "No matches" : (V.empty || "Nothing here yet.");
-  t.innerHTML = head + `<tbody>${rowsHtml || `<tr><td colspan="${V.cols.length}" class="muted">${esc(empty)}</td></tr>`}</tbody>`;
-  t.querySelectorAll("th").forEach(th => th.onclick = () => {
-    const k = th.dataset.k; sort = [k, sort[0] === k ? -sort[1] : (V.cols.find(c => c.k === k).num ? -1 : 1)]; body();
-  });
+function roundsTable(c) {
+  if (!c.rounds.length) return "<p class='muted'>No round data yet.</p>";
+  return `<table><thead><tr><th>Date</th><th>Round</th><th>Amount</th><th>Led by</th><th>Also in</th><th></th></tr></thead><tbody>${
+    c.rounds.map(r => `<tr><td>${esc(r.date)}</td><td>${esc(r.round)}</td><td>${esc(r.amount)}${r.valuation ? `<div class="muted">${esc(r.valuation)}</div>` : ""}</td><td>${esc(r.leads.join(", "))}</td><td class="muted">${esc(r.others.slice(0, 14).join(", "))}${r.others.length > 14 ? ` +${r.others.length - 14}` : ""}</td><td>${src(r.src)}</td></tr>`).join("")}</tbody></table>`;
 }
-
-function tabs() {
-  document.getElementById("tabs").innerHTML = Object.entries(VIEWS).map(([k, V]) =>
-    `<button data-v="${k}" class="${k === view ? "on" : ""}">${V.label}<span class="n">${V.rows.length}</span></button>`).join("");
-  document.querySelectorAll("#tabs button").forEach(b => b.onclick = () => { location.hash = b.dataset.v; });
+function openDoc(key) {
+  let html, path;
+  if (key.startsWith("co:")) {
+    const c = coBySlug[key.slice(3)]; if (!c) return;
+    const d = bySlug[c.slug];
+    path = d ? d.path : "company";
+    html = `<h1>${esc(c.name)}</h1><p>${tierPill(c)} ${c.people.length ? "People we profiled: " + c.people.map(s => link(s)).join(", ") : ""}</p><h2>Rounds</h2>${roundsTable(c)}` +
+      (d ? (window.marked ? marked.parse(d.body.replace(/^# .*\n/, "")) : `<pre>${esc(d.body)}</pre>`) : "<p class='muted'>No write-up yet.</p>");
+  } else {
+    const d = bySlug[key];
+    if (!d || (d.kind === "company" && coBySlug[key])) { if (coBySlug[key]) return openDoc("co:" + key); return; }
+    path = d.path;
+    html = window.marked ? marked.parse(d.body) : `<pre>${esc(d.body)}</pre>`;
+  }
+  $("dpath").textContent = path;
+  $("dbody").innerHTML = window.DOMPurify ? DOMPurify.sanitize(html) : html;
+  $("dbody").querySelectorAll("a").forEach(a => { a.target = "_blank"; a.rel = "noopener"; });
+  $("drawer").classList.add("on"); $("scrim").classList.add("on"); $("drawer").scrollTop = 0;
 }
-
-function openDoc(slug) {
-  const d = bySlug[slug]; if (!d) return;
-  document.getElementById("dpath").textContent = d.path;
-  const html = window.marked ? marked.parse(d.body) : `<pre>${esc(d.body)}</pre>`;
-  const dbody = document.getElementById("dbody");
-  dbody.innerHTML = window.DOMPurify ? DOMPurify.sanitize(html) : esc(d.body);
-  dbody.querySelectorAll("a").forEach(a => { a.target = "_blank"; a.rel = "noopener"; });
-  document.getElementById("drawer").classList.add("on");
-  document.getElementById("scrim").classList.add("on");
-  document.getElementById("drawer").scrollTop = 0;
-}
-function closeDoc() { document.getElementById("drawer").classList.remove("on"); document.getElementById("scrim").classList.remove("on"); }
+function closeDoc() { $("drawer").classList.remove("on"); $("scrim").classList.remove("on"); }
 document.addEventListener("click", e => {
   const t = e.target.closest("[data-open]");
-  if (t && !e.target.closest("a")) { e.stopPropagation(); openDoc(t.dataset.open); }
+  if (t && !e.target.closest("a") && !e.target.closest("[data-pick]")) { e.stopPropagation(); openDoc(t.dataset.open); }
 });
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") closeDoc();
-  if (e.key === "Enter" && e.target.matches?.(".pl")) openDoc(e.target.dataset.open);
+  if (e.key === "Enter" && e.target.matches?.(".pl[data-open]")) openDoc(e.target.dataset.open);
 });
-document.getElementById("close").onclick = closeDoc;
-document.getElementById("scrim").onclick = closeDoc;
+$("close").onclick = closeDoc; $("scrim").onclick = closeDoc;
 
-const firmsCount = new Set(A.people.map(p => firmShort(p.firm))).size;
-document.getElementById("sub").textContent =
-  `${A.insights.length} insights · ${A.people.length} people · ${A.lps.length} LPs · ${firmsCount} firms · ${companies.filter(c => c.ai === "AI").length} AI companies · ${(A.syn || []).length} syndicate links`;
-function fromHash() {
-  const h = location.hash.slice(1);
-  if (VIEWS[h] && h !== view) { state[view] = {q, fsel, sort}; view = h; ({q = "", fsel = {...(VIEWS[h].defaults || {})}, sort = null} = state[view] || {}); }
-  tabs(); render();
+let view = "brief";
+function tabs() {
+  $("tabs").innerHTML = Object.entries(VIEWS).map(([k, v]) => `<button data-v="${k}" class="${k === view ? "on" : ""}">${v.label}${v.n !== "" ? `<span class="n">${v.n}</span>` : ""}</button>`).join("");
+  $("tabs").querySelectorAll("button").forEach(b => b.onclick = () => { location.hash = b.dataset.v; });
 }
-window.addEventListener("hashchange", fromHash);
-fromHash();
+const OLD_ROUTES = {insights: "brief", syndicates: "coinvest", deals: "raw", rels: "raw", notes: "library"};
+function route() {
+  let h = location.hash.slice(1);
+  if (OLD_ROUTES[h]) { h = OLD_ROUTES[h]; history.replaceState(null, "", "#" + h); }
+  view = VIEWS[h] ? h : "brief";
+  tabs();
+  if (FG) { try { FG._destructor && FG._destructor(); } catch {} FG = null; }
+  VIEWS[view].render($("main"));
+  // phones: tuck filters behind a button
+  const bar = $("main").querySelector(".bar");
+  if (bar && bar.querySelector("select, .seg, .tog, .btn.sm")) {
+    const b = document.createElement("button");
+    b.className = "btn filt"; b.type = "button"; b.textContent = "Filters";
+    b.onclick = () => { bar.classList.toggle("open"); b.textContent = bar.classList.contains("open") ? "Hide filters" : "Filters"; };
+    const q = bar.querySelector("input[type=search]");
+    q ? q.after(b) : bar.prepend(b);
+  }
+}
+$("sub").textContent = `${A.insights.length} insights on ${V.cards.length} subjects · ${A.people.length} people · ${A.firms.length} funds · ${A.lps.length} LPs · ${V.cos.filter(c => c.tier === 1).length} frontier companies`;
+window.addEventListener("hashchange", route);
+route();
 </script>
