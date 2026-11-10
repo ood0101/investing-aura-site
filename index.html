@@ -74,6 +74,7 @@ tr.click{cursor:pointer}
 .num,.date{font:12px var(--f-data);white-space:nowrap}
 .num{text-align:right}
 .chip{display:inline-block;background:var(--chip);border-radius:4px;padding:1px 6px;margin:0 3px 3px 0;font-size:11px;white-space:nowrap}
+.fund .chip{white-space:normal;max-width:100%;overflow-wrap:anywhere}
 .chip.link{cursor:pointer} .chip.link:hover{background:var(--accent-soft);color:var(--accent)}
 .pill{display:inline-block;font:500 11px var(--f-data);padding:1px 7px;border-radius:999px;white-space:nowrap}
 .p-high{background:var(--good-soft);color:var(--good)}
@@ -107,7 +108,7 @@ a{color:var(--accent)}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;min-width:0}
 .card h3{margin:0;font:600 17px/1.3 var(--f-display);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .card .crux{color:var(--muted);margin:6px 0 10px;max-width:90ch}
-.ins{border-top:1px solid var(--line);padding:9px 0 2px;display:grid;gap:3px;max-width:100ch}
+.ins{border-top:1px solid var(--line);padding:9px 0 2px;display:grid;grid-template-columns:minmax(0,1fr);gap:3px;max-width:100ch;overflow-wrap:anywhere}
 .ins .q{color:var(--muted);font-style:italic;font-size:13px}
 .ins .meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--muted)}
 .card .toggle{margin-top:8px}
@@ -178,6 +179,8 @@ aside{position:fixed;top:0;right:0;height:100%;width:min(780px,100%);background:
 aside.on{transform:none}
 aside .top{position:sticky;top:0;background:var(--panel);display:flex;justify-content:space-between;align-items:center;padding:12px 24px;border-bottom:1px solid var(--line);z-index:1}
 .md{padding:8px 28px 48px;max-width:80ch}
+.md p,.md li{overflow-wrap:anywhere}
+aside{overflow-x:hidden}
 .md h1{font:600 26px var(--f-display);margin:16px 0 8px}
 .md h2{font-size:15px;margin:26px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--line)}
 .md table{font-size:12px;margin:8px 0;display:block;overflow-x:auto}
@@ -188,6 +191,40 @@ aside .top{position:sticky;top:0;background:var(--panel);display:flex;justify-co
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}
 .toast.on{opacity:1}
 textarea.copy{width:100%;min-height:120px;font:12px var(--f-data);margin-top:8px}
+/* socials, popups, tracking, global search */
+.soc{display:inline-flex;gap:4px;flex-wrap:wrap;vertical-align:middle}
+.so{font:500 11px var(--f-data);text-decoration:none;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:1px 6px;white-space:nowrap;background:var(--panel)}
+.so:hover{color:var(--accent);border-color:var(--accent)}
+.so-x{color:var(--ink)} .so-linkedin{color:#2867b2} .so-substack{color:#d4570f} .so-podcast{color:#8a3fbf}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .so-linkedin{color:#7fb0f0}:root:not([data-theme="light"]) .so-substack{color:#ff9a5c}:root:not([data-theme="light"]) .so-podcast{color:#c99af0}}
+.gsearch{display:flex;gap:8px;align-items:center;margin-top:10px;max-width:560px}
+.gsearch input{flex:1;font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink)}
+.mention{color:inherit;border-bottom:1.5px dotted var(--accent);cursor:pointer;border-radius:2px}
+.mention.lead{border-bottom-color:var(--muted)}
+.mention:hover,.mention.on{background:var(--accent-soft)}
+.hc{position:fixed;z-index:8;width:min(340px,calc(100vw - 24px));background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;
+  box-shadow:0 10px 30px rgba(0,0,0,.16);font-size:13px;display:none}
+.hc.on{display:block}
+.hc .hh{display:flex;gap:10px;align-items:center}
+.hc .hn{font:600 15px/1.2 var(--f-display)}
+.hc .hk{font-size:12px;color:var(--muted)}
+.hc .hf{margin:8px 0 6px;line-height:1.45}
+.hc .hb{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center}
+.docbar{margin:14px 0 4px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--bg);display:grid;gap:8px}
+.docbar .kf{font-size:14px;line-height:1.45}
+.trk{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.trk select,.trk input[type=date]{font:inherit;font-size:12px;padding:3px 6px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
+.trk textarea{width:100%;min-height:54px;font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);resize:vertical}
+.btn.star.on{background:var(--warn-soft);color:var(--warn);border-color:var(--warn)}
+.mine{display:grid;gap:10px}
+.mrow{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;grid-template-columns:auto 1fr;gap:10px;min-width:0}
+.mrow .mt{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.mrow .kf{color:var(--muted);font-size:13px;margin:2px 0 6px}
+.paths{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin:6px 0 18px}
+.path{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:6px;align-content:start}
+.path b{font:600 15px var(--f-display)} .path p{margin:0;color:var(--muted);font-size:13px}
+.path .btn{justify-self:start}
+.newlist{display:grid;gap:4px;font-size:13px}
 @media (max-width:900px){.gwrap{grid-template-columns:1fr}#graph{height:62vh;min-height:420px}.gpanel{height:auto;min-height:0}}
 .btn.filt{display:none}
 @media (max-width:640px){
@@ -215,12 +252,14 @@ textarea.copy{width:100%;min-height:120px;font:12px var(--f-data);margin-top:8px
 <header>
   <h1>Investing Aura</h1>
   <div class="sub" id="sub"></div>
+  <div class="gsearch"><input type="search" id="gfind" list="allnames" placeholder="Jump to anyone: person, fund, LP or company…" aria-label="Jump to a profile"><datalist id="allnames"></datalist></div>
   <nav id="tabs"></nav>
 </header>
 <main id="main"></main>
 <div class="scrim" id="scrim"></div>
 <aside id="drawer" aria-label="Details"><div class="top"><span class="muted" id="dpath"></span><button class="btn" id="close">Close</button></div><div class="md" id="dbody"></div></aside>
 <div class="toast" id="toast" role="status"></div>
+<div class="hc" id="hc" role="dialog" aria-label="Quick look"></div>
 
 <script src="data.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
@@ -277,6 +316,127 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem("aura:" + k); return v ? JSON.parse(v) : d; } catch { return d; } },
   set(k, v) { try { localStorage.setItem("aura:" + k, JSON.stringify(v)); } catch {} },
 };
+// ---- socials ----
+const SOC = {x: ["X", "X"], linkedin: ["LinkedIn", "in"], substack: ["Writing", "Blog"], podcast: ["Podcast", "Pod"], youtube: ["YouTube", "YT"], github: ["GitHub", "GH"], site: ["Site", "Site"]};
+const socialsOf = key => (bySlug[key] && bySlug[key].socials) || [];
+const socials = (key, short) => { const s = socialsOf(key); return s.length ? `<span class="soc">${s.map(x => `<a class="so so-${x.k}" href="${esc(x.url)}" target="_blank" rel="noopener" title="${esc(SOC[x.k][0] + ": " + x.url)}">${SOC[x.k][short ? 1 : 0]}</a>`).join("")}</span>` : ""; };
+const knownFor = key => { const d = bySlug[key]; return d ? (d.known_for || d.take || "") : ""; };
+
+// ---- your tracking list (this browser only; export/import to move it) ----
+const TSTAT = [["want", "Want to meet"], ["reached", "Reached out"], ["met", "Met"], ["follow", "Follow up"], ["pass", "Not a fit"]];
+const TRACK = store.get("track", {});
+const saveTrack = () => store.set("track", TRACK);
+// a lead that has since been profiled moves to its profile
+Object.keys(TRACK).forEach(k => { const s = k.slice(5); if (k.startsWith("lead:") && bySlug[s] && !TRACK[s]) { TRACK[s] = TRACK[k]; delete TRACK[k]; } }); saveTrack();
+function trackCtl(key, full) {
+  const t = TRACK[key];
+  return `<span class="trk" data-trk="${esc(key)}"><button class="btn sm star${t ? " on" : ""}" data-tact="toggle">${t ? "★ Tracking" : "☆ Track"}</button>${t ? `<select data-tact="s" aria-label="Status">${TSTAT.map(([v, l]) => `<option value="${v}"${t.s === v ? " selected" : ""}>${l}</option>`).join("")}</select><input type="date" data-tact="d" value="${esc(t.d || "")}" aria-label="Next step date" title="Next step date">` : ""}${t && full ? `<textarea data-tact="n" placeholder="Notes: who introduced you, what to ask, what they said…">${esc(t.n || "")}</textarea>` : ""}</span>`;
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-tact=toggle]"); if (!b) return;
+  e.stopPropagation();
+  const box = b.closest("[data-trk]"), key = box.dataset.trk;
+  if (TRACK[key]) delete TRACK[key]; else TRACK[key] = {s: "want", t: Date.now()};
+  saveTrack(); toast(TRACK[key] ? "Added to My list" : "Removed from My list");
+  const full = !!box.querySelector("textarea") || box.closest(".docbar");
+  box.outerHTML = trackCtl(key, !!full);
+  if (view === "mine" && !box.closest("#drawer")) route();
+}, true);
+document.addEventListener("change", e => {
+  const el = e.target.closest("[data-tact]"); if (!el || el.dataset.tact === "toggle") return;
+  const key = el.closest("[data-trk]").dataset.trk; if (!TRACK[key]) return;
+  TRACK[key][el.dataset.tact] = el.value; TRACK[key].t = Date.now(); saveTrack();
+});
+document.addEventListener("input", e => {
+  const el = e.target.closest("textarea[data-tact=n]"); if (!el) return;
+  const key = el.closest("[data-trk]").dataset.trk; if (!TRACK[key]) return;
+  TRACK[key].n = el.value; saveTrack();
+});
+
+// ---- quick look: hover (desktop) or tap a linked name inside a write-up (phones) ----
+const leadBySlug = () => V.leadrows ? (leadBySlug.m ||= Object.fromEntries(V.leadrows.map(l => [l.slug, l]))) : {};
+function hcHTML(key) {
+  if (key.startsWith("lead:")) {
+    const l = leadBySlug()[key.slice(5)]; if (!l) return "";
+    const pick = store.get("triage", {})[l.slug];
+    return `<div class="hh">${l.kind === "person" ? avatar(l.name, "", "md") : ""}<div><div class="hn">${esc(l.name)}</div><div class="hk">${esc(KIND[l.kind] || l.kind)} · not profiled yet ${pill(l.fit)}</div></div></div>
+      <div class="hf">${esc(l.whys[0] || "")}</div>${l.whys.length > 1 ? `<div class="hk">Also: ${esc(l.whys.slice(1, 3).join(" · ").slice(0, 220))}</div>` : ""}
+      <div class="hk" style="margin-top:6px">Mentioned by ${l.n_via} source${l.n_via === 1 ? "" : "s"}: ${l.via.slice(0, 4).map(s => link(s)).join(", ")}</div>
+      <div class="hb"><button class="btn sm${pick === "keep" ? " on" : ""}" data-hkeep="${esc(l.slug)}">${pick === "keep" ? "Queued for research" : "Research this person next"}</button>${trackCtl("lead:" + l.slug)}</div>`;
+  }
+  const isCo = key.startsWith("co:"), slug = key.replace(/^co:/, "");
+  const d = bySlug[slug], c = coBySlug[slug];
+  if (d && !(isCo && c)) {
+    return `<div class="hh">${d.kind === "person" ? avatar(d.name, d.photo, "md") : `<span class="kdot" style="--c:var(--n-${d.kind === "firm" ? "firm" : d.kind === "lp" ? "lp" : d.kind === "company" ? "company" : "person"})">${(NKINDS.find(k => k[0] === d.kind) || [])[3] || "•"}</span>`}<div><div class="hn">${esc(d.name.replace(/\s*\(.*$/, ""))}</div><div class="hk">${esc(KIND[d.kind] || d.kind)}${d.firm ? " · " + esc(firmShort(d.firm)) : ""}${d.seniority ? " · " + esc(d.seniority) : ""} ${pill(d.lens_fit)}</div></div></div>
+      ${knownFor(slug) ? `<div class="hf">${clip(knownFor(slug), 300)}</div>` : ""}${socials(slug)}
+      <div class="hb"><button class="btn sm on" data-open="${esc(slug)}">Open profile</button>${trackCtl(slug)}</div>`;
+  }
+  if (c) return `<div class="hh"><span class="kdot" style="--c:var(--n-company)">■</span><div><div class="hn">${esc(c.name)}</div><div class="hk">Company ${tierPill(c)}</div></div></div>
+      <div class="hf">${c.n_rounds} round${c.n_rounds === 1 ? "" : "s"}${c.first ? ", first " + esc(c.first.slice(0, 7)) : ""}${c.first_in.length ? ". First in: " + esc(c.first_in.slice(0, 3).join(", ")) : ""}.${c.latest ? " Latest: " + esc(c.latest) : ""}</div>
+      <div class="hb"><button class="btn sm on" data-open="co:${esc(slug)}">Open rounds</button>${trackCtl("co:" + slug)}</div>`;
+  return "";
+}
+const HC = {el: null, key: null, timer: 0};
+function showHC(anchor, key) {
+  const html = hcHTML(key); if (!html) return;
+  const el = $("hc"); el.innerHTML = html; el.classList.add("on"); HC.key = key; HC.el = anchor;
+  document.querySelectorAll(".mention.on").forEach(m => m.classList.remove("on")); anchor.classList.add("on");
+  const r = anchor.getBoundingClientRect(), w = el.offsetWidth, h = el.offsetHeight;
+  let x = Math.min(Math.max(12, r.left), innerWidth - w - 12), y = r.bottom + 6;
+  if (y + h > innerHeight - 12) y = Math.max(12, r.top - h - 6);
+  el.style.left = x + "px"; el.style.top = y + "px";
+}
+function hideHC() { $("hc").classList.remove("on"); HC.key = null; if (HC.el) HC.el.classList.remove("on"); HC.el = null; }
+const canHover = matchMedia("(hover: hover)").matches;
+const hcKey = t => t.dataset.lead ? "lead:" + t.dataset.lead : t.dataset.open;
+if (canHover) {
+  document.addEventListener("mouseover", e => {
+    const t = e.target.closest(".pl[data-open], .mention, .chip.link[data-open]");
+    if (t) { clearTimeout(HC.timer); if (HC.el !== t) HC.timer = setTimeout(() => showHC(t, hcKey(t)), 280); return; }
+    if (e.target.closest("#hc")) { clearTimeout(HC.timer); return; }
+    clearTimeout(HC.timer); if (HC.key) HC.timer = setTimeout(hideHC, 250);
+  });
+}
+document.addEventListener("click", e => {
+  const k = e.target.closest("[data-hkeep]");
+  if (k) { e.stopPropagation(); const tri = store.get("triage", {}); tri[k.dataset.hkeep] = "keep"; store.set("triage", tri); k.textContent = "Queued for research"; k.classList.add("on"); toast("Added to Leads → Keep. Copy your picks there for the next research run."); return; }
+  const m = e.target.closest(".mention");
+  if (m && (!canHover || m.dataset.lead)) { e.stopPropagation(); e.preventDefault(); showHC(m, hcKey(m)); return; }
+  if (!e.target.closest("#hc")) hideHC();
+}, true);
+addEventListener("scroll", () => { if (HC.key && !canHover) hideHC(); }, true);
+
+// ---- link names inside write-ups to their profiles (or to unprofiled leads) ----
+function mentionIndex() {
+  const ix = new Map(), add = (name, val) => { name = String(name || "").replace(/\s*\(.*?\)\s*/g, " ").replace(/\s+/g, " ").trim(); if (name.length >= 5 && !ix.has(name)) ix.set(name, val); };
+  [...A.people, ...A.firms, ...A.lps].forEach(d => add(d.name, {open: d.slug}));
+  V.cos.filter(c => c.tier <= 2).forEach(c => add(c.name, {open: "co:" + c.slug}));
+  (V.leadrows || []).filter(l => !l.profiled && l.kind !== "company" && (l.kind !== "person" || /\s/.test(l.name)) && !/needs-id/i.test(l.name)).forEach(l => add(l.name, {lead: l.slug}));
+  const names = [...ix.keys()].sort((a, b) => b.length - a.length).map(n => n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  return {ix, re: new RegExp(`(?<![\\w’'])(${names.join("|")})(?![\\w])`, "g"), leads: !!V.leadrows};
+}
+let MIX = null;
+function linkMentions(root, self) {
+  if (!MIX || (!MIX.leads && V.leadrows)) MIX = mentionIndex();
+  const done = new Set([self, "co:" + self]), walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode: n => n.parentElement.closest("a, code, pre, h1, .pl, .who, .mention, .docbar, .team") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+  const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(node => {
+    const s = node.nodeValue; MIX.re.lastIndex = 0; let m, last = 0, frag = null;
+    while ((m = MIX.re.exec(s))) {
+      const v = MIX.ix.get(m[1]), key = v.open || "lead:" + v.lead;
+      if (done.has(key) || done.has(v.open)) continue;
+      done.add(key);
+      frag ||= document.createDocumentFragment();
+      frag.append(s.slice(last, m.index));
+      const sp = document.createElement("span"); sp.className = "mention" + (v.lead ? " lead" : ""); sp.tabIndex = 0;
+      if (v.lead) sp.dataset.lead = v.lead; else sp.dataset.open = v.open;
+      sp.textContent = m[1]; frag.append(sp); last = m.index + m[1].length;
+    }
+    if (frag) { frag.append(s.slice(last)); node.replaceWith(frag); }
+  });
+}
+
 function toast(m) { const t = $("toast"); t.textContent = m; t.classList.add("on"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("on"), 1800); }
 
 function table(el, cols, rows, opts = {}) {
@@ -337,7 +497,7 @@ VIEWS.brief = {
         const items = c.items.filter(i => !ST.bs || i.source_type === ST.bs);
         const ins = i => `<div class="ins"><div>${esc(i.insight)}</div>${i.evidence_quote ? `<div class="q">“${esc(i.evidence_quote)}”</div>` : ""}
           <div class="meta"><span class="chip">${esc(i.type)}</span>${i.non_obvious ? `non-obvious ${pill(i.non_obvious)}` : ""}<span>${esc(i.source_type)}${i.timestamp_in_source ? " · " + esc(i.timestamp_in_source) : ""}</span>${src(i.source_url)}</div></div>`;
-        return `<article class="card"><h3>${c.kind === "person" ? avatar(c.name, photoOf(c.slug), "md") : ""}${link(c.slug, c.name)} <span class="chip">${KIND[c.kind] || c.kind}</span>${pill(c.fit)}<span class="muted num">${(c.full || ST.bs) ? items.length : c.n} insight${((c.full || ST.bs) ? items.length : c.n) === 1 ? "" : "s"}</span></h3>
+        return `<article class="card"><h3>${c.kind === "person" ? avatar(c.name, photoOf(c.slug), "md") : ""}${link(c.slug, c.name)} <span class="chip">${KIND[c.kind] || c.kind}</span>${pill(c.fit)}<span class="muted num">${(c.full || ST.bs) ? items.length : c.n} insight${((c.full || ST.bs) ? items.length : c.n) === 1 ? "" : "s"}</span>${socials(c.slug, 1)}</h3>
           ${c.crux ? `<div class="crux">${clip(c.crux, 360)}</div>` : ""}
           ${items.slice(0, 3).map(ins).join("")}
           ${items.length > 3 ? `<div class="rest" hidden>${items.slice(3).map(ins).join("")}</div><button class="btn sm toggle" data-n="${items.length - 3}">Show ${items.length - 3} more</button>` : ""}</article>`;
@@ -352,6 +512,51 @@ VIEWS.brief = {
     onSeg("bk", v => { ST.bk = v; limit = 30; draw(); });
     $("bf").onchange = e => { ST.bf = e.target.value; draw(); };
     $("bs").onchange = e => { ST.bs = e.target.value; draw(); };
+    draw();
+  },
+};
+
+VIEWS.mine = {
+  label: "My list", get n() { return Object.keys(TRACK).length; }, needs: ["leads"],
+  render(m) {
+    const name = k => k.startsWith("lead:") ? (leadBySlug()[k.slice(5)]?.name || k.slice(5)) : k.startsWith("co:") ? (coBySlug[k.slice(3)]?.name || k.slice(3)) : (bySlug[k]?.name || k);
+    const lastSeen = store.get("prevseen", ""), today = new Date().toISOString().slice(0, 10);
+    const fresh = lastSeen ? [...A.people, ...A.firms, ...A.lps, ...A.patterns].filter(d => d.updated && d.updated >= lastSeen).sort((a, b) => b.updated.localeCompare(a.updated)) : [];
+    const keys = Object.keys(TRACK), f = S("ms", "");
+    const cnt = s => keys.filter(k => TRACK[k].s === s).length;
+    const PATHS = [
+      ["Prep for a meeting", "Type their name in the box at the top. The profile opens with what they're known for, their socials, best insights and deals. Track them, then write what to ask in the notes.", "Search", () => $("gfind").focus()],
+      ["A lab is raising: who do I call?", "Open Companies, pick the lab, and read who led each round and who got in first. Hover any name for a quick look.", "Companies", () => location.hash = "companies"],
+      ["Find a warm intro", "On any profile, press “Who can introduce me”. The graph shows everyone two steps away and the people who bridge to them.", "Graph", () => location.hash = "graph"],
+      ["Build relationships early", "People → Alpha group lists principals and fast-promoted partners at $10M+ funds. Track the ones worth knowing before they're famous.", "People", () => { ST.palpha = true; save(); location.hash = "people"; }],
+      ["Raise your fund", "LPs → Allocators ranks who backs emerging AI managers and their rules. Track the LPs you want to approach.", "LPs", () => { ST.lv = "alloc"; save(); location.hash = "lps"; }],
+      ["Steer the research", "Names with a grey dotted underline aren't profiled yet. Tap one and press “Research this person next”, then copy your picks from Leads.", "Leads", () => location.hash = "leads"],
+    ];
+    m.innerHTML = `<p class="intro">Your working list: people, funds, LPs and companies you're tracking, with a status, a next-step date and notes. It's saved in this browser only, so use <b>Export</b> to back it up or move it to another device.</p>
+      <div class="bar">${seg("ms", [["", `All ${keys.length}`], ...TSTAT.map(([v, l]) => [v, `${l} ${cnt(v)}`])], f)}
+        <button class="btn" id="mcopy">Copy as text</button><button class="btn" id="mexp">Export</button><button class="btn" id="mimp">Import</button><input type="file" id="mfile" accept="application/json" hidden></div>
+      <div id="mbody"></div>
+      ${fresh.length ? `<h3>Updated since your last visit <span class="muted num">${fresh.length}</span></h3><div class="newlist">${fresh.slice(0, 40).map(d => `<div><span class="date">${esc(d.updated)}</span> <span class="chip">${KIND[d.kind]}</span> ${link(d.slug)}</div>`).join("")}</div>` : ""}
+      <h3 style="margin-top:22px">Ways in</h3><div class="paths">${PATHS.map(([t, p, b], i) => `<div class="path"><b>${t}</b><p>${p}</p><button class="btn sm" data-path-go="${i}">${b}</button></div>`).join("")}</div>`;
+    m.querySelectorAll("[data-path-go]").forEach(b => b.onclick = () => PATHS[+b.dataset.pathGo][3]());
+    const draw = () => {
+      const rows = keys.filter(k => !ST.ms || TRACK[k].s === ST.ms).sort((a, b) => (TRACK[a].d || "9999").localeCompare(TRACK[b].d || "9999") || (TRACK[b].t || 0) - (TRACK[a].t || 0));
+      $("mbody").innerHTML = rows.length ? `<div class="mine">${rows.map(k => {
+        const slug = k.replace(/^(co|lead):/, ""), d = bySlug[slug], open = k.startsWith("lead:") ? `data-lead="${esc(slug)}" class="mention lead"` : `data-open="${esc(k)}" class="pl"`;
+        const kf = k.startsWith("lead:") ? (leadBySlug()[slug]?.whys[0] || "Not profiled yet") : knownFor(slug) || (coBySlug[slug] ? `${coBySlug[slug].n_rounds} rounds; first in ${coBySlug[slug].first_in.slice(0, 2).join(", ")}` : "");
+        return `<div class="mrow">${avatar(name(k), d?.photo, "md")}<div style="min-width:0"><div class="mt"><span ${open} tabindex="0">${esc(name(k))}</span>${d ? `<span class="muted">${esc(KIND[d.kind])}${d.firm ? " · " + esc(firmShort(d.firm)) : ""}</span>` : ""}${pill(d?.lens_fit)}</div>
+          <div class="kf">${clip(kf, 260)}</div>${socials(slug)}<div style="margin-top:8px">${trackCtl(k, true)}</div></div></div>`;
+      }).join("")}</div>` : `<p class="muted">${keys.length ? "Nobody with this status." : "Nothing tracked yet. Open any profile or hover a name and press ☆ Track."}</p>`;
+      save();
+    };
+    onSeg("ms", v => { ST.ms = v; draw(); });
+    $("mcopy").onclick = async () => {
+      const text = "Investing Aura: my list\n" + TSTAT.map(([v, l]) => { const ks = keys.filter(k => TRACK[k].s === v); return ks.length ? `\n${l}\n` + ks.map(k => `- ${name(k)}${TRACK[k].d ? " (next: " + TRACK[k].d + ")" : ""}${TRACK[k].n ? ": " + TRACK[k].n.replace(/\s+/g, " ") : ""}`).join("\n") : ""; }).join("");
+      try { await navigator.clipboard.writeText(text); toast("List copied"); } catch { $("mbody").insertAdjacentHTML("afterbegin", `<textarea class="copy" readonly>${esc(text)}</textarea>`); }
+    };
+    $("mexp").onclick = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(TRACK, null, 1)], {type: "application/json"})); a.download = `aura-my-list-${today}.json`; a.click(); };
+    $("mimp").onclick = () => $("mfile").click();
+    $("mfile").onchange = async e => { try { const got = JSON.parse(await e.target.files[0].text()); Object.assign(TRACK, got); saveTrack(); toast(`Imported ${Object.keys(got).length}`); route(); } catch { toast("That file isn't a list export"); } };
     draw();
   },
 };
@@ -380,7 +585,7 @@ VIEWS.people = {
         && (!ST.pcap || p.check_capacity === ST.pcap) && (!ST.pfast || p.fast_promotion === "yes") && (!ST.pfit || lvl(p.lens_fit) === ST.pfit));
       $("pc").textContent = `${rows.length} of ${A.people.length}`;
       table($("pt-t"), [
-        {k: "name", t: "Name", h: r => `<span class="who">${avatar(r.name, r.photo, "md")}<span><span class="name">${esc(r.name)}</span>${isAlpha(r) ? ` <span class="pill p-high">alpha</span>` : ""}<div class="muted">${esc(firmShort(r.firm))}</div></span></span>`},
+        {k: "name", t: "Name", h: r => `<span class="who">${avatar(r.name, r.photo, "md")}<span><span class="name">${esc(r.name)}</span>${isAlpha(r) ? ` <span class="pill p-high">alpha</span>` : ""}<div class="muted">${esc(firmShort(r.firm))}</div>${socials(r.slug, 1)}</span></span>`},
         {k: "lens_fit", t: "Fit", num: 1, v: r => RANK[lvl(r.lens_fit)] ?? -1, h: r => pill(r.lens_fit)},
         {k: "seniority", t: "Seniority", v: r => SEN.indexOf(r.seniority) + 1 || 99, num: 1, h: r => r.seniority ? `<span class="chip">${esc(r.seniority)}</span>${r.fast_promotion === "yes" ? ` <span class="pill p-medium">fast</span>` : ""}` : `<span class="muted">–</span>`},
         {k: "check_capacity", t: "Checks", h: r => r.check_capacity ? `<span class="chip">${esc(CAP[r.check_capacity] || r.check_capacity)}</span>` : ""},
@@ -434,7 +639,7 @@ VIEWS.companies = {
 function teamGrid(firm, max = 99) {
   const t = V.teams[firm] || [];
   if (!t.length) return "";
-  return `<div class="team">${t.slice(0, max).map(m => `<div class="mem">${avatar(m.name, m.photo, "md")}<div style="min-width:0"><div class="nm">${m.slug ? link(m.slug, m.name) : esc(m.name)}${m.fit ? " " + pill(m.fit) : ""}</div>
+  return `<div class="team">${t.slice(0, max).map(m => `<div class="mem">${avatar(m.name, m.photo, "md")}<div style="min-width:0"><div class="nm">${m.slug ? link(m.slug, m.name) : esc(m.name)}${m.fit ? " " + pill(m.fit) : ""} ${m.slug ? socials(m.slug, 1) : ""}</div>
     <div class="rl">${esc([m.seniority, m.role].filter(Boolean).join(" · ") || (m.slug ? "" : "Named on deals, no profile yet"))}</div>
     <div class="dl">${m.deals.slice(0, 8).map(d => `<span class="chip link${d.lead ? " lead" : ""}${d.tier === 1 ? " t1" : ""}" data-open="co:${esc(d.slug)}" title="${esc(d.round || "")}${d.lead ? " · led" : ""}">${esc(d.name)}</span>`).join("")}${m.deals.length > 8 ? `<span class="muted">+${m.deals.length - 8}</span>` : ""}${m.deals.length ? "" : `<span class="muted">No named deals yet</span>`}</div></div></div>`).join("")}${t.length > max ? `<div class="muted">+${t.length - max} more people</div>` : ""}</div>`;
 }
@@ -454,7 +659,7 @@ VIEWS.funds = {
       const q = ST.fq.toLowerCase();
       const rows = firms.filter(f => (!ST.ffit || lvl(f.lens_fit) === ST.ffit) && (!q || (f.name + " " + (V.teams[f.slug] || []).map(x => x.name + " " + x.deals.map(d => d.name).join(" ")).join(" ")).toLowerCase().includes(q)));
       $("fc").textContent = `${rows.length} funds`;
-      $("funds").innerHTML = rows.map(f => `<section class="fund"><h3>${link(f.slug, f.name)} ${pill(f.lens_fit)}<span class="muted num">${(V.teams[f.slug] || []).length} people</span></h3>
+      $("funds").innerHTML = rows.map(f => `<section class="fund"><h3>${link(f.slug, f.name)} ${pill(f.lens_fit)}${socials(f.slug, 1)}<span class="muted num">${(V.teams[f.slug] || []).length} people</span></h3>
         ${f.crux || f.take ? `<div class="crux">${clip(f.crux || f.take, 320)}</div>` : ""}${backedBy(f.slug)}${teamGrid(f.slug) || `<p class="muted">No team mapped yet.</p>`}</section>`).join("");
       save();
     };
@@ -866,14 +1071,14 @@ function renderGraph(m) {
     let h = `<div class="gcard-head">${n.kind === "person" ? avatar(n.name, n.photo, "lg") : `<span class="kdot" style="--c:var(${NC[n.kind]})">${NKINDS.find(k => k[0] === n.kind)?.[3] || ""}</span>`}<div><h3>${esc(n.name)}</h3>
       <div class="muted">${KIND[n.kind]}${n.firm ? " · " + esc(n.firm) : ""}${d?.role ? " · " + clip(d.role.split(/[(;]/)[0].trim(), 60) : ""}</div></div></div>
       <div class="gpills">${co ? tierPill(co) + (co.category ? ` <span class="chip">${esc(co.category)}</span>` : "") : ""}${d?.lens_fit ? `fit ${pill(d.lens_fit)}` : ""}${n.profiled ? ` <span class="chip">profiled</span>` : ""}</div>
-      ${crux ? `<p class="gcrux">${clip(crux, 420)}</p>` : ""}`;
+      ${d?.known_for && d.known_for !== crux ? `<p class="gcrux"><b>Known for:</b> ${clip(d.known_for, 260)}</p>` : ""}${crux ? `<p class="gcrux">${clip(crux, 420)}</p>` : ""}${socials(n.id) ? `<div style="margin-top:8px">${socials(n.id)}</div>` : ""}`;
     if (n.kind === "person") h += `<div class="gstats">${stat(n.strong, "deal links")}${stat("#" + pos, "of " + rankStrong.length + " people")}${stat(cardOf[n.id]?.n || 0, "insights")}</div>`;
     if (co) {
       h += `<div class="gstats">${stat(co.n_rounds, "rounds")}${stat(esc(co.first.slice(0, 7) || "–"), "first round")}${stat(co.people.length, "people profiled")}</div>`;
       if (co.rounds.length) h += `<h4>Rounds</h4><div class="tl">${co.rounds.slice(-6).reverse().map(r => `<div class="tlr"><span class="date">${esc(r.date.slice(0, 7))}</span><span><b>${esc(r.round)}</b>${r.amount ? " · " + esc(r.amount) : ""}<span class="muted">${r.leads.length ? " · led by " + esc(r.leads.slice(0, 2).join(", ")) : ""}</span></span></div>`).join("")}${co.rounds.length > 6 ? `<div class="muted">+${co.rounds.length - 6} earlier rounds</div>` : ""}</div>`;
       if (co.first_in.length) h += `<p class="muted">First in: ${esc(co.first_in.join(", "))}</p>`;
     }
-    h += `<div class="gbtns"><button class="btn sm on" id="gopen">Open full page</button>${focus ? `<div class="seg" id="ghops"><button data-v="1" class="${st.hops === 1 ? "on" : ""}">1 step</button><button data-v="2" class="${st.hops === 2 ? "on" : ""}">2 steps</button></div>` : ""}</div>
+    h += `<div class="gbtns"><button class="btn sm on" id="gopen">Open full page</button>${trackCtl(co && n.kind === "company" ? "co:" + n.id : n.id)}${focus ? `<div class="seg" id="ghops"><button data-v="1" class="${st.hops === 1 ? "on" : ""}">1 step</button><button data-v="2" class="${st.hops === 2 ? "on" : ""}">2 steps</button></div>` : ""}</div>
       <div class="greach" id="greach"></div>`;
     h += insightList(n.id);
     const es = G.edges.filter(e => (e.source === n.id || e.target === n.id) && okEdge(e)).map(e => ({...e, other: e.source === n.id ? e.target : e.source})).sort((a, b) => b.w - a.w);
@@ -921,8 +1126,22 @@ function roundsTable(c) {
     c.rounds.map(r => `<tr><td>${esc(r.date)}</td><td>${esc(r.round)}</td><td>${esc(r.amount)}${r.valuation ? `<div class="muted">${esc(r.valuation)}</div>` : ""}</td><td>${esc(r.leads.join(", "))}</td><td class="muted">${esc(r.others.slice(0, 14).join(", "))}${r.others.length > 14 ? ` +${r.others.length - 14}` : ""}</td><td>${src(r.src)}</td></tr>`).join("")}</tbody></table>`;
 }
 let docKey = null;
+function docBar(key) {
+  const slug = key.replace(/^co:/, ""), d = bySlug[slug];
+  const kf = knownFor(slug), tk = key.startsWith("co:") ? key : (coBySlug[slug] && (!d || d.kind === "company") ? "co:" + slug : slug);
+  const intro = d && ["person", "firm", "lp"].includes(d.kind) ? `<button class="btn sm" data-intro="${esc(slug)}">Who can introduce me</button>` : "";
+  return `<div class="docbar">${kf ? `<div class="kf"><b>Known for:</b> ${esc(kf)}</div>` : ""}${socials(slug) || (d && d.kind === "person" ? `<span class="muted">No verified social links yet.</span>` : "")}
+    <div class="trk" style="gap:8px">${intro}</div>${trackCtl(tk, true)}</div>`;
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-intro]"); if (!b) return;
+  e.stopPropagation(); store.set("gfocus", b.dataset.intro);
+  const g = store.get("graph", {}); g.rstep = 2; g.rkind = "person"; store.set("graph", g);
+  closeDoc(); if (location.hash === "#graph") route(); else location.hash = "graph";
+}, true);
 function openDoc(key) {
-  docKey = key;
+  docKey = key; hideHC();
+  if (!V.leadrows) need("leads").then(() => { MIX = null; if (docKey === key && $("drawer").classList.contains("on") && loaded("docs")) openDoc(key); }).catch(() => {});
   if (!loaded("docs")) {
     const d = bySlug[key.replace(/^co:/, "")];
     $("dpath").textContent = d ? d.path : "";
@@ -949,6 +1168,9 @@ function openDoc(key) {
   }
   $("dpath").textContent = path;
   $("dbody").innerHTML = window.DOMPurify ? DOMPurify.sanitize(html) : html;
+  const h1 = $("dbody").querySelector("h1"), bar = docBar(key);
+  if (h1) h1.insertAdjacentHTML("afterend", bar); else $("dbody").insertAdjacentHTML("afterbegin", bar);
+  try { linkMentions($("dbody"), key.replace(/^co:/, "")); } catch (err) { console.warn(err); }
   $("dbody").querySelectorAll("a").forEach(a => { a.target = "_blank"; a.rel = "noopener"; });
   $("drawer").classList.add("on"); $("scrim").classList.add("on"); $("drawer").scrollTop = 0;
 }
@@ -993,6 +1215,14 @@ function route() {
     const q = bar.querySelector("input[type=search]");
     q ? q.after(b) : bar.prepend(b);
   }
+}
+{
+  const opts = [...A.people, ...A.firms, ...A.lps].map(d => [d.name, d.slug, KIND[d.kind]]).concat(V.cos.filter(c => c.tier <= 3 && !bySlug[c.slug]).map(c => [c.name, "co:" + c.slug, "Company"]));
+  $("allnames").innerHTML = opts.map(([n, , k]) => `<option value="${esc(n)}">${esc(k)}</option>`).join("");
+  const go = () => { const v = $("gfind").value.trim().toLowerCase(); const hit = opts.find(o => o[0].toLowerCase() === v) || (v.length > 2 && opts.find(o => o[0].toLowerCase().startsWith(v))); if (hit) { openDoc(hit[1]); $("gfind").value = ""; $("gfind").blur(); } };
+  $("gfind").onchange = go; $("gfind").onkeydown = e => { if (e.key === "Enter") go(); };
+  const today = new Date().toISOString().slice(0, 10), last = store.get("lastseen", "");
+  if (last !== today) { if (last) store.set("prevseen", last); store.set("lastseen", today); }
 }
 $("sub").textContent = `${A.meta.n_insights} insights on ${V.cards.length} subjects · ${A.people.length} people · ${A.firms.length} funds · ${A.lps.length} LPs · ${V.cos.filter(c => c.tier === 1).length} frontier companies`;
 window.addEventListener("hashchange", route);
