@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600&family=IBM+Plex+Mono:wght@400;500&family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;0,6..96,700;1,6..96,400&display=swap" rel="stylesheet">
 <style>
 /* Layout: a ledger. A brief of grouped insight cards up front; dense tables behind it; a focus-first network graph; dossiers slide in from the right. */
 :root{
@@ -31,6 +31,39 @@
     --e-co:rgba(54,209,187,.6); --e-inv:rgba(247,176,60,.38); --e-at:rgba(138,152,255,.4); --e-knows:rgba(142,151,169,.28); --e-lp:rgba(226,122,210,.5);
     color-scheme:dark;
 }
+/* Couture: an optional monochrome house style (ivory, ink, one gold accent; high-contrast serif display). */
+:root[data-style="couture"]{
+  --bg:#f6f2e9; --panel:#fffdf7; --ink:#0d0d0d; --muted:#6a645a; --line:#e3dccd; --chip:#f0eadc; --row-hover:#f3eee2;
+  --accent:#0d0d0d; --accent-soft:#ece5d3; --good:#3d5a4c; --good-soft:#e3ebe4; --warn:#9c7a26; --warn-soft:#f4ead0;
+  --n-person:#1f1f1f; --n-firm:#9c7a26; --n-company:#8c8273; --n-lp:#5b4a7a; --glow:rgba(156,122,38,.18);
+  --e-co:rgba(13,13,13,.5); --e-inv:rgba(156,122,38,.45); --e-at:rgba(91,74,122,.35); --e-knows:rgba(106,100,90,.28); --e-lp:rgba(91,74,122,.5);
+  --f-display:"Bodoni Moda",Didot,"Bodoni 72",Georgia,serif; --gold:#b08d2e;
+}
+@media (prefers-color-scheme: dark){
+  :root[data-style="couture"]:not([data-theme="light"]){
+    --bg:#0a0a0a; --panel:#141413; --ink:#f1ece0; --muted:#9a9384; --line:#2a2824; --chip:#1d1c19; --row-hover:#1b1a17;
+    --accent:#f1ece0; --accent-soft:#2a2720; --good:#9cc4ad; --good-soft:#1a2620; --warn:#d9b75e; --warn-soft:#2d2512;
+    --n-person:#f1ece0; --n-firm:#d9b75e; --n-company:#a39a8a; --n-lp:#a996cf; --glow:rgba(217,183,94,.2);
+    --e-co:rgba(241,236,224,.45); --e-inv:rgba(217,183,94,.4); --e-at:rgba(169,150,207,.35); --e-knows:rgba(154,147,132,.28); --e-lp:rgba(169,150,207,.5);
+    --gold:#d9b75e;
+  }
+}
+:root[data-style="couture"][data-theme="dark"]{
+  --bg:#0a0a0a; --panel:#141413; --ink:#f1ece0; --muted:#9a9384; --line:#2a2824; --chip:#1d1c19; --row-hover:#1b1a17;
+  --accent:#f1ece0; --accent-soft:#2a2720; --good:#9cc4ad; --good-soft:#1a2620; --warn:#d9b75e; --warn-soft:#2d2512;
+  --n-person:#f1ece0; --n-firm:#d9b75e; --n-company:#a39a8a; --n-lp:#a996cf; --glow:rgba(217,183,94,.2);
+  --e-co:rgba(241,236,224,.45); --e-inv:rgba(217,183,94,.4); --e-at:rgba(169,150,207,.35); --e-knows:rgba(154,147,132,.28); --e-lp:rgba(169,150,207,.5);
+  --gold:#d9b75e;
+}
+[data-style="couture"] .brand h1{font:500 34px/1 var(--f-display);text-transform:uppercase;letter-spacing:.22em;padding-bottom:6px;border-bottom:1px solid var(--ink)}
+[data-style="couture"] .brand h1 .bk{color:var(--gold)}
+[data-style="couture"] .tag{font:italic 400 16px var(--f-display)}
+[data-style="couture"] h2,[data-style="couture"] h3,[data-style="couture"] .card h3,[data-style="couture"] .gpanel h3,[data-style="couture"] .md h1{font-family:var(--f-display);letter-spacing:.01em}
+[data-style="couture"] #tabs button{text-transform:uppercase;letter-spacing:.12em;font-size:11.5px}
+[data-style="couture"] .pl,[data-style="couture"] .md a{text-decoration-color:var(--gold)}
+[data-style="couture"] .colophon{font:italic 13px var(--f-display);text-align:center;letter-spacing:.02em}
+.style-sw{margin-left:auto;font:500 11px var(--f-data);text-transform:uppercase;letter-spacing:.1em;background:none;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:4px 10px;cursor:pointer}
+.style-sw:hover{color:var(--ink);border-color:var(--ink)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 var(--f-body);
   padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
@@ -266,7 +299,7 @@ textarea.copy{width:100%;min-height:120px;font:12px var(--f-data);margin-top:8px
 </style>
 
 <header>
-  <div class="brand"><h1><span class="bk">Back</span>channel</h1><button class="tag" id="tagline" title="Tap for another"></button></div>
+  <div class="brand"><h1 id="wordmark"><span class="bk">Back</span>channel</h1><button class="tag" id="tagline" title="Tap for another"></button><button class="style-sw" id="stylesw"></button></div>
   <div class="sub" id="sub"></div>
   <div class="gsearch"><input type="search" id="gfind" list="allnames" placeholder="Jump to anyone: person, fund, LP or company…" aria-label="Jump to a profile"><datalist id="allnames"></datalist></div>
   <nav id="tabs"></nav>
@@ -526,12 +559,33 @@ const TAGLINES = [
 const LOADING = ["Tuning into the backchannel…", "Asking around quietly…", "Checking who was in the room…", "Pulling the back-room notes…", "Reading the footnotes…"];
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const EMPTY = ["Nothing on the backchannel about that yet.", "Radio silence. Try another search.", "No one's talking. Loosen a filter?"];
-(() => {
-  const t = $("tagline"); let i = Math.floor(Math.random() * TAGLINES.length);
-  const show = () => t.textContent = TAGLINES[i % TAGLINES.length];
-  show(); t.onclick = () => { i++; show(); };
-  $("colophon").innerHTML = "Backchannel: everything off the record, nothing unsourced. Every claim links back to where it was said.";
-})();
+// The couture house style (default) swaps in its own wordmark and lines; "Classic" goes back to the ledger look.
+const COUTURE = {
+  tag: ["Haute capital.", "Little black book, footnoted.", "N° 1 check.", "Ready-to-wire.", "Tailored intros, made to measure.",
+        "The atelier of who backs whom.", "Classic never goes out of round.", "Off the record, on the runway.", "Cap tables, cut on the bias.", "Every seam sourced."],
+  load: ["Fitting the fabric…", "Pressing the seams…", "Pinning the hem…", "Steaming the collection…", "Matching the thread…"],
+  empty: ["Nothing in this season's collection.", "Out of stock. Try another cut.", "Sold out. Loosen a filter?"],
+  colophon: "Back Chanel · Maison de capital · Everything off the record, nothing unsourced.",
+};
+const CLASSIC = {tag: TAGLINES, load: LOADING.slice(), empty: EMPTY.slice(),
+  colophon: "Backchannel: everything off the record, nothing unsourced. Every claim links back to where it was said."};
+let STYLE = store.get("style", "couture");
+let tagI = Math.floor(Math.random() * 10);
+function applyStyle(init) {
+  const c = STYLE === "couture", set = c ? COUTURE : CLASSIC;
+  document.documentElement.dataset.style = STYLE;
+  $("wordmark").innerHTML = c ? `<span class="bk">Back</span> Chanel` : `<span class="bk">Back</span>channel`;
+  document.title = c ? "Back Chanel" : "Backchannel";
+  LOADING.splice(0, LOADING.length, ...set.load); EMPTY.splice(0, EMPTY.length, ...set.empty);
+  $("tagline").textContent = set.tag[tagI % set.tag.length];
+  $("colophon").textContent = set.colophon;
+  $("stylesw").textContent = c ? "Classic" : "Couture";
+  $("stylesw").title = c ? "Switch to the classic ledger look" : "Switch to the couture house style";
+  if (!init) { tabs(); if (view === "graph") route(); }
+}
+$("tagline").onclick = () => { tagI++; const set = STYLE === "couture" ? COUTURE : CLASSIC; $("tagline").textContent = set.tag[tagI % set.tag.length]; };
+$("stylesw").onclick = () => { STYLE = STYLE === "couture" ? "classic" : "couture"; store.set("style", STYLE); applyStyle(); };
+applyStyle(true);
 
 VIEWS.brief = {
   label: "Brief", n: V.cards.length,
@@ -581,7 +635,7 @@ VIEWS.brief = {
 };
 
 VIEWS.mine = {
-  label: "My list", get n() { return Object.keys(TRACK).length; }, needs: ["leads"],
+  get label() { return STYLE === "couture" ? "Collection" : "My list"; }, get n() { return Object.keys(TRACK).length; }, needs: ["leads"],
   render(m) {
     const name = k => k.startsWith("lead:") ? (leadBySlug()[k.slice(5)]?.name || k.slice(5)) : k.startsWith("co:") ? (coBySlug[k.slice(3)]?.name || k.slice(3)) : (bySlug[k]?.name || k);
     const lastSeen = store.get("prevseen", ""), today = new Date().toISOString().slice(0, 10);
