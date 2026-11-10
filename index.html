@@ -125,7 +125,7 @@ a{color:var(--accent)}
 .gbox{position:relative;min-width:0}
 #graph{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;height:min(76vh,820px);min-height:520px;min-width:0;
   background:radial-gradient(circle, color-mix(in srgb, var(--muted) 22%, transparent) 1px, transparent 1.2px) 0 0/22px 22px, var(--panel)}
-.gnote{position:absolute;left:12px;top:10px;font:12px var(--f-data);color:var(--muted);background:var(--panel);padding:3px 8px;border-radius:6px;border:1px solid var(--line)}
+.gnote{position:absolute;z-index:2;max-width:calc(100% - 140px);left:12px;top:10px;font:12px var(--f-data);color:var(--muted);background:var(--panel);padding:3px 8px;border-radius:6px;border:1px solid var(--line)}
 .gzoom{position:absolute;right:10px;top:10px;display:flex;gap:6px}
 .gpanel{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:16px;overflow-y:auto;height:min(76vh,820px);min-height:520px;min-width:0}
 .gpanel h3{margin:0;font:600 20px/1.2 var(--f-display)}
@@ -271,7 +271,7 @@ textarea.copy{width:100%;min-height:120px;font:12px var(--f-data);margin-top:8px
 <div class="toast" id="toast" role="status"></div>
 <div class="hc" id="hc" role="dialog" aria-label="Quick look"></div>
 
-<script src="data.js"></script>
+<script src="data.js?b=3423555eec"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
@@ -929,6 +929,10 @@ function renderGraph(m) {
   const okNode = n => n && st.kinds[n.kind] && (n.kind !== "company" || (n.tier || 9) <= (st.apps ? 3 : 2));
   // Untagged companies (tier 4) only appear as direct deals of the focused person, so focus mode never hides a deal.
   const fb = n => focus && n && n.kind === "company" && n.tier === 4 && st.kinds.company;
+  // What the default filters would show (link types at their defaults, every node kind on, current AI-apps choice).
+  const DEF_ET = Object.fromEntries(ETYPES.map(([k, , , on]) => [k, on]));
+  const okDefNode = n => n && (n.kind !== "company" || (n.tier || 9) <= (st.apps ? 3 : 2) || (focus && n.tier === 4));
+  const okDefault = e => e.types.some(t => DEF_ET[t]) && okDefNode(nodeById[e.source]) && okDefNode(nodeById[e.target]);
   const okEdge = e => e.types.some(t => st.etypes[t]) && (
     (okNode(nodeById[e.source]) && okNode(nodeById[e.target])) ||
     (e.source === focus && fb(nodeById[e.target])) || (e.target === focus && fb(nodeById[e.source])));
@@ -1038,10 +1042,24 @@ function renderGraph(m) {
     FG.graphData(d);
     $("gnote").textContent = path ? `Path: ${path.nodes.length - 1} step${path.nodes.length === 2 ? "" : "s"}. Click the background to leave it.`
       : focus ? `${d.nodes.length - 1} connections${st.hops > 1 ? " within 2 steps" : ""}` : `Showing the ${d.nodes.length} most connected of ${G.nodes.length}`;
+    // Saved toggles can hide a focused node's links; say so instead of showing an empty graph.
+    const hidden = focus && !path ? G.edges.filter(e => (e.source === focus || e.target === focus) && !okEdge(e) && okDefault(e)).length : 0;
+    if (hidden) {
+      const nb = document.createElement("span");
+      nb.innerHTML = ` · <b>${hidden} link${hidden === 1 ? "" : "s"} hidden by your filters</b> <button class="btn sm" id="gshowall">Show all</button>`;
+      $("gnote").append(nb);
+      $("gshowall").onclick = () => { resetFilters(); };
+    }
     if (fit) needFit = true;
     store.set("gfocus", focus);
     saveG();
     panel();
+  }
+  function resetFilters() {
+    Object.assign(st.etypes, DEF_ET); Object.keys(st.kinds).forEach(k => st.kinds[k] = true);
+    m.querySelectorAll("[data-et]").forEach(b => b.classList.toggle("on", !!st.etypes[b.dataset.et]));
+    m.querySelectorAll("[data-kind]").forEach(b => b.classList.add("on"));
+    load();
   }
   function setFocus(id) { focus = id; path = null; $("gq").value = id ? nodeById[id].name : ""; load(); }
   function findPath(a, b) {
@@ -1181,7 +1199,8 @@ function docBar(key) {
 document.addEventListener("click", e => {
   const b = e.target.closest("[data-intro]"); if (!b) return;
   e.stopPropagation(); store.set("gfocus", b.dataset.intro);
-  const g = store.get("graph", {}); g.rstep = 2; g.rkind = "person"; store.set("graph", g);
+  // Coming from "Who can introduce me": start from default link filters so saved toggles can't hide the paths.
+  const g = store.get("graph", {}); g.rstep = 2; g.rkind = "person"; delete g.etypes; delete g.kinds; store.set("graph", g);
   closeDoc(); if (location.hash === "#graph") route(); else location.hash = "graph";
 }, true);
 function openDoc(key) {
