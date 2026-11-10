@@ -311,6 +311,22 @@ const hue = s => { let h = 0; for (const ch of String(s)) h = (h * 31 + ch.charC
 const initials = n => String(n || "?").replace(/\(.*?\)/g, "").trim().split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase();
 const avatar = (name, photo, cls = "") => `<span class="av ${cls}" style="--h:${hue(name)}" aria-hidden="true">${esc(initials(name))}${photo ? `<img src="${esc(photo)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ""}</span>`;
 const photoOf = slug => bySlug[slug]?.photo || "";
+// Short frontmatter text: "slug (Name, role) [src](url)" -> linked name, role text, "source" link.
+const inlineMd = t => {
+  const parts = String(t || "").split(/(\[[^\]]*\]\([^)\s]+\))/g);
+  return parts.map(x => {
+    const m = x.match(/^\[([^\]]*)\]\(([^)\s]+)\)$/);
+    if (m) return /^https?:/.test(m[2]) ? `<a href="${esc(m[2])}" target="_blank" rel="noopener">${esc(m[1] === "src" ? "source" : m[1])}</a>` : esc(m[1]);
+    // A bare person slug: link it if profiled, else show it as a name (dropped when the next "(Name" repeats it).
+    const ws = x.split(/\b([a-z]+(?:-[a-z]+)+)\b/g);
+    return ws.map((w, i) => {
+      if (!(i % 2)) return esc(w);
+      if (bySlug[w]) return link(w);
+      const nm = w.split("-").map(p => p[0].toUpperCase() + p.slice(1)).join(" ");
+      return (ws[i + 1] || "").replace(/^\s*\(/, "").startsWith(nm) ? "" : esc(nm);
+    }).join("").replace(/^\s*\((.*?)\)/, "$1");
+  }).join("");
+};
 const src = u => u ? `<a href="${esc(u)}" target="_blank" rel="noopener">source</a>` : "";
 const store = {
   get(k, d) { try { const v = localStorage.getItem("aura:" + k); return v ? JSON.parse(v) : d; } catch { return d; } },
@@ -791,7 +807,7 @@ VIEWS.lps = {
       table($("lp-t"), [
         {k: "name", t: "Allocator", h: r => `<span class="name">${esc(r.name)}</span>`},
         {k: "lens_fit", t: "Fit for you", num: 1, v: r => RANK[lvl(r.lens_fit)] ?? -1, h: r => pill(r.lens_fit)},
-        {k: "cio", t: "CIO", h: r => link(r.cio)},
+        {k: "cio", t: "CIO", h: r => inlineMd(r.cio)},
         {k: "crux", t: "How they decide", h: r => `<div class="take">${clip(r.crux || r.take, 280)}</div>`},
         {k: "commit_count", t: "Managers", num: 1, v: r => B.filter(b => b.lp === r.slug).length, h: r => B.filter(b => b.lp === r.slug).length},
         {k: "insight_count", t: "Insights", num: 1},
