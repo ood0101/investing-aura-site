@@ -150,6 +150,15 @@ a{color:var(--accent)}
 .rank{display:grid;grid-template-columns:1fr 70px;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--line);font-size:13px}
 .bar-mini{height:6px;background:var(--chip);border-radius:3px;overflow:hidden}
 .bar-mini i{display:block;height:100%;background:var(--n-person);border-radius:3px}
+.greach{margin-top:14px}
+.greach .seg{margin:6px 0;flex-wrap:wrap}
+.greach input{width:100%;font:inherit;font-size:13px;padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);margin:4px 0 6px}
+.rhelp{font-size:12px;margin:2px 0 4px}
+.rrow{display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:center;padding:7px 6px;border-top:1px solid var(--line);font-size:13px;cursor:pointer;border-radius:6px}
+.rrow:hover,.rrow:focus{background:var(--bg);outline:none}
+.rrow .pill{margin-left:6px}
+.rrow .rv{grid-column:2;font-size:12px;color:var(--muted)}
+.rb{display:inline-block;margin-left:4px;padding:0 6px;border-radius:9px;background:color-mix(in srgb,var(--good) 14%,transparent);color:var(--good);font-size:11px}
 .chain{margin:12px 0;display:grid;gap:0}
 .cn{font-weight:600;padding:6px 0}
 .ce{margin-left:4px;padding:2px 0 2px 14px;border-left:2px solid var(--e-co);font-size:12px;color:var(--muted)}
@@ -219,6 +228,28 @@ const slugify = s => String(s || "").replace(/\(.*?\)/g, "").toLowerCase().repla
 const DOCS = [...A.people, ...A.firms, ...A.lps, ...A.companies, ...A.sources, ...A.patterns];
 const bySlug = Object.fromEntries(DOCS.map(d => [d.slug, d]));
 const coBySlug = Object.fromEntries(V.cos.map(c => [c.slug, c]));
+// Lazy parts: data.js is the core; bodies, full insights, leads and raw ledgers load on demand.
+const PARTS = {};
+function mergePart(name) {
+  const p = window.AURA_PART[name];
+  if (name === "insights") V.cards.forEach(c => { if (p.items[c.slug]) c.items = p.items[c.slug]; c.full = true; });
+  if (name === "docs") DOCS.forEach(d => { d.body = p.bodies[d.kind + ":" + d.slug] ?? ""; });
+  if (name === "leads") V.leadrows = p.leadrows;
+  if (name === "raw") Object.assign(A, p);
+  return p;
+}
+function need(name) {
+  if (PARTS[name]) return PARTS[name];
+  return PARTS[name] = new Promise((ok, no) => {
+    if (window.AURA_PART && window.AURA_PART[name]) return ok(mergePart(name));
+    const s = document.createElement("script");
+    s.src = `data-${name}.js?b=${(A.meta && A.meta.build) || ""}`;
+    s.onload = () => window.AURA_PART && window.AURA_PART[name] ? ok(mergePart(name)) : no(new Error(name));
+    s.onerror = () => { delete PARTS[name]; no(new Error("Could not load " + name)); };
+    document.head.appendChild(s);
+  });
+}
+const loaded = name => !!(window.AURA_PART && window.AURA_PART[name] && PARTS[name]);
 const RANK = {high: 3, medium: 2, low: 1, skip: 0};
 const lvl = v => { const k = String(v || "").toLowerCase().split(/[^a-z]/)[0]; return k in RANK ? k : ""; };
 const pill = v => { const k = lvl(v); return k ? `<span class="pill p-${k}">${k}</span>` : ""; };
@@ -286,7 +317,7 @@ VIEWS.brief = {
       <div class="bar"><input type="search" id="bq" placeholder="Search people, funds, insights…" value="${esc(S("bq", ""))}">
       ${seg("bk", kinds, S("bk", ""))}
       ${sel("bf", "Any fit", ["high", "medium", "low"], S("bf", ""))}
-      ${sel("bs", "Any source", [...new Set(A.insights.map(i => i.source_type).filter(Boolean))].sort(), S("bs", ""))}
+      ${sel("bs", "Any source", (A.meta.source_types || []), S("bs", ""))}
       <span class="count" id="bc"></span></div><div class="cards" id="cards"></div>`;
     let limit = 30;
     const draw = () => {
@@ -300,7 +331,7 @@ VIEWS.brief = {
         const items = c.items.filter(i => !ST.bs || i.source_type === ST.bs);
         const ins = i => `<div class="ins"><div>${esc(i.insight)}</div>${i.evidence_quote ? `<div class="q">“${esc(i.evidence_quote)}”</div>` : ""}
           <div class="meta"><span class="chip">${esc(i.type)}</span>${i.non_obvious ? `non-obvious ${pill(i.non_obvious)}` : ""}<span>${esc(i.source_type)}${i.timestamp_in_source ? " · " + esc(i.timestamp_in_source) : ""}</span>${src(i.source_url)}</div></div>`;
-        return `<article class="card"><h3>${c.kind === "person" ? avatar(c.name, photoOf(c.slug), "md") : ""}${link(c.slug, c.name)} <span class="chip">${KIND[c.kind] || c.kind}</span>${pill(c.fit)}<span class="muted num">${items.length} insight${items.length === 1 ? "" : "s"}</span></h3>
+        return `<article class="card"><h3>${c.kind === "person" ? avatar(c.name, photoOf(c.slug), "md") : ""}${link(c.slug, c.name)} <span class="chip">${KIND[c.kind] || c.kind}</span>${pill(c.fit)}<span class="muted num">${(c.full || ST.bs) ? items.length : c.n} insight${((c.full || ST.bs) ? items.length : c.n) === 1 ? "" : "s"}</span></h3>
           ${c.crux ? `<div class="crux">${clip(c.crux, 360)}</div>` : ""}
           ${items.slice(0, 3).map(ins).join("")}
           ${items.length > 3 ? `<div class="rest" hidden>${items.slice(3).map(ins).join("")}</div><button class="btn sm toggle" data-n="${items.length - 3}">Show ${items.length - 3} more</button>` : ""}</article>`;
@@ -456,7 +487,7 @@ VIEWS.coinvest = {
 VIEWS.graph = { label: "Graph", n: V.graph.nodes.length, render: m => renderGraph(m) };
 
 VIEWS.leads = {
-  label: "Leads", n: V.leadrows.filter(l => !l.profiled).length,
+  label: "Leads", n: A.meta.n_leads_new, needs: ["leads"],
   render(m) {
     const kinds = [["person", "People"], ["firm", "Funds"], ["lp", "LPs"], ["company", "Companies"]];
     const tri = store.get("triage", {});
@@ -541,7 +572,7 @@ VIEWS.library = {
 };
 
 VIEWS.raw = {
-  label: "Raw data", n: "",
+  label: "Raw data", n: "", needs: ["raw"],
   render(m) {
     const sets = {
       deals: {rows: A.deals, cols: ["date", "company", "investor_slug", "round", "led", "co_investors", "source_url"]},
@@ -590,7 +621,7 @@ function renderGraph(m) {
     kinds: gs.kinds || {person: true, firm: true, lp: true, company: true},
     apps: gs.apps ?? false, top: gs.top || 90, hops: gs.hops || 1,
   };
-  const saveG = () => store.set("graph", {etypes: st.etypes, kinds: st.kinds, apps: st.apps, top: st.top, hops: st.hops});
+  const saveG = () => store.set("graph", {etypes: st.etypes, kinds: st.kinds, apps: st.apps, top: st.top, hops: st.hops, rstep: st.rstep, rkind: st.rkind});
   m.innerHTML = `<div class="gtop">
       <input type="search" id="gq" list="gnames" placeholder="Find a person, fund, LP or company…" aria-label="Find in graph">
       <datalist id="gnames">${G.nodes.map(n => `<option value="${esc(n.name)}">`).join("")}</datalist>
@@ -726,6 +757,54 @@ function renderGraph(m) {
     return {nodes, edges};
   }
 
+  // Everyone reachable from the focused node, by number of steps, with the first-hop contacts ("via") that lead there.
+  function reach(src) {
+    const A = adj(), dist = {[src]: 0}, via = {}, q = [src];
+    while (q.length) {
+      const x = q.shift(); if (dist[x] >= 3) continue;
+      const from = dist[x] === 0 ? null : dist[x] === 1 ? [x] : [...via[x]];
+      for (const e of A[x] || []) {
+        const y = e.source === x ? e.target : e.source;
+        if (!(y in dist)) { dist[y] = dist[x] + 1; via[y] = new Set(from || []); q.push(y); }
+        else if (from && dist[y] === dist[x] + 1) from.forEach(v => via[y].add(v));
+      }
+    }
+    return {dist, via};
+  }
+  st.rstep = gs.rstep || 2; st.rkind = gs.rkind || "person";
+  let rq = "", rlimit = 40;
+  function drawReach() {
+    const box = $("greach"); if (!box) return;
+    const {dist, via} = reach(focus);
+    const all = Object.keys(dist).filter(id => id !== focus && nodeById[id]);
+    const cnt = k => all.filter(id => dist[id] === st.rstep && nodeById[id].kind === k).length;
+    const fitR = id => RANK[lvl(bySlug[id]?.lens_fit)] ?? 1;
+    const rows = all.filter(id => dist[id] === st.rstep && nodeById[id].kind === st.rkind && (!rq || nodeById[id].name.toLowerCase().includes(rq)))
+      .sort((a, b) => fitR(b) - fitR(a) || via[b].size - via[a].size || (nodeById[b].strong || 0) - (nodeById[a].strong || 0));
+    const steps = [1, 2, 3].map(k => [k, `${k} step${k > 1 ? "s" : ""} <span class="muted">${all.filter(id => dist[id] === k).length}</span>`]);
+    const kinds = NKINDS.filter(([k]) => st.kinds[k]).map(([k, l]) => [k, `${l} <span class="muted">${cnt(k)}</span>`]);
+    const nm = id => esc((nodeById[id]?.name || id).replace(/\s*\(.*$/, ""));
+    box.innerHTML = `<h4>Who ${esc(nodeById[focus].name.split(" ")[0])} can reach</h4>
+      <div class="muted rhelp">${st.rstep === 1 ? "Direct links." : `Everyone ${st.rstep} steps away, with the direct contacts that get there. More bridges means more ways in.`} Tap a name to see the chain.</div>
+      <div class="seg" id="rstep">${steps.map(([k, l]) => `<button data-v="${k}" class="${k === st.rstep ? "on" : ""}">${l}</button>`).join("")}</div>
+      <div class="seg" id="rkind">${kinds.map(([k, l]) => `<button data-v="${k}" class="${k === st.rkind ? "on" : ""}">${l}</button>`).join("")}</div>
+      <input type="search" id="grq" placeholder="Filter by name…" value="${esc(rq)}" aria-label="Filter reachable names">
+      <div class="rlist">${rows.slice(0, rlimit).map(id => {
+        const n = nodeById[id], v = [...via[id]];
+        return `<div class="rrow" data-path="${esc(id)}" role="button" tabindex="0"><span class="kdot sm" style="--c:var(${NC[n.kind]})"></span>
+          <span class="rn"><b>${nm(id)}</b>${pill(bySlug[id]?.lens_fit)}<span class="muted"> ${esc(firmShort(n.firm || ""))}</span></span>
+          ${st.rstep > 1 ? `<span class="rv">via ${v.slice(0, 2).map(nm).join(", ")}${v.length > 2 ? ` +${v.length - 2}` : ""}${v.length > 1 ? ` <span class="rb">${v.length} bridges</span>` : ""}</span>` : ""}</div>`;
+      }).join("") || `<p class="muted">Nobody here with the links switched on. Try turning on "Knows" or another step count.</p>`}
+      ${rows.length > rlimit ? `<button class="btn sm" id="rmore">Show all ${rows.length}</button>` : ""}</div>`;
+    box.querySelectorAll("#rstep button").forEach(b => b.onclick = () => { st.rstep = +b.dataset.v; rlimit = 40; saveG(); drawReach(); });
+    box.querySelectorAll("#rkind button").forEach(b => b.onclick = () => { st.rkind = b.dataset.v; rlimit = 40; saveG(); drawReach(); });
+    $("grq").oninput = e => { rq = e.target.value.toLowerCase(); const pos = e.target.selectionStart; drawReach(); const i = $("grq"); i.focus(); i.setSelectionRange(pos, pos); };
+    const more = $("rmore"); if (more) more.onclick = () => { rlimit = 1e9; drawReach(); };
+    box.querySelectorAll("[data-path]").forEach(r => r.onclick = r.onkeydown = e => {
+      if (e.type === "keydown" && e.key !== "Enter") return;
+      const res = findPath(focus, r.dataset.path); if (res) { path = res; load(); }
+    });
+  }
   const stat = (v, l) => `<div class="gs"><b>${v}</b><span>${l}</span></div>`;
   const insightList = (slug, n = 3) => {
     const c = cardOf[slug]; if (!c) return "";
@@ -746,7 +825,7 @@ function renderGraph(m) {
       if (co.first_in.length) h += `<p class="muted">First in: ${esc(co.first_in.join(", "))}</p>`;
     }
     h += `<div class="gbtns"><button class="btn sm on" id="gopen">Open full page</button>${focus ? `<div class="seg" id="ghops"><button data-v="1" class="${st.hops === 1 ? "on" : ""}">1 step</button><button data-v="2" class="${st.hops === 2 ? "on" : ""}">2 steps</button></div>` : ""}</div>
-      <div class="gpath"><input id="gpq" list="gnames" placeholder="How is ${esc(n.name.split(" ")[0])} connected to…" aria-label="Find a path to"><div id="gpres"></div></div>`;
+      <div class="greach" id="greach"></div>`;
     h += insightList(n.id);
     const es = G.edges.filter(e => (e.source === n.id || e.target === n.id) && okEdge(e)).map(e => ({...e, other: e.source === n.id ? e.target : e.source})).sort((a, b) => b.w - a.w);
     const groups = [["co-invested", "Co-invested with"], ["invested", n.kind === "company" ? "Investors" : "Invested in"], ["at", n.kind === "firm" ? "People at this fund" : "Works at"], ["lp", "LP links"], ["knows", "Knows"]];
@@ -769,13 +848,7 @@ function renderGraph(m) {
       p.innerHTML = card(nodeById[focus]);
       $("gopen").onclick = () => openDoc(coBySlug[focus] && nodeById[focus].kind === "company" ? "co:" + focus : focus);
       const hs = $("ghops"); if (hs) hs.querySelectorAll("button").forEach(b => b.onclick = () => { st.hops = +b.dataset.v; load(); });
-      $("gpq").onchange = e => {
-        const t = G.nodes.find(x => x.name.toLowerCase() === e.target.value.toLowerCase());
-        if (!t) return;
-        const r = findPath(focus, t.id);
-        if (!r) { $("gpres").innerHTML = `<p class="muted">No chain found with the links switched on. Try enabling "Knows".</p>`; return; }
-        path = r; load();
-      };
+      drawReach();
     }
     p.scrollTop = 0;
     p.querySelectorAll("[data-focus]").forEach(x => x.onclick = e => { e.stopPropagation(); setFocus(x.dataset.focus); });
@@ -798,7 +871,18 @@ function roundsTable(c) {
   return `<table><thead><tr><th>Date</th><th>Round</th><th>Amount</th><th>Led by</th><th>Also in</th><th></th></tr></thead><tbody>${
     c.rounds.map(r => `<tr><td>${esc(r.date)}</td><td>${esc(r.round)}</td><td>${esc(r.amount)}${r.valuation ? `<div class="muted">${esc(r.valuation)}</div>` : ""}</td><td>${esc(r.leads.join(", "))}</td><td class="muted">${esc(r.others.slice(0, 14).join(", "))}${r.others.length > 14 ? ` +${r.others.length - 14}` : ""}</td><td>${src(r.src)}</td></tr>`).join("")}</tbody></table>`;
 }
+let docKey = null;
 function openDoc(key) {
+  docKey = key;
+  if (!loaded("docs")) {
+    const d = bySlug[key.replace(/^co:/, "")];
+    $("dpath").textContent = d ? d.path : "";
+    $("dbody").innerHTML = `<h1>${esc(d ? d.name : (coBySlug[key.slice(3)] || {}).name || key)}</h1><p class="muted">Loading the write-up…</p>`;
+    $("drawer").classList.add("on"); $("scrim").classList.add("on");
+    need("docs").then(() => { if (docKey === key && $("drawer").classList.contains("on")) openDoc(key); })
+      .catch(e => { if (docKey === key) $("dbody").insertAdjacentHTML("beforeend", `<p class="muted">${esc(e.message)}.</p>`); });
+    return;
+  }
   let html, path;
   if (key.startsWith("co:")) {
     const c = coBySlug[key.slice(3)]; if (!c) return;
@@ -842,6 +926,14 @@ function route() {
   view = VIEWS[h] ? h : "brief";
   tabs();
   if (FG) { try { FG._destructor && FG._destructor(); } catch {} FG = null; }
+  const needs = (VIEWS[view].needs || []).filter(n => !loaded(n));
+  if (needs.length) {
+    const want = view;
+    $("main").innerHTML = `<p class="muted loading">Loading ${esc(VIEWS[view].label.toLowerCase())}…</p>`;
+    Promise.all(needs.map(need)).then(() => { if (view === want) route(); })
+      .catch(e => { if (view === want) $("main").innerHTML = `<p class="muted">${esc(e.message)}. Check your connection and reload.</p>`; });
+    return;
+  }
   VIEWS[view].render($("main"));
   // phones: tuck filters behind a button
   const bar = $("main").querySelector(".bar");
@@ -853,7 +945,10 @@ function route() {
     q ? q.after(b) : bar.prepend(b);
   }
 }
-$("sub").textContent = `${A.insights.length} insights on ${V.cards.length} subjects · ${A.people.length} people · ${A.firms.length} funds · ${A.lps.length} LPs · ${V.cos.filter(c => c.tier === 1).length} frontier companies`;
+$("sub").textContent = `${A.meta.n_insights} insights on ${V.cards.length} subjects · ${A.people.length} people · ${A.firms.length} funds · ${A.lps.length} LPs · ${V.cos.filter(c => c.tier === 1).length} frontier companies`;
 window.addEventListener("hashchange", route);
 route();
+// Warm the rest in the background: full insights first (the Brief re-renders with them), then profile bodies.
+need("insights").then(() => { if (view === "brief" && !$("main").contains(document.activeElement)) route(); }).catch(() => {});
+(window.requestIdleCallback || (f => setTimeout(f, 1500)))(() => need("docs").catch(() => {}));
 </script>
