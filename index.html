@@ -89,7 +89,7 @@ a{color:var(--accent)}
 
 .av{position:relative;display:inline-grid;place-items:center;flex:none;width:30px;height:30px;border-radius:50%;overflow:hidden;
   background:hsl(var(--h,200) 45% 88%);color:hsl(var(--h,200) 45% 28%);font:600 11px var(--f-body);vertical-align:middle}
-.av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:transparent;color:transparent}
+.av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 20%;background:transparent;color:transparent}
 .av.lg{width:52px;height:52px;font-size:17px} .av.md{width:40px;height:40px;font-size:14px}
 .who{display:inline-flex;align-items:center;gap:9px}
 .funds{display:grid;gap:14px}
@@ -949,6 +949,7 @@ function renderGraph(m) {
     else if (n.kind === "lp") { ctx.moveTo(n.x, n.y - r * 1.25); ctx.lineTo(n.x + r * 1.15, n.y + r * 0.85); ctx.lineTo(n.x - r * 1.15, n.y + r * 0.85); ctx.closePath(); }
     else ctx.arc(n.x, n.y, r, 0, 2 * Math.PI);
   }
+  const fitView = ms => { FG.zoomToFit(ms, 70); setTimeout(() => { if (FG.zoom() > 3.5) FG.zoom(3.5, 300); }, ms + 30); };
   const el = $("graph");
   el.innerHTML = "";
   FG = ForceGraph()(el)
@@ -973,7 +974,10 @@ function renderGraph(m) {
       const im = n.photo && imgOf(n.photo);
       if (im && im.complete && im.naturalWidth && (focus || path || scale > 1.6 || r > 9)) {
         ctx.save(); ctx.beginPath(); ctx.arc(n.x, n.y, r - 0.6 / scale, 0, 2 * Math.PI); ctx.clip();
-        try { ctx.drawImage(im, n.x - r, n.y - r, r * 2, r * 2); } catch (e) {}
+        // Cover-crop: take a centred square (biased up, where faces sit) so photos keep their aspect ratio.
+        const iw = im.naturalWidth, ih = im.naturalHeight, sq = Math.min(iw, ih);
+        const sx = (iw - sq) / 2, sy = ih > iw ? (ih - sq) * 0.2 : 0;
+        try { ctx.drawImage(im, sx, sy, sq, sq, n.x - r, n.y - r, r * 2, r * 2); } catch (e) {}
         ctx.restore(); ctx.beginPath(); ctx.arc(n.x, n.y, r, 0, 2 * Math.PI);
       }
       ctx.lineWidth = (n.profiled ? 1.6 : 0.8) / scale; ctx.strokeStyle = n.profiled ? css("--ink") : css("--panel"); ctx.stroke();
@@ -999,7 +1003,8 @@ function renderGraph(m) {
     .onNodeClick(n => setFocus(n.id))
     .onBackgroundClick(() => { if (path) { path = null; load(); } })
     .cooldownTicks(160)
-    .onEngineStop(() => { if (needFit) { needFit = false; FG.zoomToFit(500, 50); } });
+    .maxZoom(6)
+    .onEngineStop(() => { if (needFit) { needFit = false; fitView(500); } });
   FG.d3Force("charge").strength(n => -150 - size(n) * 22).distanceMax(420);
   FG.d3Force("link").distance(l => 26 + 70 / Math.sqrt(l.w || 1));
 
@@ -1130,7 +1135,7 @@ function renderGraph(m) {
   $("ga").onchange = e => { st.apps = e.target.checked; load(); };
   $("gtop").onchange = e => { st.top = +e.target.value; load(); };
   $("greset").onclick = () => setFocus(null);
-  $("gfit").onclick = () => FG.zoomToFit(500, 60);
+  $("gfit").onclick = () => fitView(500);
   new ResizeObserver(() => FG && FG.width(el.clientWidth).height(el.clientHeight)).observe(el);
   const want = store.get("gfocus", null); focus = want && nodeById[want] ? want : null;
   if (focus) $("gq").value = nodeById[focus].name;
