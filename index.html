@@ -145,6 +145,16 @@ a{color:var(--accent)}
 .gpath input{width:100%;font:inherit;font-size:13px;padding:7px 10px;border:1px dashed var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
 .gi{border-top:1px solid var(--line);padding:8px 0;display:grid;gap:3px;font-size:13px}
 .gi .q{color:var(--muted);font-style:italic}
+/* Signal colours: amber = key (non-obvious, high confidence, high fit), teal = notable (non-obvious) */
+.ins.s2,.gi.s2{border-left:3px solid var(--warn);padding-left:10px;background:color-mix(in srgb,var(--warn-soft) 55%,transparent);border-radius:0 6px 6px 0}
+.ins.s1,.gi.s1{border-left:3px solid var(--good);padding-left:10px}
+.sg{font:600 10.5px/1 var(--f-data);text-transform:uppercase;letter-spacing:.04em;padding:3px 6px;border-radius:4px;white-space:nowrap}
+.sg.s2{background:var(--warn-soft);color:var(--warn);border:1px solid color-mix(in srgb,var(--warn) 45%,transparent)}
+.sg.s1{background:var(--good-soft);color:var(--good)}
+.pl.k::after,.mention.k::after{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--warn);margin-left:3px;vertical-align:super}
+.hc .hkey{margin:8px 0 4px;padding:7px 9px;border-left:3px solid var(--warn);background:var(--warn-soft);border-radius:0 6px 6px 0;line-height:1.45}
+.hc .hkey .q{color:var(--muted);font-style:italic;font-size:12px;margin-top:3px}
+.legend{display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--muted);margin:-4px 0 12px}
 .gi .meta{font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center}
 .nb{display:grid;gap:2px;padding:6px 0;border-top:1px solid var(--line);font-size:13px}
 .nb .ev{font-size:12px;color:var(--muted)}
@@ -273,6 +283,10 @@ const slugify = s => String(s || "").replace(/\(.*?\)/g, "").toLowerCase().repla
 const DOCS = [...A.people, ...A.firms, ...A.lps, ...A.companies, ...A.sources, ...A.patterns];
 const bySlug = Object.fromEntries(DOCS.map(d => [d.slug, d]));
 const coBySlug = Object.fromEntries(V.cos.map(c => [c.slug, c]));
+const CARD = Object.fromEntries(V.cards.map(c => [c.slug, c]));
+const SIG = ["", "Notable", "Key"];
+const sigTag = i => i.sig ? `<span class="sg s${i.sig}" title="${i.sig === 2 ? "Key: non-obvious, high confidence, high fit with your lens" : "Notable: not in press or on firm pages"}">${SIG[i.sig]}</span>` : "";
+const hasKey = s => (CARD[s]?.nk || 0) > 0;
 // Lazy parts: data.js is the core; bodies, full insights, leads and raw ledgers load on demand.
 const PARTS = {};
 function mergePart(name) {
@@ -305,7 +319,7 @@ const KIND = {person: "Person", firm: "Fund", lp: "LP", company: "Company", sour
 const link = (s, label) => {
   const k = bySlug[s] ? s : bySlug[slugify(s)] ? slugify(s) : coBySlug[slugify(s)] ? slugify(s) : null;
   const name = label || (k && (bySlug[k]?.name || coBySlug[k]?.name)) || s;
-  return k ? `<span class="pl" tabindex="0" data-open="${esc(k)}">${esc(name)}</span>` : esc(name);
+  return k ? `<span class="pl${hasKey(k) ? " k" : ""}" tabindex="0" data-open="${esc(k)}"${hasKey(k) ? ` title="${CARD[k].nk} key insight${CARD[k].nk === 1 ? "" : "s"}"` : ""}>${esc(name)}</span>` : esc(name);
 };
 const hue = s => { let h = 0; for (const ch of String(s)) h = (h * 31 + ch.charCodeAt(0)) % 360; return h; };
 const initials = n => String(n || "?").replace(/\(.*?\)/g, "").trim().split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase();
@@ -385,7 +399,7 @@ function hcHTML(key) {
   const d = bySlug[slug], c = coBySlug[slug];
   if (d && !(isCo && c)) {
     return `<div class="hh">${d.kind === "person" ? avatar(d.name, d.photo, "md") : `<span class="kdot" style="--c:var(--n-${d.kind === "firm" ? "firm" : d.kind === "lp" ? "lp" : d.kind === "company" ? "company" : "person"})">${(NKINDS.find(k => k[0] === d.kind) || [])[3] || "•"}</span>`}<div><div class="hn">${esc(d.name.replace(/\s*\(.*$/, ""))}</div><div class="hk">${esc(KIND[d.kind] || d.kind)}${d.firm ? " · " + esc(firmShort(d.firm)) : ""}${d.seniority ? " · " + esc(d.seniority) : ""} ${pill(d.lens_fit)}</div></div></div>
-      ${knownFor(slug) ? `<div class="hf">${clip(knownFor(slug), 300)}</div>` : ""}${socials(slug)}
+      ${knownFor(slug) ? `<div class="hf">${clip(knownFor(slug), 300)}</div>` : ""}${CARD[slug]?.key ? `<div class="hkey"><span class="sg s2">Key insight</span>${CARD[slug].nk > 1 ? ` <span class="hk">1 of ${CARD[slug].nk}</span>` : ""}<div>${clip(CARD[slug].key.t, 260)}</div>${CARD[slug].key.q ? `<div class="q">“${esc(CARD[slug].key.q)}” ${src(CARD[slug].key.u)}</div>` : ""}</div>` : ""}${socials(slug)}
       <div class="hb"><button class="btn sm on" data-open="${esc(slug)}">Open profile</button>${trackCtl(slug)}</div>`;
   }
   if (c) return `<div class="hh"><span class="kdot" style="--c:var(--n-company)">■</span><div><div class="hn">${esc(c.name)}</div><div class="hk">Company ${tierPill(c)}</div></div></div>
@@ -446,7 +460,7 @@ function linkMentions(root, self) {
       done.add(key);
       frag ||= document.createDocumentFragment();
       frag.append(s.slice(last, m.index));
-      const sp = document.createElement("span"); sp.className = "mention" + (v.lead ? " lead" : ""); sp.tabIndex = 0;
+      const sp = document.createElement("span"); sp.className = "mention" + (v.lead ? " lead" : "") + (v.open && hasKey(v.open) ? " k" : ""); sp.tabIndex = 0;
       if (v.lead) sp.dataset.lead = v.lead; else sp.dataset.open = v.open;
       sp.textContent = m[1]; frag.append(sp); last = m.index + m[1].length;
     }
@@ -501,20 +515,23 @@ VIEWS.brief = {
       ${seg("bk", kinds, S("bk", ""))}
       ${sel("bf", "Any fit", ["high", "medium", "low"], S("bf", ""))}
       ${sel("bs", "Any source", (A.meta.source_types || []), S("bs", ""))}
-      <span class="count" id="bc"></span></div><div class="cards" id="cards"></div>`;
+      ${seg("bsg", [["", "All insights"], ["1", "Notable+"], ["2", "Key only"]], S("bsg", ""))}
+      <span class="count" id="bc"></span></div>
+      <div class="legend"><span><span class="sg s2">Key</span> non-obvious, high confidence and high fit with your lens</span><span><span class="sg s1">Notable</span> not in press or on firm pages</span><span><span class="pl k">Name</span> has key insights</span></div><div class="cards" id="cards"></div>`;
     let limit = 30;
     const draw = () => {
       const q = ST.bq.toLowerCase();
       const cards = ordered.filter(c =>
         (!ST.bk || c.kind === ST.bk) && (!ST.bf || c.fit === ST.bf) &&
         (!ST.bs || c.items.some(i => i.source_type === ST.bs)) &&
+        (!ST.bsg || (ST.bsg === "2" ? c.nk : c.nk + c.nn) > 0) &&
         (!q || (c.name + " " + c.crux + " " + c.items.map(i => i.insight + " " + i.evidence_quote).join(" ")).toLowerCase().includes(q)));
       $("bc").textContent = `${cards.length} of ${V.cards.length}`;
       $("cards").innerHTML = cards.slice(0, limit).map(c => {
-        const items = c.items.filter(i => !ST.bs || i.source_type === ST.bs);
-        const ins = i => `<div class="ins"><div>${esc(i.insight)}</div>${i.evidence_quote ? `<div class="q">“${esc(i.evidence_quote)}”</div>` : ""}
-          <div class="meta"><span class="chip">${esc(i.type)}</span>${i.non_obvious ? `non-obvious ${pill(i.non_obvious)}` : ""}<span>${esc(i.source_type)}${i.timestamp_in_source ? " · " + esc(i.timestamp_in_source) : ""}</span>${src(i.source_url)}</div></div>`;
-        return `<article class="card"><h3>${c.kind === "person" ? avatar(c.name, photoOf(c.slug), "md") : ""}${link(c.slug, c.name)} <span class="chip">${KIND[c.kind] || c.kind}</span>${pill(c.fit)}<span class="muted num">${(c.full || ST.bs) ? items.length : c.n} insight${((c.full || ST.bs) ? items.length : c.n) === 1 ? "" : "s"}</span>${socials(c.slug, 1)}</h3>
+        const items = c.items.filter(i => (!ST.bs || i.source_type === ST.bs) && (!ST.bsg || (i.sig || 0) >= +ST.bsg));
+        const ins = i => `<div class="ins s${i.sig || 0}"><div>${esc(i.insight)}</div>${i.evidence_quote ? `<div class="q">“${esc(i.evidence_quote)}”</div>` : ""}
+          <div class="meta">${sigTag(i)}<span class="chip">${esc(i.type)}</span>${i.non_obvious ? `non-obvious ${pill(i.non_obvious)}` : ""}<span>${esc(i.source_type)}${i.timestamp_in_source ? " · " + esc(i.timestamp_in_source) : ""}</span>${src(i.source_url)}</div></div>`;
+        return `<article class="card"><h3>${c.kind === "person" ? avatar(c.name, photoOf(c.slug), "md") : ""}${link(c.slug, c.name)} <span class="chip">${KIND[c.kind] || c.kind}</span>${pill(c.fit)}<span class="muted num">${(c.full || ST.bs || ST.bsg) ? items.length : c.n} insight${((c.full || ST.bs || ST.bsg) ? items.length : c.n) === 1 ? "" : "s"}</span>${c.nk ? `<span class="sg s2">${c.nk} key</span>` : ""}${socials(c.slug, 1)}</h3>
           ${c.crux ? `<div class="crux">${clip(c.crux, 360)}</div>` : ""}
           ${items.slice(0, 3).map(ins).join("")}
           ${items.length > 3 ? `<div class="rest" hidden>${items.slice(3).map(ins).join("")}</div><button class="btn sm toggle" data-n="${items.length - 3}">Show ${items.length - 3} more</button>` : ""}</article>`;
@@ -529,6 +546,7 @@ VIEWS.brief = {
     onSeg("bk", v => { ST.bk = v; limit = 30; draw(); });
     $("bf").onchange = e => { ST.bf = e.target.value; draw(); };
     $("bs").onchange = e => { ST.bs = e.target.value; draw(); };
+    onSeg("bsg", v => { ST.bsg = v; limit = 30; draw(); });
     draw();
   },
 };
@@ -981,6 +999,7 @@ function renderGraph(m) {
         ctx.restore(); ctx.beginPath(); ctx.arc(n.x, n.y, r, 0, 2 * Math.PI);
       }
       ctx.lineWidth = (n.profiled ? 1.6 : 0.8) / scale; ctx.strokeStyle = n.profiled ? css("--ink") : css("--panel"); ctx.stroke();
+      if (hasKey(n.id) && (scale > 1.2 || isF || focus || path)) { ctx.beginPath(); ctx.arc(n.x + r * 0.78, n.y - r * 0.78, Math.max(r * 0.28, 2.2 / scale), 0, 2 * Math.PI); ctx.fillStyle = css("--warn"); ctx.fill(); ctx.lineWidth = 1 / scale; ctx.strokeStyle = css("--panel"); ctx.stroke(); }
       if (n.kind === "company" && n.tier === 1) { ctx.beginPath(); ctx.arc(n.x, n.y, r * 0.32, 0, 2 * Math.PI); ctx.fillStyle = css("--panel"); ctx.fill(); }
       const show = isF || (focus || path ? true : (scale > 2.4 || (n.strong || n.deg) >= labelCut)) || n.id === hover || hoverSet.has(n.id);
       if (show && !dim) {
@@ -1084,7 +1103,7 @@ function renderGraph(m) {
   const stat = (v, l) => `<div class="gs"><b>${v}</b><span>${l}</span></div>`;
   const insightList = (slug, n = 3) => {
     const c = cardOf[slug]; if (!c) return "";
-    return `<h4>Best insights <span class="muted">(${c.n})</span></h4>${c.items.slice(0, n).map(i => `<div class="gi"><div>${esc(i.insight)}</div>${i.evidence_quote ? `<div class="q">“${esc(i.evidence_quote)}”</div>` : ""}<div class="meta">${pill(i.non_obvious)} <span>${esc(i.source_type)}</span> ${src(i.source_url)}</div></div>`).join("")}`;
+    return `<h4>Best insights <span class="muted">(${c.n})</span></h4>${c.items.slice(0, n).map(i => `<div class="gi s${i.sig || 0}"><div>${esc(i.insight)}</div>${i.evidence_quote ? `<div class="q">“${esc(i.evidence_quote)}”</div>` : ""}<div class="meta">${sigTag(i)} ${pill(i.non_obvious)} <span>${esc(i.source_type)}</span> ${src(i.source_url)}</div></div>`).join("")}`;
   };
   function card(n) {
     const d = bySlug[n.id], co = coBySlug[n.id];
