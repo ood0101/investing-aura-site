@@ -293,7 +293,17 @@ textarea.copy{width:100%;min-height:120px;font:12px var(--f-data);margin-top:8px
 .so:hover{color:var(--accent);border-color:var(--accent)}
 .so-x{color:var(--ink)} .so-linkedin{color:#2867b2} .so-substack{color:#d4570f} .so-podcast{color:#8a3fbf}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .so-linkedin{color:#7fb0f0}:root:not([data-theme="light"]) .so-substack{color:#ff9a5c}:root:not([data-theme="light"]) .so-podcast{color:#c99af0}}
-.gsearch{display:flex;gap:8px;align-items:center;margin-top:10px;max-width:560px}
+.gsearch{position:relative;display:flex;gap:8px;align-items:center;margin-top:10px;max-width:640px}
+.gres{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:7;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.14);max-height:min(60vh,520px);overflow-y:auto;display:none}
+.gres.on{display:block}
+.gr{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:8px 12px;cursor:pointer;border-top:1px solid var(--line)}
+.gr:first-child{border-top:0}
+.gr.act,.gr:hover{background:var(--accent-soft)}
+.gr .gn{font-weight:600;line-height:1.25}.gr .gn mark{background:none;color:var(--accent);font-weight:700}
+.gr .gs2{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gr .gk{font:500 10.5px var(--f-data);text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.gres .gempty{padding:12px;color:var(--muted);font-size:13px}
+.gres .ghint{padding:6px 12px;font-size:11px;color:var(--muted);border-top:1px solid var(--line)}
 .gsearch input{flex:1;font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink)}
 .mention{color:inherit;border-bottom:1.5px dotted var(--accent);cursor:pointer;border-radius:2px}
 .mention.lead{border-bottom-color:var(--muted)}
@@ -517,7 +527,7 @@ a.chip:hover{background:var(--accent-soft);color:var(--accent)}
 <header>
   <div class="brand"><h1 id="wordmark"><span class="bk">Back</span>channel</h1><button class="tag" id="tagline" title="Tap for another"></button><button class="style-sw" id="stylesw"></button></div>
   <div class="sub" id="sub"></div>
-  <div class="gsearch"><input type="search" id="gfind" list="allnames" placeholder="Jump to anyone: person, fund, LP or company…" aria-label="Jump to a profile"><datalist id="allnames"></datalist></div>
+  <div class="gsearch"><input type="search" id="gfind" placeholder="Jump to anyone: person, fund, LP or company…  ( / )" aria-label="Jump to a profile" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="gres"><div class="gres" id="gres" role="listbox"></div></div>
   <nav id="tabs"></nav>
 </header>
 <main id="main"></main>
@@ -527,7 +537,7 @@ a.chip:hover{background:var(--accent-soft);color:var(--accent)}
 <div class="toast" id="toast" role="status"></div>
 <div class="hc" id="hc" role="dialog" aria-label="Quick look"></div>
 
-<script src="data.js?b=fa935f06be"></script>
+<script src="data.js?b=4a047850ec"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
@@ -2391,10 +2401,54 @@ function route() {
   }
 }
 {
-  const opts = [...A.people, ...A.firms, ...A.lps].map(d => [d.name, d.slug, KIND[d.kind]]).concat(V.cos.filter(c => c.tier <= 3 && !bySlug[c.slug]).map(c => [c.name, "co:" + c.slug, "Company"]));
-  $("allnames").innerHTML = opts.map(([n, , k]) => `<option value="${esc(n)}">${esc(k)}</option>`).join("");
-  const go = () => { const v = $("gfind").value.trim().toLowerCase(); const hit = opts.find(o => o[0].toLowerCase() === v) || (v.length > 2 && opts.find(o => o[0].toLowerCase().startsWith(v))); if (hit) { openDoc(hit[1]); $("gfind").value = ""; $("gfind").blur(); } };
-  $("gfind").onchange = go; $("gfind").onkeydown = e => { if (e.key === "Enter") go(); };
+  // Header search: ranked typeahead over people, funds, LPs and every company (rebuilt when more data loads).
+  const norm = s => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").trim();
+  let IDX = null, idxN = -1, act = 0, hits = [];
+  const build = () => {
+    const out = [];
+    [...A.people, ...A.firms, ...A.lps].forEach(d => out.push({key: d.slug, name: d.name.replace(/\s*\([^)]*\)/g, "").replace(/\s*\(.*$/, "").trim() || d.name, full: d.name, kind: KIND[d.kind] || d.kind,
+      sub: d.kind === "person" ? firmShort(d.firm) : [d.known_for, d.take].find(t => t && !/^\(/.test(t.trim())) ? [d.known_for, d.take].find(t => t && !/^\(/.test(t.trim())).slice(0, 80) : "", photo: d.photo, boost: 6 + (RANK[lvl(d.lens_fit)] || 0)}));
+    V.cos.forEach(c => { if (bySlug[c.slug] && bySlug[c.slug].kind !== "company") return;
+      out.push({key: "co:" + c.slug, name: c.name, full: c.name, kind: "Company", sub: [c.tier_name, c.category, c.latest].filter(Boolean).join(" · "), boost: c.tier === 1 ? 5 : c.tier === 2 ? 3 : c.tier === 3 ? 1 : 0}); });
+    out.forEach(o => { o.n = norm(o.full); o.w = o.n.split(" "); o.c = o.n.replace(/ /g, ""); o.s = norm(o.sub); });
+    idxN = out.length; return out;
+  };
+  const score = (o, q, qw) => {
+    if (o.n === q) return 100 + o.boost;
+    if (o.n.startsWith(q)) return 80 + o.boost;
+    if (qw.every(t => o.w.some(w => w.startsWith(t)))) return 60 + o.boost;
+    if (o.n.includes(q)) return 40 + o.boost;
+    if (o.c.includes(q.replace(/ /g, ""))) return 35 + o.boost;
+    if (q.length > 2 && o.s.includes(q)) return 15 + o.boost;
+    return 0;
+  };
+  const box = $("gres"), inp = $("gfind");
+  const hl = (name, q) => { const i = norm(name).indexOf(q); return i < 0 || name.length !== norm(name).length ? esc(name) : esc(name.slice(0, i)) + "<mark>" + esc(name.slice(i, i + q.length)) + "</mark>" + esc(name.slice(i + q.length)); };
+  const render = () => {
+    const q = norm(inp.value);
+    if (!q) { box.classList.remove("on"); inp.setAttribute("aria-expanded", "false"); return; }
+    const total = A.people.length + A.firms.length + A.lps.length + V.cos.length;
+    if (!IDX || Math.abs(idxN - total) > total * 0.1) IDX = build();
+    const qw = q.split(" ");
+    hits = IDX.map(o => [score(o, q, qw), o]).filter(x => x[0] > 0).sort((a, b) => b[0] - a[0] || a[1].name.length - b[1].name.length).slice(0, 12).map(x => x[1]);
+    act = Math.min(act, Math.max(hits.length - 1, 0));
+    box.innerHTML = hits.length ? hits.map((o, i) => `<div class="gr${i === act ? " act" : ""}" role="option" data-i="${i}">${o.kind === "Person" ? avatar(o.name, o.photo, "") : `<span class="kdot" style="--c:var(--n-${o.kind === "Fund" ? "firm" : o.kind === "LP" ? "lp" : "company"})">${o.kind === "Fund" ? "◆" : o.kind === "LP" ? "▲" : "■"}</span>`}
+        <div style="min-width:0"><div class="gn">${hl(o.name, q)}</div>${o.sub ? `<div class="gs2">${esc(o.sub)}</div>` : ""}</div><span class="gk">${esc(o.kind)}</span></div>`).join("") + `<div class="ghint">↑↓ to move · Enter to open · Esc to close</div>`
+      : `<div class="gempty">No match for “${esc(inp.value)}”. Try part of a name, a fund or a company.</div>`;
+    box.classList.add("on"); inp.setAttribute("aria-expanded", "true");
+  };
+  const open = i => { const o = hits[i]; if (!o) return; box.classList.remove("on"); inp.value = ""; inp.blur(); openDoc(o.key); };
+  inp.oninput = () => { act = 0; render(); };
+  inp.onfocus = () => { if (inp.value) render(); };
+  inp.onkeydown = e => {
+    if (e.key === "ArrowDown") { e.preventDefault(); act = Math.min(act + 1, hits.length - 1); render(); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); act = Math.max(act - 1, 0); render(); }
+    else if (e.key === "Enter") { e.preventDefault(); open(act); }
+    else if (e.key === "Escape") { box.classList.remove("on"); inp.blur(); }
+  };
+  box.addEventListener("mousedown", e => { const r = e.target.closest(".gr"); if (r) { e.preventDefault(); open(+r.dataset.i); } });
+  document.addEventListener("click", e => { if (!e.target.closest(".gsearch")) box.classList.remove("on"); });
+  document.addEventListener("keydown", e => { if (e.key === "/" && !e.target.closest("input, textarea, select, [contenteditable]")) { e.preventDefault(); inp.focus(); } });
   const today = new Date().toISOString().slice(0, 10), last = store.get("lastseen", "");
   if (last !== today) { if (last) store.set("prevseen", last); store.set("lastseen", today); }
 }
