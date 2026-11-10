@@ -335,7 +335,7 @@ textarea.copy{width:100%;min-height:120px;font:12px var(--f-data);margin-top:8px
 <div class="toast" id="toast" role="status"></div>
 <div class="hc" id="hc" role="dialog" aria-label="Quick look"></div>
 
-<script src="data.js?b=e6b8f922d9"></script>
+<script src="data.js?b=fd7001aad6"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
@@ -433,6 +433,34 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem("aura:" + k); return v ? JSON.parse(v) : d; } catch { return d; } },
   set(k, v) { try { localStorage.setItem("aura:" + k, JSON.stringify(v)); } catch {} },
 };
+// ---- research picks: Keep/Skip on leads. On the private claude.ai artifact they're saved to the artifact's shared
+// database (collection "picks"), which Claude reads before each research sweep; elsewhere they stay in this browser. ----
+const PICKS = {db: null, shared: false};
+const picks = () => store.get("triage", {});
+function setPick(slug, val) {
+  const tri = picks(); if (val) tri[slug] = val; else delete tri[slug]; store.set("triage", tri);
+  if (!PICKS.db) return;
+  const ref = PICKS.db.collection("picks").doc(slug), l = leadBySlug()[slug] || {};
+  (val ? ref.set({slug, name: l.name || bySlug[slug]?.name || slug, kind: l.kind || bySlug[slug]?.kind || "", pick: val, at: new Date().toISOString()}) : ref.delete())
+    .catch(err => { if (err?.code === "not_granted") { PICKS.db = null; PICKS.shared = false; } toast("Couldn't save the pick to the shared list; kept in this browser."); });
+}
+(async () => {
+  if (!window.claude?.use) return;  // public site: no shared database
+  try {
+    const db = await window.claude.use("db"); if (!db) return;
+    PICKS.db = db; PICKS.shared = true;
+    let first = true;
+    db.collection("picks").onSnapshot(snap => {
+      const remote = {}; snap.docs.forEach(d => { const v = d.data(); if (v?.pick) remote[d.id] = v.pick; });
+      if (first) {  // one-time: push picks made in this browser before sharing existed
+        first = false;
+        Object.entries(picks()).forEach(([k, v]) => { if (!remote[k]) { remote[k] = v; setPick(k, v); } });
+      }
+      store.set("triage", remote);
+      if (typeof view !== "undefined" && view === "leads" && !document.querySelector("#lq:focus")) route();
+    }, () => { PICKS.shared = false; });
+  } catch {}
+})();
 // ---- socials ----
 const SOC = {x: ["X", "X"], linkedin: ["LinkedIn", "in"], substack: ["Writing", "Blog"], podcast: ["Podcast", "Pod"], youtube: ["YouTube", "YT"], github: ["GitHub", "GH"], site: ["Site", "Site"]};
 const socialsOf = key => (bySlug[key] && bySlug[key].socials) || [];
@@ -475,7 +503,7 @@ const leadBySlug = () => V.leadrows ? (leadBySlug.m ||= Object.fromEntries(V.lea
 function hcHTML(key) {
   if (key.startsWith("lead:")) {
     const l = leadBySlug()[key.slice(5)]; if (!l) return "";
-    const pick = store.get("triage", {})[l.slug];
+    const pick = picks()[l.slug];
     return `<div class="hh">${l.kind === "person" ? avatar(l.name, "", "md") : ""}<div><div class="hn">${esc(l.name)}</div><div class="hk">${esc(KIND[l.kind] || l.kind)} · not profiled yet ${pill(l.fit)}</div></div></div>
       <div class="hf">${esc(l.whys[0] || "")}</div>${l.whys.length > 1 ? `<div class="hk">Also: ${esc(l.whys.slice(1, 3).join(" · ").slice(0, 220))}</div>` : ""}
       <div class="hk" style="margin-top:6px">Mentioned by ${l.n_via} source${l.n_via === 1 ? "" : "s"}: ${l.via.slice(0, 4).map(s => link(s)).join(", ")}</div>
@@ -516,7 +544,7 @@ if (canHover) {
 }
 document.addEventListener("click", e => {
   const k = e.target.closest("[data-hkeep]");
-  if (k) { e.stopPropagation(); const tri = store.get("triage", {}); tri[k.dataset.hkeep] = "keep"; store.set("triage", tri); k.textContent = "Queued for research"; k.classList.add("on"); toast("Added to Leads → Keep. Copy your picks there for the next research run."); return; }
+  if (k) { e.stopPropagation(); setPick(k.dataset.hkeep, "keep"); k.textContent = "Queued for research"; k.classList.add("on"); toast(PICKS.shared ? "Queued: the next research sweep starts with your picks." : "Added to Leads → Keep. Copy your picks there for the next research run."); return; }
   const m = e.target.closest(".mention");
   if (m && (!canHover || m.dataset.lead)) { e.stopPropagation(); e.preventDefault(); showHC(m, hcKey(m)); return; }
   if (!e.target.closest("#hc")) hideHC();
@@ -923,8 +951,10 @@ VIEWS.leads = {
   label: "Leads", n: A.meta.n_leads_new, needs: ["leads"],
   render(m) {
     const kinds = [["person", "People"], ["firm", "Funds"], ["lp", "LPs"], ["company", "Companies"]];
-    const tri = store.get("triage", {});
-    m.innerHTML = `<p class="intro">Names our sources mentioned that we haven't profiled yet, merged so each appears once. Mark <b>Keep</b> or <b>Skip</b>, then copy your picks and paste them to Claude to steer the next research run. Picks are saved in this browser only.</p>
+    const tri = picks();
+    m.innerHTML = `<p class="intro">Names our sources mentioned that we haven't profiled yet, merged so each appears once. Mark <b>Keep</b> or <b>Skip</b>. ${PICKS.shared
+      ? `<b>Your picks go straight to the research queue:</b> the next sweep researches every Keep first and drops every Skip. <span class="muted">${Object.values(tri).filter(v => v === "keep").length} queued.</span>`
+      : `Picks are saved in this browser only here; open the private Back Chanel artifact to send them to the research queue, or copy them and paste them to Claude.`}</p>
       <div class="bar"><input type="search" id="lq" placeholder="Search leads…" value="${esc(S("lq", ""))}">${seg("lk", kinds, S("lk", "person"))}
       ${sel("lf", "Any fit", ["high", "medium", "low", "skip"], S("lf", ""))}
       ${sel("lt", "Any pick", ["Keep", "Skip", "Not picked"], S("lt", ""))}
@@ -951,7 +981,7 @@ VIEWS.leads = {
       const b = e.target.closest("[data-pick]"); if (!b) return;
       e.stopPropagation();
       const s = b.dataset.s; if (tri[s] === b.dataset.pick) delete tri[s]; else tri[s] = b.dataset.pick;
-      store.set("triage", tri); draw();
+      setPick(s, tri[s] || null); draw();
     });
     $("lcopy").onclick = async () => {
       const name = s => V.leadrows.find(l => l.slug === s)?.name || s;
