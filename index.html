@@ -735,7 +735,7 @@ VIEWS.coinvest = {
   },
 };
 
-VIEWS.graph = { label: "Graph", n: V.graph.nodes.length, render: m => renderGraph(m) };
+VIEWS.graph = { label: "Graph", n: V.graph.nodes.filter(n => n.kind !== "company" || n.tier <= 3).length, render: m => renderGraph(m) };
 
 VIEWS.leads = {
   label: "Leads", n: A.meta.n_leads_new, needs: ["leads"],
@@ -927,7 +927,11 @@ function renderGraph(m) {
 
   let focus = null, path = null, hover = null, hoverSet = new Set(), labelCut = 0, needFit = true;
   const okNode = n => n && st.kinds[n.kind] && (n.kind !== "company" || (n.tier || 9) <= (st.apps ? 3 : 2));
-  const okEdge = e => e.types.some(t => st.etypes[t]) && okNode(nodeById[e.source]) && okNode(nodeById[e.target]);
+  // Untagged companies (tier 4) only appear as direct deals of the focused person, so focus mode never hides a deal.
+  const fb = n => focus && n && n.kind === "company" && n.tier === 4 && st.kinds.company;
+  const okEdge = e => e.types.some(t => st.etypes[t]) && (
+    (okNode(nodeById[e.source]) && okNode(nodeById[e.target])) ||
+    (e.source === focus && fb(nodeById[e.target])) || (e.target === focus && fb(nodeById[e.source])));
   const adj = () => { const a = {}; G.edges.filter(okEdge).forEach(e => { (a[e.source] ||= []).push(e); (a[e.target] ||= []).push(e); }); return a; };
   function data() {
     let edges = G.edges.filter(okEdge), ids;
@@ -988,7 +992,7 @@ function renderGraph(m) {
       const dim = hover && hover !== n.id && !hoverSet.has(n.id);
       ctx.globalAlpha = dim ? 0.14 : 1;
       if (isF) { ctx.beginPath(); ctx.arc(n.x, n.y, r * 2.1, 0, 2 * Math.PI); ctx.fillStyle = css("--glow"); ctx.fill(); }
-      shape(ctx, n, r); ctx.fillStyle = css(NC[n.kind] || "--muted"); ctx.fill();
+      shape(ctx, n, r); ctx.fillStyle = css(n.kind === "company" && n.tier === 4 ? "--muted" : (NC[n.kind] || "--muted")); ctx.fill();
       const im = n.photo && imgOf(n.photo);
       if (im && im.complete && im.naturalWidth && (focus || path || scale > 1.6 || r > 9)) {
         ctx.save(); ctx.beginPath(); ctx.arc(n.x, n.y, r - 0.6 / scale, 0, 2 * Math.PI); ctx.clip();
