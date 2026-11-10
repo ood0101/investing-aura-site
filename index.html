@@ -335,7 +335,7 @@ textarea.copy{width:100%;min-height:120px;font:12px var(--f-data);margin-top:8px
 <div class="toast" id="toast" role="status"></div>
 <div class="hc" id="hc" role="dialog" aria-label="Quick look"></div>
 
-<script src="data.js?b=ec19e61696"></script>
+<script src="data.js?b=2dfa1615c9"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
@@ -1119,8 +1119,32 @@ function renderGraph(m) {
     (okNode(nodeById[e.source]) && okNode(nodeById[e.target])) ||
     (e.source === focus && fb(nodeById[e.target])) || (e.target === focus && fb(nodeById[e.source])));
   const adj = () => { const a = {}; G.edges.filter(okEdge).forEach(e => { (a[e.source] ||= []).push(e); (a[e.target] ||= []).push(e); }); return a; };
+  // "Via <firm>" links: a focused person's firm deals that don't name a partner. For MPs, GPs and founders the firm's
+  // book is effectively theirs, so these default on for them and off for everyone else (toggle per person in the card).
+  const fdFor = {};
+  const firmsOf = id => G.edges.filter(e => e.types.includes("at") && (e.source === id || e.target === id))
+    .map(e => e.source === id ? e.target : e.source).filter(x => nodeById[x]?.kind === "firm");
+  const fdDefault = id => { const d = bySlug[id] || {}; return ["mp", "gp"].includes(String(d.seniority || "").toLowerCase().trim()) || /founder|founding|managing partner|managing director|\bceo\b/i.test((d.role || "") + " " + (d.entity_type || "")); };
+  const fdOn = id => nodeById[id]?.kind === "person" && (fdFor[id] ?? fdDefault(id));
+  function viaEdges(id, have) {
+    const out = new Map();
+    firmsOf(id).forEach(f => G.edges.forEach(e => {
+      if (!e.types.includes("invested") || (e.source !== f && e.target !== f)) return;
+      const co = e.source === f ? e.target : e.source, n = nodeById[co];
+      if (!n || n.kind !== "company" || have.has(co) || out.has(co) || !st.kinds.company || !st.etypes.invested) return;
+      if ((n.tier || 9) > 4) return;  // non-AI stays out
+      out.set(co, {source: id, target: co, types: ["invested"], w: 1, via: nodeById[f].name, stg: e.stg, ev: [`Via ${nodeById[f].name}: ${e.ev[0] || "firm deal"}`]});
+    }));
+    return [...out.values()];
+  }
+  let nVia = 0;
   function data() {
     let edges = G.edges.filter(okEdge), ids;
+    nVia = 0;
+    if (focus && !path && fdOn(focus)) {
+      const have = new Set(edges.filter(e => e.source === focus || e.target === focus).map(e => e.source === focus ? e.target : e.source));
+      const via = viaEdges(focus, have); nVia = via.length; edges = edges.concat(via);
+    }
     if (path) {
       ids = new Set(path.nodes);
       const pairs = new Set(path.nodes.slice(1).map((x, i) => [path.nodes[i], x].sort().join("|")));
@@ -1150,6 +1174,7 @@ function renderGraph(m) {
   const fade = (hex, a) => { const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim()); if (!m) return hex; const n = parseInt(m[1], 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; };
   const ecolor = e => {
     const t = ETYPES.find(([k]) => e.types.includes(k) && st.etypes[k]) || ETYPES[4];
+    if (e.via) return fade(e.stg ? css("--st-" + e.stg) : css("--muted"), 0.38);
     if (t[0] === "invested" && e.stg) return fade(css("--st-" + e.stg), 0.7);  // investment links show where the investor entered
     return css(t[2]);
   };
@@ -1173,6 +1198,7 @@ function renderGraph(m) {
     .linkColor(ecolor)
     .linkVisibility(e => !!(focus || path) || e.w >= 2 || (hover && ((e.source.id ?? e.source) === hover || (e.target.id ?? e.target) === hover)))
     .linkWidth(e => (hover && (e.source.id === hover || e.target.id === hover) ? 2 : (focus || path) ? 1 : 0.55) * Math.min(5, 0.5 + Math.sqrt(e.w) * 0.9))
+    .linkLineDash(e => e.via ? [2.5, 2.5] : null)
     .linkCurvature(e => e.types.includes("knows") && !e.types.includes("co-invested") ? 0.18 : 0)
     .linkLabel(e => e.ev.map(esc).join("<br>"))
     .linkDirectionalParticles(e => (focus || path) && e.types.includes("co-invested") ? 2 : 0)
@@ -1228,7 +1254,7 @@ function renderGraph(m) {
     labelCut = vals[Math.min(22, vals.length - 1)] || 0;
     FG.graphData(d);
     $("gnote").textContent = path ? `Path: ${path.nodes.length - 1} step${path.nodes.length === 2 ? "" : "s"}. Click the background to leave it.`
-      : focus ? `${d.nodes.length - 1} connections${st.hops > 1 ? " within 2 steps" : ""}` : `Showing the ${d.nodes.length} most connected of ${G.nodes.length}`;
+      : focus ? `${d.nodes.length - 1} connections${st.hops > 1 ? " within 2 steps" : ""}${nVia ? ` · ${nVia} via firm (dashed)` : ""}` : `Showing the ${d.nodes.length} most connected of ${G.nodes.length}`;
     // Saved toggles can hide a focused node's links; say so instead of showing an empty graph.
     const hidden = focus && !path ? G.edges.filter(e => (e.source === focus || e.target === focus) && !okEdge(e) && okDefault(e)).length : 0;
     if (hidden) {
@@ -1329,7 +1355,7 @@ function renderGraph(m) {
       if (co.rounds.length) h += `<h4>Rounds</h4><div class="tl">${co.rounds.slice(-6).reverse().map(r => `<div class="tlr sc${r.stage ? " sd-" + r.stage : ""}" title="${esc(STG[r.stage] || "stage unknown")}"><span class="date">${esc(r.date.slice(0, 7))}</span><span><b>${esc(r.round)}</b>${r.amount ? " · " + esc(r.amount) : ""}<span class="muted">${r.leads.length ? " · led by " + esc(r.leads.slice(0, 2).join(", ")) : ""}</span></span></div>`).join("")}${co.rounds.length > 6 ? `<div class="muted">+${co.rounds.length - 6} earlier rounds</div>` : ""}</div>`;
       if (co.first_in.length) h += `<p class="muted">First in: ${esc(co.first_in.join(", "))}</p>`;
     }
-    h += `<div class="gbtns"><button class="btn sm on" id="gopen">Open full page</button>${trackCtl(co && n.kind === "company" ? "co:" + n.id : n.id)}${focus ? `<div class="seg" id="ghops"><button data-v="1" class="${st.hops === 1 ? "on" : ""}">1 step</button><button data-v="2" class="${st.hops === 2 ? "on" : ""}">2 steps</button></div>` : ""}</div>
+    h += `<div class="gbtns"><button class="btn sm on" id="gopen">Open full page</button>${trackCtl(co && n.kind === "company" ? "co:" + n.id : n.id)}${focus && n.kind === "person" && firmsOf(n.id).length ? `<button class="btn sm${fdOn(n.id) ? " on" : ""}" id="gfd" title="Show the firm's deals that don't name a partner, as dashed links">Firm deals ${fdOn(n.id) ? "on" : "off"}</button>` : ""}${focus ? `<div class="seg" id="ghops"><button data-v="1" class="${st.hops === 1 ? "on" : ""}">1 step</button><button data-v="2" class="${st.hops === 2 ? "on" : ""}">2 steps</button></div>` : ""}</div>
       <div class="greach" id="greach"></div>`;
     h += insightList(n.id);
     const es = G.edges.filter(e => (e.source === n.id || e.target === n.id) && okEdge(e)).map(e => ({...e, other: e.source === n.id ? e.target : e.source})).sort((a, b) => b.w - a.w);
@@ -1353,6 +1379,7 @@ function renderGraph(m) {
       p.innerHTML = card(nodeById[focus]);
       $("gopen").onclick = () => openDoc(coBySlug[focus] && nodeById[focus].kind === "company" ? "co:" + focus : focus);
       const hs = $("ghops"); if (hs) hs.querySelectorAll("button").forEach(b => b.onclick = () => { st.hops = +b.dataset.v; load(); });
+      const fd = $("gfd"); if (fd) fd.onclick = () => { fdFor[focus] = !fdOn(focus); load(); };
       drawReach();
     }
     p.scrollTop = 0;
