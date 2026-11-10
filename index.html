@@ -1,4 +1,4 @@
-<title>Investing Aura</title>
+<title>Backchannel</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -260,7 +260,7 @@ textarea.copy{width:100%;min-height:120px;font:12px var(--f-data);margin-top:8px
 </style>
 
 <header>
-  <h1>Investing Aura</h1>
+  <h1>Backchannel</h1>
   <div class="sub" id="sub"></div>
   <div class="gsearch"><input type="search" id="gfind" list="allnames" placeholder="Jump to anyone: person, fund, LP or company…" aria-label="Jump to a profile"><datalist id="allnames"></datalist></div>
   <nav id="tabs"></nav>
@@ -586,10 +586,10 @@ VIEWS.mine = {
     };
     onSeg("ms", v => { ST.ms = v; draw(); });
     $("mcopy").onclick = async () => {
-      const text = "Investing Aura: my list\n" + TSTAT.map(([v, l]) => { const ks = keys.filter(k => TRACK[k].s === v); return ks.length ? `\n${l}\n` + ks.map(k => `- ${name(k)}${TRACK[k].d ? " (next: " + TRACK[k].d + ")" : ""}${TRACK[k].n ? ": " + TRACK[k].n.replace(/\s+/g, " ") : ""}`).join("\n") : ""; }).join("");
+      const text = "Backchannel: my list\n" + TSTAT.map(([v, l]) => { const ks = keys.filter(k => TRACK[k].s === v); return ks.length ? `\n${l}\n` + ks.map(k => `- ${name(k)}${TRACK[k].d ? " (next: " + TRACK[k].d + ")" : ""}${TRACK[k].n ? ": " + TRACK[k].n.replace(/\s+/g, " ") : ""}`).join("\n") : ""; }).join("");
       try { await navigator.clipboard.writeText(text); toast("List copied"); } catch { $("mbody").insertAdjacentHTML("afterbegin", `<textarea class="copy" readonly>${esc(text)}</textarea>`); }
     };
-    $("mexp").onclick = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(TRACK, null, 1)], {type: "application/json"})); a.download = `aura-my-list-${today}.json`; a.click(); };
+    $("mexp").onclick = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(TRACK, null, 1)], {type: "application/json"})); a.download = `backchannel-my-list-${today}.json`; a.click(); };
     $("mimp").onclick = () => $("mfile").click();
     $("mfile").onchange = async e => { try { const got = JSON.parse(await e.target.files[0].text()); Object.assign(TRACK, got); saveTrack(); toast(`Imported ${Object.keys(got).length}`); route(); } catch { toast("That file isn't a list export"); } };
     draw();
@@ -774,7 +774,7 @@ VIEWS.leads = {
     $("lcopy").onclick = async () => {
       const name = s => V.leadrows.find(l => l.slug === s)?.name || s;
       const keep = Object.keys(tri).filter(s => tri[s] === "keep").map(name), skip = Object.keys(tri).filter(s => tri[s] === "skip").map(name);
-      const text = `Investing Aura lead picks\nKeep (research next): ${keep.join("; ") || "none"}\nSkip (not my type): ${skip.join("; ") || "none"}`;
+      const text = `Backchannel lead picks\nKeep (research next): ${keep.join("; ") || "none"}\nSkip (not my type): ${skip.join("; ") || "none"}`;
       try { await navigator.clipboard.writeText(text); toast("Picks copied"); }
       catch { $("lcopybox").innerHTML = `<textarea class="copy" readonly>${esc(text)}</textarea>`; $("lcopybox").querySelector("textarea").select(); toast("Select and copy the text below"); }
     };
