@@ -318,10 +318,11 @@ const inlineMd = t => {
     const m = x.match(/^\[([^\]]*)\]\(([^)\s]+)\)$/);
     if (m) return /^https?:/.test(m[2]) ? `<a href="${esc(m[2])}" target="_blank" rel="noopener">${esc(m[1] === "src" ? "source" : m[1])}</a>` : esc(m[1]);
     // A bare person slug: link it if profiled, else show it as a name (dropped when the next "(Name" repeats it).
-    const ws = x.split(/\b([a-z]+(?:-[a-z]+)+)\b/g);
+    const ws = x.split(/(?<![\w\/.-])([a-z]+(?:-[a-z]+){1,2})(?![\w\/.-])/g);
     return ws.map((w, i) => {
       if (!(i % 2)) return esc(w);
       if (bySlug[w]) return link(w);
+      if (/^(co|non|ex|sub|pre|post|self|semi|multi|anti)-/.test(w)) return esc(w);
       const nm = w.split("-").map(p => p[0].toUpperCase() + p.slice(1)).join(" ");
       return (ws[i + 1] || "").replace(/^\s*\(/, "").startsWith(nm) ? "" : esc(nm);
     }).join("").replace(/^\s*\((.*?)\)/, "$1");
