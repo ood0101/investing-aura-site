@@ -64,7 +64,8 @@
 [data-style="couture"] h2,[data-style="couture"] h3,[data-style="couture"] .card h3,[data-style="couture"] .gpanel h3,[data-style="couture"] .md h1{font-family:var(--f-display);letter-spacing:.01em}
 [data-style="couture"] #tabs button{text-transform:uppercase;letter-spacing:.12em;font-size:11.5px}
 [data-style="couture"] .pl,[data-style="couture"] .md a{text-decoration-color:var(--gold)}
-[data-style="couture"] .colophon{font:italic 13px var(--f-display);text-align:center;letter-spacing:.02em}
+[data-style="couture"] .docnote{margin:6px 0 10px;padding:8px 12px;border-left:3px solid var(--warn);background:var(--warn-soft);border-radius:0 6px 6px 0;font-size:13.5px}
+.colophon{font:italic 13px var(--f-display);text-align:center;letter-spacing:.02em}
 .style-sw{margin-left:auto;font:500 11px var(--f-data);text-transform:uppercase;letter-spacing:.1em;background:none;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:4px 10px;cursor:pointer}
 .style-sw:hover{color:var(--ink);border-color:var(--ink)}
 /* Round stages: green = seed, blue = Series A, violet = Series B, orange = Series C and later / growth */
@@ -526,7 +527,7 @@ a.chip:hover{background:var(--accent-soft);color:var(--accent)}
 <div class="toast" id="toast" role="status"></div>
 <div class="hc" id="hc" role="dialog" aria-label="Quick look"></div>
 
-<script src="data.js?b=fb3ee7f1ae"></script>
+<script src="data.js?b=7c428baeee"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
@@ -2332,6 +2333,8 @@ function openDoc(key) {
     html = window.marked ? marked.parse(d.body) : `<pre>${esc(d.body)}</pre>`;
     if (d.kind === "person") html = `<div class="who" style="margin-top:14px">${avatar(d.name, d.photo, "lg")}<span class="muted">${esc(firmShort(d.firm))}${d.seniority ? " · " + esc(d.seniority) : ""}</span></div>` + html;
     if (d.kind === "firm" && (V.teams || {})[d.slug]) html = html.replace(/(<h1[^>]*>.*?<\/h1>)/, `$1${teamGrid(d.slug, 8)}`);
+    // LPs: point to the spoken-word notes (podcasts, fireside chats) kept as sources/lp-voice-<slug>.md
+    if (d.kind === "lp" && bySlug["lp-voice-" + d.slug]) html = html.replace(/(<h1[^>]*>.*?<\/h1>)/, `$1<p class="docnote">In their own words: ${link("lp-voice-" + d.slug, "podcast and fireside-chat notes")}</p>`);
   }
   $("dpath").textContent = path;
   $("dbody").innerHTML = window.DOMPurify ? DOMPurify.sanitize(html) : html;
