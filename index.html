@@ -225,6 +225,27 @@ a{color:var(--accent)}
 .rank{display:grid;grid-template-columns:1fr 70px;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--line);font-size:13px}
 .bar-mini{height:6px;background:var(--chip);border-radius:3px;overflow:hidden}
 .bar-mini i{display:block;height:100%;background:var(--n-person);border-radius:3px}
+.lpg{background:var(--panel);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;min-width:0}
+.lpg>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:minmax(200px,280px) 170px minmax(0,1fr);gap:6px 14px;align-items:center;padding:10px 14px}
+.lpg>summary::-webkit-details-marker,.lpvr>summary::-webkit-details-marker{display:none}
+.lpg>summary:hover{background:var(--row-hover);border-radius:10px}
+.lpg[open]>summary{border-bottom:1px solid var(--line);border-radius:10px 10px 0 0}
+.lpg-n{font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-width:0}
+.lpg-n::before{content:"▸";color:var(--muted);font-size:11px;transition:transform .12s}
+.lpg[open] .lpg-n::before{transform:rotate(90deg)}
+.lpg-s{font:12px var(--f-data);color:var(--muted)}
+.lpg-c{display:flex;flex-wrap:wrap;gap:3px;align-items:center;min-width:0}
+.lpg-c .chip{margin:0;white-space:normal;overflow-wrap:anywhere}
+.more-n{font-size:12px;margin-left:4px}
+.lpg-b{padding:4px 14px 10px}
+.lpm{padding:8px 0;border-top:1px solid var(--line);max-width:760px} .lpm:first-child{border-top:0}
+.lpm-h{font-weight:600;font-size:13px;margin-bottom:2px}
+.lpvr>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) 44px 80px 86px;gap:10px;align-items:baseline;padding:3px 0 3px 14px;font-size:13px;border-radius:4px}
+.lpvr>summary:hover{background:var(--row-hover)}
+.lpvr .vl{overflow-wrap:anywhere}.lpvr .num{text-align:right}.lpvr .how .chip{margin:0}
+.lpvr>div{padding:2px 0 8px 14px;font-size:12px;color:var(--muted);max-width:95ch;overflow-wrap:anywhere}
+details.inl{display:inline}details.inl>summary{display:inline;cursor:pointer;color:var(--accent)}
+@media (max-width:640px){.lpg>summary{grid-template-columns:minmax(0,1fr)}.lpvr>summary{grid-template-columns:minmax(0,1fr) 40px 64px}.lpvr .how{display:none}}
 .lpcov{margin:4px 0 12px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:13px;line-height:1.6}
 .backed{margin:8px 0 4px;font-size:13px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .lpchip{border-color:color-mix(in srgb,var(--n-lp) 40%,var(--line))}
@@ -336,7 +357,7 @@ textarea.copy{width:100%;min-height:120px;font:12px var(--f-data);margin-top:8px
 <div class="toast" id="toast" role="status"></div>
 <div class="hc" id="hc" role="dialog" aria-label="Quick look"></div>
 
-<script src="data.js?b=a5c53c5b91"></script>
+<script src="data.js?b=202b94f494"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
@@ -1058,38 +1079,93 @@ VIEWS.leads = {
 };
 
 VIEWS.lps = {
-  label: "LPs", n: (V.backers || []).length,
+  label: "LPs", n: new Set((V.backers || []).map(b => b.lp)).size,
   render(m) {
     const B = V.backers || [];
-    const types = ["endowment", "foundation", "pension", "sovereign", "fund-of-funds", "family office", "VC firm", "individual", "allocator", "unprofiled"].filter(t => B.some(b => b.lp_type === t));
-    const covered = new Set(B.filter(b => b.firm && b.status !== "passed").map(b => b.firm));
+    const TYPES = ["endowment", "foundation", "pension", "sovereign", "fund-of-funds", "family office", "VC firm", "individual", "allocator", "unprofiled"].filter(t => B.some(b => b.lp_type === t));
+    const NICE = {calpers: "CalPERS", calstrs: "CalSTRS", utimco: "UTIMCO", "oregon-operf": "Oregon OPERF", ersri: "ERSRI", hoopp: "HOOPP", "florida-sba": "Florida SBA", "michigan-smrs": "Michigan SMRS",
+      "massachusetts-prim": "Massachusetts PRIM", "fppa-colorado": "FPPA Colorado", "cpp-investments": "CPP Investments", icapital: "iCapital", nyscrf: "NYSCRF", wsib: "WSIB", "texas-trs": "Texas TRS", gic: "GIC", mgx: "MGX"};
+    const UP = new Set(["ai", "ii", "iii", "iv", "uc", "ci", "bmo", "kbc", "us", "uk", "ifc", "eif", "sba"]);
+    const lpName = b => NICE[b.lp] || (bySlug[b.lp] ? bySlug[b.lp].name.replace(/\s*\(.*?\)\s*/g, " ").trim() : b.lp_name.replace(/\b[A-Za-z]{2,4}\b/g, w => UP.has(w.toLowerCase()) || (w.length <= 3 && !/[aeiouy]/i.test(w)) ? w.toUpperCase() : w));
+    // Resolve a manager name to a profiled fund even when the build couldn't: "Thrive Capital Partners" -> thrive-capital.
+    const strip = k => k.replace(/-(?:capital|ventures|venture|partners|venture-partners|management|associates|vc)$/, "");
+    const FIRM_IX = {ah: "andreessen-horowitz", a16z: "andreessen-horowitz", founders: "founders-fund", "general-catalyst-group": "general-catalyst"}, FIRM_S = {}, NOT_VC = new Set(["bain-capital"]);
+    A.firms.forEach(f => [f.slug, slugify(f.name)].forEach(k => { FIRM_IX[k] ??= f.slug; FIRM_S[strip(k)] ??= f.slug; }));
+    const firmFor = nm => { const k = slugify(nm), sk = strip(k); return FIRM_IX[k] || FIRM_IX[sk] || (sk !== k && FIRM_S[sk]) || (!NOT_VC.has(k) && FIRM_S[k]) || ""; };
+    const tc = s => /[A-Z]{4}/.test(s) && s === s.toUpperCase() ? s.toLowerCase().replace(/\b[a-z]/g, c => c.toUpperCase()).replace(/\b(?:Lp|Llc|[IVX]+[ivx]+)\b/g, x => x.toUpperCase()) : s;
+    const ROMAN = /^[IVXL]+(?:-[A-Z0-9]+)?$/, WORD = /^(?:\d+[A-Za-z]?|fund|funds|fd|opportunity|opportunities|growth|select|private|seed|co-invest|co-investment|spv|annex|strategic|access|feeder|india|china|israel|europe|london|bio|leaders|scout|scouts)$/i;
+    // Split a fund vehicle name into its manager and the vehicle label: "Thrive Capital Partners IX, L.P." -> manager + "IX".
+    const split = b => {
+      const raw = String(b.fund).replace(/\(.*?\)/g, " ").replace(/,?\s*\bL\.?L?\.?[PC]\.?\s*$/i, "").replace(/\s+/g, " ").trim();
+      const t = raw.split(" "), i = t.findIndex((w, j) => { w = w.replace(/[,.]$/, ""); return j > 0 && (ROMAN.test(w) || WORD.test(w)); });
+      const nm = tc((i > 0 ? t.slice(0, i) : t).join(" ").replace(/[,&\s-]+$/, "")), label = i > 0 ? tc(t.slice(i).join(" ")) : "";
+      const fs = b.firm && bySlug[b.firm] ? b.firm : firmFor(nm);
+      if (fs) return {key: fs, name: bySlug[fs].name.replace(/\s*\(.*$/, ""), firm: fs, label: label || (firmFor(raw) === fs ? "" : tc(raw))};
+      return {key: "~" + nm.toLowerCase().replace(/\bassoc\b/, "associates").replace(/[^a-z0-9]+/g, " ").trim(), name: nm, firm: "", label};
+    };
+    const facts = b => {
+      const d = b.detail || "", v = (d.match(/vintage\s+(\d{4})/i) || [])[1] || String(b.since || "").slice(0, 4);
+      const a = d.match(/\$\s?([\d,]+(?:\.\d+)?)\s?(million|billion|M|B)?\b/i); let amt = "";
+      if (a) { const n = parseFloat(a[1].replace(/,/g, "")), u = (a[2] || "").toLowerCase();
+        const val = u.startsWith("b") ? n * 1e9 : u.startsWith("m") ? n * 1e6 : n;
+        if (val >= 1e5) amt = val >= 1e9 ? `$${+(val / 1e9).toFixed(2)}B` : `$${+(val / 1e6).toFixed(1)}M`; }
+      return {v, amt};
+    };
+    // The same vehicle is often recorded twice ("Lux Ventures IX" and "Lux Ventures IX, L.P."): keep the best-sourced row.
+    const HOWR = {filing: 5, "gp-said": 4, "lp-said": 4, press: 3, aggregator: 1, "": 0};
+    const L = Object.values(B.map(b => ({...b, lpn: lpName(b), m: split(b), f: facts(b)})).reduce((acc, r) => {
+      const k = r.lp + "|" + r.m.key + "|" + r.m.label.toLowerCase().replace(/\bfund\b|[^a-z0-9]/g, "") + "|" + r.status, o = acc[k];
+      if (!o || HOWR[r.how] + !!r.f.amt > HOWR[o.how] + !!o.f.amt) acc[k] = r;
+      return acc;
+    }, {}));
+    const covered = new Set(L.filter(b => b.m.firm && b.status !== "passed").map(b => b.m.firm));
     const bare = A.firms.filter(f => !covered.has(f.slug)).sort((a, b) => (RANK[lvl(b.lens_fit)] ?? 0) - (RANK[lvl(a.lens_fit)] ?? 0));
-    m.innerHTML = `<p class="intro">Who is an LP in which fund. Any kind of backer counts: endowments, foundations, pensions, sovereigns, fund-of-funds, family offices, other VC firms and individuals. <b>How known</b> says where the link comes from: a filing, the GP, the LP, press, or an aggregator (weakest).</p>
-      <div class="bar">${seg("lv", [["links", "Who backs whom"], ["alloc", "Allocators"]], S("lv", "links"))}<span class="count" id="lc"></span></div><div id="lp-body"></div>`;
-    const drawLinks = () => {
-      const body = $("lp-body");
-      body.innerHTML = `<div class="lpcov"><b>${covered.size} of ${A.firms.length}</b> profiled funds have at least one known LP.${bare.length ? ` <span class="muted">No LPs known yet:</span> ${bare.map(f => link(f.slug, f.name.replace(/\s*\(.*$/, ""))).join(", ")}` : ""}</div>
-        <div class="bar"><input type="search" id="lq" placeholder="Search LPs or funds…" value="${esc(S("lq", ""))}">${seg("lt", [["", "All"], ...types.map(t => [t, t])], S("lt", ""))}${sel("ls", "Any status", [...new Set(B.map(b => b.status).filter(Boolean))].sort(), S("ls", ""))}</div><div id="lp-t"></div>`;
-      const draw = () => {
-        const q = ST.lq.toLowerCase();
-        const rows = B.filter(b => (!ST.lt || b.lp_type === ST.lt) && (!ST.ls || b.status === ST.ls) && (!q || (b.lp_name + " " + b.fund + " " + b.detail).toLowerCase().includes(q)));
-        $("lc").textContent = `${rows.length} links`;
-        table($("lp-t"), [
-          {k: "lp_name", t: "LP", h: r => bySlug[r.lp] ? link(r.lp, r.lp_name) : `<span class="name">${esc(r.lp_name)}</span>`},
-          {k: "lp_type", t: "Type", h: r => `<span class="chip">${esc(r.lp_type)}</span>`},
-          {k: "fund", t: "Fund", h: r => r.firm && bySlug[r.firm] ? link(r.firm, r.fund) : esc(r.fund)},
-          {k: "status", t: "Status", h: r => `<span class="st st-${esc(r.status.replace(/\s+/g, "-"))}">${esc(r.status)}</span>`},
-          {k: "how", t: "How known", h: r => r.how ? `<span class="chip how-${esc(r.how)}">${esc(r.how)}</span>` : `<span class="muted">–</span>`},
-          {k: "detail", t: "Detail", h: r => `<div class="take">${clip(r.detail.replace(/^(filing|gp-said|lp-said|press|aggregator):\s*/i, ""), 200)}</div>`},
-          {k: "since", t: "Since", h: r => `<span class="date">${esc(r.since)}</span>`},
-          {k: "src", t: "", h: r => src(r.src)},
-        ], rows, {sort: ["lp_name", 1]});
-        save();
-      };
-      $("lq").oninput = e => { ST.lq = e.target.value; draw(); };
-      onSeg("lt", v => { ST.lt = v; draw(); });
-      $("ls").onchange = e => { ST.ls = e.target.value; draw(); };
-      draw();
+    if (S("lv", "lp") === "links") ST.lv = "lp";
+    m.innerHTML = `<p class="intro">Who backs which fund. One row per LP or per fund; open a row to see each vehicle, its vintage, the amount on record and where the link comes from (a filing is strongest, an aggregator weakest).</p>
+      <div class="bar"><input type="search" id="lq" placeholder="Search LPs, funds or vehicles…" value="${esc(S("lq", ""))}">
+        ${seg("lv", [["lp", "By LP"], ["fund", "By fund"], ["alloc", "Allocator profiles"]], ST.lv)}
+        ${sel("lt", "Any LP type", TYPES, S("lt", ""))}${sel("lh", "Any source", ["filing", "gp-said", "lp-said", "press", "aggregator"], S("lh", ""))}
+        <label class="tog"><input type="checkbox" id="lpf" ${S("lpf", false) ? "checked" : ""}> Funds we've profiled only</label><span class="count" id="lc"></span></div>
+      <div id="lp-body"></div>`;
+    const vrow = (b, lead) => `<details class="lpvr"><summary><span class="vl">${lead || ""}${esc(b.m.label || "Fund not specified")}${b.status && b.status !== "in" ? ` <span class="st st-${esc(b.status.replace(/\s+/g, "-"))}">${esc(b.status)}</span>` : ""}</span><span class="date">${esc(b.f.v)}</span><span class="num">${esc(b.f.amt)}</span><span class="how">${b.how ? `<span class="chip how-${esc(b.how)}">${esc(b.how)}</span>` : ""}</span></summary>
+      <div>${esc(b.fund)}. ${esc(b.detail.replace(/^(filing|gp-said|lp-said|press|aggregator):\s*/i, ""))} ${src(b.src)}</div></details>`;
+    const mgrLink = g => g.firm ? link(g.firm, g.name) : `<span>${esc(g.name)}</span>`;
+    const lpLink = g => bySlug[g.slug] ? link(g.slug, g.name) : `<span>${esc(g.name)}</span>`;
+    const by = (rows, kf, init) => { const M = new Map(); rows.forEach(r => { const k = kf(r); if (!M.has(k)) M.set(k, init(r)); M.get(k).rows.push(r); }); return [...M.values()]; };
+    const mgrsOf = rows => by(rows, r => r.m.key, r => ({name: r.m.name, firm: r.m.firm, rows: []})).sort((a, b) => !!b.firm - !!a.firm || b.rows.length - a.rows.length || a.name.localeCompare(b.name));
+    const lpsOf = rows => by(rows, r => r.lp, r => ({name: r.lpn, slug: r.lp, type: r.lp_type, rows: []})).sort((a, b) => !!bySlug[b.slug] - !!bySlug[a.slug] || b.rows.length - a.rows.length || a.name.localeCompare(b.name));
+    const chips = (gs, hot, n = 6) => gs.slice(0, n).map(g => `<span class="chip${hot(g) ? " lead" : ""}">${esc(g.name)}${g.rows.length > 1 ? ` <span class="muted">×${g.rows.length}</span>` : ""}</span>`).join("") + (gs.length > n ? `<span class="muted more-n">+${gs.length - n} more</span>` : "");
+    const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
+    let groups = [], limit = 60;
+    const drawGroups = () => {
+      const q = ST.lq.toLowerCase(), mode = ST.lv;
+      const rows = L.filter(b => (!ST.lt || b.lp_type === ST.lt) && (!ST.lh || b.how === ST.lh) && (!ST.lpf || b.m.firm) && (!q || (b.lpn + " " + b.m.name + " " + b.fund).toLowerCase().includes(q)));
+      if (mode === "lp") {
+        groups = lpsOf(rows).map(g => ({...g, subs: mgrsOf(g.rows)}));
+        groups.sort((a, b) => b.subs.filter(x => x.firm).length - a.subs.filter(x => x.firm).length || b.subs.length - a.subs.length || a.name.localeCompare(b.name));
+      } else {
+        groups = mgrsOf(rows).map(g => ({...g, subs: lpsOf(g.rows)}));
+        groups.sort((a, b) => !!b.firm - !!a.firm || b.subs.length - a.subs.length || a.name.localeCompare(b.name));
+      }
+      $("lc").textContent = `${plural(groups.length, mode === "lp" ? "LP" : "fund")} · ${plural(rows.length, "link")}`;
+      const head = mode === "lp"
+        ? g => `<span class="lpg-n">${lpLink(g)}<span class="chip">${esc(g.type)}</span></span><span class="lpg-s">${plural(g.subs.length, "manager")} · ${plural(g.rows.length, "fund")}</span><span class="lpg-c">${chips(g.subs, x => x.firm)}</span>`
+        : g => `<span class="lpg-n">${mgrLink(g)}${g.firm ? pill(bySlug[g.firm]?.lens_fit) : ""}</span><span class="lpg-s">${plural(g.subs.length, "LP")} · ${plural(g.rows.length, "fund")}</span><span class="lpg-c">${chips(g.subs, x => bySlug[x.slug])}</span>`;
+      $("lp-body").innerHTML = `<div class="lpcov"><b>${covered.size} of ${A.firms.length}</b> funds we've profiled have at least one known LP.${bare.length ? ` <details class="inl"><summary>${bare.length} with none yet</summary>${bare.map(f => link(f.slug, f.name.replace(/\s*\(.*$/, ""))).join(", ")}</details>` : ""}</div>
+        <div class="lpgs">${groups.slice(0, limit).map((g, i) => `<details class="lpg" data-i="${i}"><summary>${head(g)}</summary><div class="lpg-b"></div></details>`).join("") || `<p class="muted">No links match these filters.</p>`}</div>
+        ${groups.length > limit ? `<button class="btn more" id="lmore">Show ${Math.min(60, groups.length - limit)} more (${groups.length - limit} hidden)</button>` : ""}`;
+      const box = $("lp-body").querySelector(".lpgs");
+      box.addEventListener("toggle", e => {
+        const d = e.target; if (!d.classList || !d.classList.contains("lpg") || !d.open) return;
+        const body = d.querySelector(".lpg-b"); if (body.dataset.done) return; body.dataset.done = 1;
+        const g = groups[+d.dataset.i];
+        body.innerHTML = g.subs.map(sub => `<div class="lpm"><div class="lpm-h">${mode === "lp" ? mgrLink(sub) : lpLink(sub) + ` <span class="chip">${esc(sub.type)}</span>`} <span class="muted">${sub.rows.length > 1 ? plural(sub.rows.length, "fund") : ""}</span></div>${sub.rows.slice().sort((a, b) => (b.f.v || "").localeCompare(a.f.v || "")).map(r => vrow(r)).join("")}</div>`).join("");
+        body.querySelectorAll("a").forEach(a => { a.target = "_blank"; a.rel = "noopener"; });
+      }, true);
+      box.addEventListener("click", e => { if (e.target.closest("summary .pl")) e.preventDefault(); });
+      if (groups.length === 1) { const d = box.querySelector(".lpg"); if (d) d.open = true; }
+      const more = $("lmore"); if (more) more.onclick = () => { limit += 60; drawGroups(); };
+      save();
     };
     const drawAlloc = () => {
       $("lc").textContent = `${A.lps.length} allocators profiled`;
@@ -1104,8 +1180,11 @@ VIEWS.lps = {
       ], A.lps, {open: r => r.slug, sort: ["lens_fit", -1]});
       save();
     };
-    const go = () => (ST.lv === "alloc" ? drawAlloc : drawLinks)();
+    const go = () => { limit = 60; (ST.lv === "alloc" ? drawAlloc : drawGroups)(); };
     onSeg("lv", v => { ST.lv = v; go(); });
+    $("lq").oninput = e => { ST.lq = e.target.value; if (ST.lv !== "alloc") go(); };
+    ["lt", "lh"].forEach(id => $(id).onchange = e => { ST[id] = e.target.value; if (ST.lv !== "alloc") go(); });
+    $("lpf").onchange = e => { ST.lpf = e.target.checked; if (ST.lv !== "alloc") go(); };
     go();
   },
 };
