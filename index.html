@@ -38,6 +38,12 @@ header,main{max-width:1400px;margin:0 auto}
 header{padding-block:20px 0}
 h1{font:600 30px/1.1 var(--f-display);margin:0 0 4px;letter-spacing:-.01em}
 .sub{color:var(--muted);font:12px var(--f-data)}
+.brand{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+.brand h1{margin:0}
+.brand h1 .bk{color:var(--accent)}
+.tag{background:none;border:0;padding:0;font:italic 14px var(--f-body);color:var(--muted);cursor:pointer;text-align:left}
+.tag:hover{color:var(--ink)}
+.colophon{max-width:100ch;margin:36px 0 24px;padding-top:14px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
 nav{display:flex;gap:2px;margin-top:16px;border-bottom:1px solid var(--line);overflow-x:auto}
 nav button{background:none;border:0;padding:10px 12px;font:inherit;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
 nav button.on{color:var(--ink);border-bottom-color:var(--accent);font-weight:600}
@@ -260,12 +266,13 @@ textarea.copy{width:100%;min-height:120px;font:12px var(--f-data);margin-top:8px
 </style>
 
 <header>
-  <h1>Backchannel</h1>
+  <div class="brand"><h1><span class="bk">Back</span>channel</h1><button class="tag" id="tagline" title="Tap for another"></button></div>
   <div class="sub" id="sub"></div>
   <div class="gsearch"><input type="search" id="gfind" list="allnames" placeholder="Jump to anyone: person, fund, LP or company…" aria-label="Jump to a profile"><datalist id="allnames"></datalist></div>
   <nav id="tabs"></nav>
 </header>
 <main id="main"></main>
+<footer class="colophon" id="colophon"></footer>
 <div class="scrim" id="scrim"></div>
 <aside id="drawer" aria-label="Details"><div class="top"><span class="muted" id="dpath"></span><button class="btn" id="close">Close</button></div><div class="md" id="dbody"></div></aside>
 <div class="toast" id="toast" role="status"></div>
@@ -485,7 +492,7 @@ function table(el, cols, rows, opts = {}) {
     const shown = sorted.slice(0, limit);
     el.innerHTML = `<div class="wrap"><table><thead><tr>${cols.map(c => `<th data-k="${c.k}" class="${c.k === sk ? "sorted" : ""}${c.num ? " num" : ""}">${c.t}${c.k === sk ? `<span class="arr">${dir > 0 ? "▲" : "▼"}</span>` : ""}</th>`).join("")}</tr></thead><tbody>${
       shown.map(r => `<tr class="${opts.open ? "click" : ""}"${opts.open ? ` data-open="${esc(opts.open(r))}"` : ""}>${cols.map(c => `<td class="${c.num ? "num" : ""}" data-label="${esc(c.t)}">${c.h ? c.h(r) : esc(r[c.k])}</td>`).join("")}</tr>`).join("")
-      || `<tr><td colspan="${cols.length}" class="muted">${esc(opts.empty || "No matches")}</td></tr>`}</tbody></table></div>` +
+      || `<tr><td colspan="${cols.length}" class="muted">${esc(opts.empty || pick(EMPTY))}</td></tr>`}</tbody></table></div>` +
       (sorted.length > limit ? `<button class="btn more" data-more="1">Show ${Math.min(400, sorted.length - limit)} more (${sorted.length - limit} hidden)</button>` : "");
     el.querySelectorAll("th").forEach(th => th.onclick = () => {
       const k = th.dataset.k; const c = cols.find(c => c.k === k);
@@ -503,6 +510,28 @@ const ST = store.get("state", {});
 const S = (k, d) => (ST[k] ??= d);
 const save = () => store.set("state", ST);
 const VIEWS = {};
+// ---- Backchannel wordplay ----
+const TAGLINES = [
+  "Who's backing whom, and through which channel.",
+  "Off the record. On the source.",
+  "The back room, with receipts.",
+  "Every backer has a backstory.",
+  "Following the money back to the channel.",
+  "Reading between the cap-table lines.",
+  "The whisper network, footnoted.",
+  "Before the press release, there's a backchannel.",
+  "Back checks on the people writing checks.",
+  "Your back office for the back room.",
+];
+const LOADING = ["Tuning into the backchannel…", "Asking around quietly…", "Checking who was in the room…", "Pulling the back-room notes…", "Reading the footnotes…"];
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const EMPTY = ["Nothing on the backchannel about that yet.", "Radio silence. Try another search.", "No one's talking. Loosen a filter?"];
+(() => {
+  const t = $("tagline"); let i = Math.floor(Math.random() * TAGLINES.length);
+  const show = () => t.textContent = TAGLINES[i % TAGLINES.length];
+  show(); t.onclick = () => { i++; show(); };
+  $("colophon").innerHTML = "Backchannel: everything off the record, nothing unsourced. Every claim links back to where it was said.";
+})();
 
 VIEWS.brief = {
   label: "Brief", n: V.cards.length,
@@ -587,7 +616,7 @@ VIEWS.mine = {
     onSeg("ms", v => { ST.ms = v; draw(); });
     $("mcopy").onclick = async () => {
       const text = "Backchannel: my list\n" + TSTAT.map(([v, l]) => { const ks = keys.filter(k => TRACK[k].s === v); return ks.length ? `\n${l}\n` + ks.map(k => `- ${name(k)}${TRACK[k].d ? " (next: " + TRACK[k].d + ")" : ""}${TRACK[k].n ? ": " + TRACK[k].n.replace(/\s+/g, " ") : ""}`).join("\n") : ""; }).join("");
-      try { await navigator.clipboard.writeText(text); toast("List copied"); } catch { $("mbody").insertAdjacentHTML("afterbegin", `<textarea class="copy" readonly>${esc(text)}</textarea>`); }
+      try { await navigator.clipboard.writeText(text); toast("Copied. Pass it along quietly."); } catch { $("mbody").insertAdjacentHTML("afterbegin", `<textarea class="copy" readonly>${esc(text)}</textarea>`); }
     };
     $("mexp").onclick = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(TRACK, null, 1)], {type: "application/json"})); a.download = `backchannel-my-list-${today}.json`; a.click(); };
     $("mimp").onclick = () => $("mfile").click();
@@ -919,7 +948,7 @@ function renderGraph(m) {
       <label class="tog"><input type="checkbox" id="ga" ${st.apps ? "checked" : ""}> AI apps</label>
       <label class="tog">Show <select id="gtop" aria-label="How many nodes">${[60, 90, 150, 250, 1000].map(v => `<option value="${v}"${v === st.top ? " selected" : ""}>${v === 1000 ? "all" : "top " + v}</option>`).join("")}</select></label>
     </div>
-    <div class="gwrap"><div class="gbox"><div id="graph"><div class="gloading">Loading graph…</div></div>
+    <div class="gwrap"><div class="gbox"><div id="graph"><div class="gloading">Wiring up the back channels…</div></div>
       <div class="gnote" id="gnote"></div>
       <div class="gzoom"><button class="btn sm" id="gfit" title="Fit to screen">Fit</button><button class="btn sm" id="greset">Everyone</button></div></div>
     <div class="gpanel" id="gpanel"></div></div>`;
@@ -1209,7 +1238,7 @@ function openDoc(key) {
   if (!loaded("docs")) {
     const d = bySlug[key.replace(/^co:/, "")];
     $("dpath").textContent = d ? d.path : "";
-    $("dbody").innerHTML = `<h1>${esc(d ? d.name : (coBySlug[key.slice(3)] || {}).name || key)}</h1><p class="muted">Loading the write-up…</p>`;
+    $("dbody").innerHTML = `<h1>${esc(d ? d.name : (coBySlug[key.slice(3)] || {}).name || key)}</h1><p class="muted">Getting the backstory…</p>`;
     $("drawer").classList.add("on"); $("scrim").classList.add("on");
     need("docs").then(() => { if (docKey === key && $("drawer").classList.contains("on")) openDoc(key); })
       .catch(e => { if (docKey === key) $("dbody").insertAdjacentHTML("beforeend", `<p class="muted">${esc(e.message)}.</p>`); });
@@ -1264,7 +1293,7 @@ function route() {
   const needs = (VIEWS[view].needs || []).filter(n => !loaded(n));
   if (needs.length) {
     const want = view;
-    $("main").innerHTML = `<p class="muted loading">Loading ${esc(VIEWS[view].label.toLowerCase())}…</p>`;
+    $("main").innerHTML = `<p class="muted loading">${pick(LOADING)}</p>`;
     Promise.all(needs.map(need)).then(() => { if (view === want) route(); })
       .catch(e => { if (view === want) $("main").innerHTML = `<p class="muted">${esc(e.message)}. Check your connection and reload.</p>`; });
     return;
