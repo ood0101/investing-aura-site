@@ -11,6 +11,7 @@
   --accent:#3346d3; --accent-soft:#e9ecfd; --good:#0b7a6c; --good-soft:#dcf4ef; --warn:#9a5b00; --warn-soft:#fbf0dc;
   --n-person:#0e8f7e; --n-firm:#4054e0; --n-company:#e08a12; --n-lp:#b4359f; --glow:rgba(51,70,211,.16);
   --e-co:rgba(14,143,126,.62); --e-inv:rgba(224,138,18,.42); --e-at:rgba(64,84,224,.38); --e-knows:rgba(90,98,115,.28); --e-lp:rgba(180,53,159,.5);
+  --st-early:#13895a; --st-a:#2272b8; --st-mid:#8045b8; --st-late:#c04a1f;
   --f-body:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
   --f-display:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;
   --f-data:"IBM Plex Mono",ui-monospace,Menlo,monospace;
@@ -21,6 +22,7 @@
     --accent:#8f9dff; --accent-soft:#1f2550; --good:#5fe0cd; --good-soft:#113530; --warn:#f3c46d; --warn-soft:#382a10;
     --n-person:#36d1bb; --n-firm:#8a98ff; --n-company:#f7b03c; --n-lp:#e27ad2; --glow:rgba(143,157,255,.22);
     --e-co:rgba(54,209,187,.6); --e-inv:rgba(247,176,60,.38); --e-at:rgba(138,152,255,.4); --e-knows:rgba(142,151,169,.28); --e-lp:rgba(226,122,210,.5);
+    --st-early:#4fd08f; --st-a:#6cb4f0; --st-mid:#b98cf0; --st-late:#f2895a;
     color-scheme:dark;
   }
 }
@@ -29,6 +31,7 @@
     --accent:#8f9dff; --accent-soft:#1f2550; --good:#5fe0cd; --good-soft:#113530; --warn:#f3c46d; --warn-soft:#382a10;
     --n-person:#36d1bb; --n-firm:#8a98ff; --n-company:#f7b03c; --n-lp:#e27ad2; --glow:rgba(143,157,255,.22);
     --e-co:rgba(54,209,187,.6); --e-inv:rgba(247,176,60,.38); --e-at:rgba(138,152,255,.4); --e-knows:rgba(142,151,169,.28); --e-lp:rgba(226,122,210,.5);
+    --st-early:#4fd08f; --st-a:#6cb4f0; --st-mid:#b98cf0; --st-late:#f2895a;
     color-scheme:dark;
 }
 /* Couture: an optional monochrome house style (ivory, ink, one gold accent; high-contrast serif display). */
@@ -64,6 +67,19 @@
 [data-style="couture"] .colophon{font:italic 13px var(--f-display);text-align:center;letter-spacing:.02em}
 .style-sw{margin-left:auto;font:500 11px var(--f-data);text-transform:uppercase;letter-spacing:.1em;background:none;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:4px 10px;cursor:pointer}
 .style-sw:hover{color:var(--ink);border-color:var(--ink)}
+/* Round stages: green = seed, blue = Series A, violet = Series B, orange = Series C and later / growth */
+.stg{display:inline-flex;align-items:center;gap:5px;font:500 11.5px var(--f-data);color:var(--st);white-space:nowrap}
+.stg::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--st);flex:none}
+.stg-early,.sd-early{--st:var(--st-early)} .stg-a,.sd-a{--st:var(--st-a)} .stg-mid,.sd-mid{--st:var(--st-mid)} .stg-late,.sd-late{--st:var(--st-late)}
+.sdots{display:inline-flex;gap:3px;align-items:center}
+.sd{width:9px;height:9px;border-radius:50%;background:var(--st,var(--line));display:inline-block}
+.chip.sc{border-left:3px solid var(--st,var(--line))}
+.tlr.sc{border-left:3px solid var(--st,var(--line));padding-left:7px}
+.slegend{display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--muted);margin:6px 0 10px}
+.mix{display:grid;gap:4px;margin:8px 0}
+.mixbar{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--line);max-width:320px}
+.mixbar span{background:var(--st)}
+.mixlab{font:11.5px var(--f-data);color:var(--muted)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 var(--f-body);
   padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
@@ -311,7 +327,7 @@ textarea.copy{width:100%;min-height:120px;font:12px var(--f-data);margin-top:8px
 <div class="toast" id="toast" role="status"></div>
 <div class="hc" id="hc" role="dialog" aria-label="Quick look"></div>
 
-<script src="data.js?b=3423555eec"></script>
+<script src="data.js?b=74a6a0c900"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
@@ -352,6 +368,18 @@ const loaded = name => !!(window.AURA_PART && window.AURA_PART[name] && PARTS[na
 const RANK = {high: 3, medium: 2, low: 1, skip: 0};
 const lvl = v => { const k = String(v || "").toLowerCase().split(/[^a-z]/)[0]; return k in RANK ? k : ""; };
 const pill = v => { const k = lvl(v); return k ? `<span class="pill p-${k}">${k}</span>` : ""; };
+const STG = {early: "Seed", a: "Series A", mid: "Series B", late: "Series C+ / growth"};
+const STGK = ["early", "a", "mid", "late"];
+const stg = k => k ? `<span class="stg stg-${k}">${STG[k]}</span>` : "";
+const stageLegend = (note = "") => `<div class="slegend"><span>Round stage:</span>${STGK.map(stg).join("")}${note ? `<span>${note}</span>` : ""}</div>`;
+// Where an investor enters: share of their companies by the earliest stage they're known in.
+const mixBar = slug => {
+  const m = V.mix?.[slug]; if (!m) return "";
+  const n = STGK.reduce((a, k) => a + m[k], 0); if (n < 2) return "";
+  const pct = k => Math.round(100 * m[k] / n);
+  return `<div class="mix" title="Earliest known round in each of ${n} companies"><div class="mixbar">${STGK.filter(k => m[k]).map(k => `<span class="sd-${k}" style="width:${100 * m[k] / n}%"></span>`).join("")}</div>
+    <div class="mixlab">Enters at: ${STGK.filter(k => m[k]).map(k => `${pct(k)}% ${STG[k].split(" /")[0].toLowerCase().replace("series c+", "C+")}`).join(" · ")} <span class="muted">(${n} companies)</span></div></div>`;
+};
 const tierPill = c => `<span class="pill t-${c.tier}">${esc(c.tier_name)}</span>`;
 const firmShort = f => (f || "").split(/[;(]/)[0].trim();
 const clip = (s, n) => esc(String(s || "").slice(0, n)) + (String(s || "").length > n ? "…" : "");
@@ -439,7 +467,7 @@ function hcHTML(key) {
   const d = bySlug[slug], c = coBySlug[slug];
   if (d && !(isCo && c)) {
     return `<div class="hh">${d.kind === "person" ? avatar(d.name, d.photo, "md") : `<span class="kdot" style="--c:var(--n-${d.kind === "firm" ? "firm" : d.kind === "lp" ? "lp" : d.kind === "company" ? "company" : "person"})">${(NKINDS.find(k => k[0] === d.kind) || [])[3] || "•"}</span>`}<div><div class="hn">${esc(d.name.replace(/\s*\(.*$/, ""))}</div><div class="hk">${esc(KIND[d.kind] || d.kind)}${d.firm ? " · " + esc(firmShort(d.firm)) : ""}${d.seniority ? " · " + esc(d.seniority) : ""} ${pill(d.lens_fit)}</div></div></div>
-      ${knownFor(slug) ? `<div class="hf">${clip(knownFor(slug), 300)}</div>` : ""}${CARD[slug]?.key ? `<div class="hkey"><span class="sg s2">Key insight</span>${CARD[slug].nk > 1 ? ` <span class="hk">1 of ${CARD[slug].nk}</span>` : ""}<div>${clip(CARD[slug].key.t, 260)}</div>${CARD[slug].key.q ? `<div class="q">“${esc(CARD[slug].key.q)}” ${src(CARD[slug].key.u)}</div>` : ""}</div>` : ""}${socials(slug)}
+      ${knownFor(slug) ? `<div class="hf">${clip(knownFor(slug), 300)}</div>` : ""}${mixBar(slug)}${CARD[slug]?.key ? `<div class="hkey"><span class="sg s2">Key insight</span>${CARD[slug].nk > 1 ? ` <span class="hk">1 of ${CARD[slug].nk}</span>` : ""}<div>${clip(CARD[slug].key.t, 260)}</div>${CARD[slug].key.q ? `<div class="q">“${esc(CARD[slug].key.q)}” ${src(CARD[slug].key.u)}</div>` : ""}</div>` : ""}${socials(slug)}
       <div class="hb"><button class="btn sm on" data-open="${esc(slug)}">Open profile</button>${trackCtl(slug)}</div>`;
   }
   if (c) return `<div class="hh"><span class="kdot" style="--c:var(--n-company)">■</span><div><div class="hn">${esc(c.name)}</div><div class="hk">Company ${tierPill(c)}</div></div></div>
@@ -730,7 +758,7 @@ VIEWS.companies = {
     m.innerHTML = `<p class="intro">One row per company. <b>Frontier</b> means labs, pre-training, AI chips and compute. <b>Applied AI</b> means automation, robotics and bio. AI apps (like Gumloop), untagged and non-AI companies are hidden until you switch them on. Click a company for its round-by-round history.</p>
       <div class="bar"><input type="search" id="cq" placeholder="Search companies or investors…" value="${esc(S("cq", ""))}">
       ${tiers.map(([t, l]) => `<button class="btn sm${on.includes(t) ? " on" : ""}" data-t="${t}">${l} <span class="num">${V.cos.filter(c => c.tier === t).length}</span></button>`).join("")}
-      <span class="count" id="cc"></span></div><div id="ct-t"></div>`;
+      <span class="count" id="cc"></span></div>${stageLegend("Dots under Rounds run oldest to newest.")}<div id="ct-t"></div>`;
     const draw = () => {
       const q = ST.cq.toLowerCase();
       const rows = V.cos.filter(c => ST.ct.includes(c.tier) && (!q || (c.name + " " + c.rounds.map(r => r.leads.join(" ") + " " + r.others.join(" ")).join(" ")).toLowerCase().includes(q)));
@@ -741,7 +769,7 @@ VIEWS.companies = {
         {k: "first", t: "First round", h: r => `<span class="date">${esc(r.first)}</span>`},
         {k: "first_in", t: "First in", v: r => r.first_in.join(" "), h: r => `<span class="muted">${esc(r.first_in.join(", "))}</span>`},
         {k: "latest", t: "Latest", h: r => `<span class="muted">${esc(r.latest)}</span>`},
-        {k: "n_rounds", t: "Rounds", num: 1},
+        {k: "n_rounds", t: "Rounds", num: 1, h: r => `${r.n_rounds} <span class="sdots">${r.rounds.map(x => `<span class="sd${x.stage ? " sd-" + x.stage : ""}" title="${esc(x.round + " " + x.date)}"></span>`).join("")}</span>`},
         {k: "people", t: "People we profiled", v: r => r.people.length, h: r => r.people.map(s => `<span class="chip link" data-open="${esc(s)}">${esc(bySlug[s]?.name || s)}</span>`).join("")},
       ], rows, {open: r => "co:" + r.slug, sort: ["tier", -1], empty: "No companies in the selected tiers."});
       save();
@@ -759,7 +787,7 @@ function teamGrid(firm, max = 99) {
   if (!t.length) return "";
   return `<div class="team">${t.slice(0, max).map(m => `<div class="mem">${avatar(m.name, m.photo, "md")}<div style="min-width:0"><div class="nm">${m.slug ? link(m.slug, m.name) : esc(m.name)}${m.fit ? " " + pill(m.fit) : ""} ${m.slug ? socials(m.slug, 1) : ""}</div>
     <div class="rl">${esc([m.seniority, m.role].filter(Boolean).join(" · ") || (m.slug ? "" : "Named on deals, no profile yet"))}</div>
-    <div class="dl">${m.deals.slice(0, 8).map(d => `<span class="chip link${d.lead ? " lead" : ""}${d.tier === 1 ? " t1" : ""}" data-open="co:${esc(d.slug)}" title="${esc(d.round || "")}${d.lead ? " · led" : ""}">${esc(d.name)}</span>`).join("")}${m.deals.length > 8 ? `<span class="muted">+${m.deals.length - 8}</span>` : ""}${m.deals.length ? "" : `<span class="muted">No named deals yet</span>`}</div></div></div>`).join("")}${t.length > max ? `<div class="muted">+${t.length - max} more people</div>` : ""}</div>`;
+    <div class="dl">${m.deals.slice(0, 8).map(d => `<span class="chip link sc${d.stage ? " sd-" + d.stage : ""}${d.lead ? " lead" : ""}${d.tier === 1 ? " t1" : ""}" data-open="co:${esc(d.slug)}" title="${esc(d.round || "")}${d.stage ? " · " + STG[d.stage] : ""}${d.lead ? " · led" : ""}">${esc(d.name)}</span>`).join("")}${m.deals.length > 8 ? `<span class="muted">+${m.deals.length - 8}</span>` : ""}${m.deals.length ? "" : `<span class="muted">No named deals yet</span>`}</div></div></div>`).join("")}${t.length > max ? `<div class="muted">+${t.length - max} more people</div>` : ""}</div>`;
 }
 
 function backedBy(firm) {
@@ -771,14 +799,14 @@ VIEWS.funds = {
   label: "Funds", n: A.firms.length,
   render(m) {
     m.innerHTML = `<p class="intro">Each fund's team and the deals each person is personally named on. Highlighted chips are rounds they led, and outlined chips are frontier companies. Tap a person for their profile or a company for its rounds.</p>
-      <div class="bar"><input type="search" id="fq" placeholder="Search funds, people or companies…" value="${esc(S("fq", ""))}">${sel("ffit", "Any fit", ["high", "medium", "low"], S("ffit", ""))}<span class="count" id="fc"></span></div><div class="funds" id="funds"></div>`;
+      <div class="bar"><input type="search" id="fq" placeholder="Search funds, people or companies…" value="${esc(S("fq", ""))}">${sel("ffit", "Any fit", ["high", "medium", "low"], S("ffit", ""))}<span class="count" id="fc"></span></div>${stageLegend("Chip edge = stage of the round. Bars show where each fund enters.")}<div class="funds" id="funds"></div>`;
     const firms = A.firms.slice().sort((a, b) => ((RANK[lvl(b.lens_fit)] ?? 0) - (RANK[lvl(a.lens_fit)] ?? 0)) || ((V.teams[b.slug] || []).length - (V.teams[a.slug] || []).length));
     const draw = () => {
       const q = ST.fq.toLowerCase();
       const rows = firms.filter(f => (!ST.ffit || lvl(f.lens_fit) === ST.ffit) && (!q || (f.name + " " + (V.teams[f.slug] || []).map(x => x.name + " " + x.deals.map(d => d.name).join(" ")).join(" ")).toLowerCase().includes(q)));
       $("fc").textContent = `${rows.length} funds`;
       $("funds").innerHTML = rows.map(f => `<section class="fund"><h3>${link(f.slug, f.name)} ${pill(f.lens_fit)}${socials(f.slug, 1)}<span class="muted num">${(V.teams[f.slug] || []).length} people</span></h3>
-        ${f.crux || f.take ? `<div class="crux">${clip(f.crux || f.take, 320)}</div>` : ""}${backedBy(f.slug)}${teamGrid(f.slug) || `<p class="muted">No team mapped yet.</p>`}</section>`).join("");
+        ${f.crux || f.take ? `<div class="crux">${clip(f.crux || f.take, 320)}</div>` : ""}${mixBar(f.slug)}${backedBy(f.slug)}${teamGrid(f.slug) || `<p class="muted">No team mapped yet.</p>`}</section>`).join("");
       save();
     };
     $("fq").oninput = e => { ST.fq = e.target.value; draw(); };
@@ -1048,7 +1076,12 @@ function renderGraph(m) {
     return {nodes: [...ids].filter(id => nodeById[id]).map(id => ({...nodeById[id]})), links: edges.map(e => ({...e}))};
   }
   const NC = {person: "--n-person", firm: "--n-firm", lp: "--n-lp", company: "--n-company"};
-  const ecolor = e => css((ETYPES.find(([k]) => e.types.includes(k) && st.etypes[k]) || ETYPES[4])[2]);
+  const fade = (hex, a) => { const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim()); if (!m) return hex; const n = parseInt(m[1], 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; };
+  const ecolor = e => {
+    const t = ETYPES.find(([k]) => e.types.includes(k) && st.etypes[k]) || ETYPES[4];
+    if (t[0] === "invested" && e.stg) return fade(css("--st-" + e.stg), 0.7);  // investment links show where the investor entered
+    return css(t[2]);
+  };
   const size = n => Math.min(14, 3.2 + Math.sqrt(n.strong || n.deg || 1) * 1.05);
   const font = css("--f-body") || "sans-serif";
   function shape(ctx, n, r) {
@@ -1218,10 +1251,11 @@ function renderGraph(m) {
       <div class="muted">${KIND[n.kind]}${n.firm ? " · " + esc(n.firm) : ""}${d?.role ? " · " + clip(d.role.split(/[(;]/)[0].trim(), 60) : ""}</div></div></div>
       <div class="gpills">${co ? tierPill(co) + (co.category ? ` <span class="chip">${esc(co.category)}</span>` : "") : ""}${d?.lens_fit ? `fit ${pill(d.lens_fit)}` : ""}${n.profiled ? ` <span class="chip">profiled</span>` : ""}</div>
       ${d?.known_for && d.known_for !== crux ? `<p class="gcrux"><b>Known for:</b> ${clip(d.known_for, 260)}</p>` : ""}${crux ? `<p class="gcrux">${clip(crux, 420)}</p>` : ""}${socials(n.id) ? `<div style="margin-top:8px">${socials(n.id)}</div>` : ""}`;
+    if (["person", "firm"].includes(n.kind) && V.mix?.[n.id]) h += mixBar(n.id) + stageLegend("Invested links in the graph use these colours.");
     if (n.kind === "person") h += `<div class="gstats">${stat(n.strong, "deal links")}${stat("#" + pos, "of " + rankStrong.length + " people")}${stat(cardOf[n.id]?.n || 0, "insights")}</div>`;
     if (co) {
       h += `<div class="gstats">${stat(co.n_rounds, "rounds")}${stat(esc(co.first.slice(0, 7) || "–"), "first round")}${stat(co.people.length, "people profiled")}</div>`;
-      if (co.rounds.length) h += `<h4>Rounds</h4><div class="tl">${co.rounds.slice(-6).reverse().map(r => `<div class="tlr"><span class="date">${esc(r.date.slice(0, 7))}</span><span><b>${esc(r.round)}</b>${r.amount ? " · " + esc(r.amount) : ""}<span class="muted">${r.leads.length ? " · led by " + esc(r.leads.slice(0, 2).join(", ")) : ""}</span></span></div>`).join("")}${co.rounds.length > 6 ? `<div class="muted">+${co.rounds.length - 6} earlier rounds</div>` : ""}</div>`;
+      if (co.rounds.length) h += `<h4>Rounds</h4><div class="tl">${co.rounds.slice(-6).reverse().map(r => `<div class="tlr sc${r.stage ? " sd-" + r.stage : ""}" title="${esc(STG[r.stage] || "stage unknown")}"><span class="date">${esc(r.date.slice(0, 7))}</span><span><b>${esc(r.round)}</b>${r.amount ? " · " + esc(r.amount) : ""}<span class="muted">${r.leads.length ? " · led by " + esc(r.leads.slice(0, 2).join(", ")) : ""}</span></span></div>`).join("")}${co.rounds.length > 6 ? `<div class="muted">+${co.rounds.length - 6} earlier rounds</div>` : ""}</div>`;
       if (co.first_in.length) h += `<p class="muted">First in: ${esc(co.first_in.join(", "))}</p>`;
     }
     h += `<div class="gbtns"><button class="btn sm on" id="gopen">Open full page</button>${trackCtl(co && n.kind === "company" ? "co:" + n.id : n.id)}${focus ? `<div class="seg" id="ghops"><button data-v="1" class="${st.hops === 1 ? "on" : ""}">1 step</button><button data-v="2" class="${st.hops === 2 ? "on" : ""}">2 steps</button></div>` : ""}</div>
@@ -1268,8 +1302,8 @@ function renderGraph(m) {
 
 function roundsTable(c) {
   if (!c.rounds.length) return "<p class='muted'>No round data yet.</p>";
-  return `<table><thead><tr><th>Date</th><th>Round</th><th>Amount</th><th>Led by</th><th>Also in</th><th></th></tr></thead><tbody>${
-    c.rounds.map(r => `<tr><td>${esc(r.date)}</td><td>${esc(r.round)}</td><td>${esc(r.amount)}${r.valuation ? `<div class="muted">${esc(r.valuation)}</div>` : ""}</td><td>${esc(r.leads.join(", "))}</td><td class="muted">${esc(r.others.slice(0, 14).join(", "))}${r.others.length > 14 ? ` +${r.others.length - 14}` : ""}</td><td>${src(r.src)}</td></tr>`).join("")}</tbody></table>`;
+  return stageLegend() + `<table><thead><tr><th>Date</th><th>Round</th><th>Amount</th><th>Led by</th><th>Also in</th><th></th></tr></thead><tbody>${
+    c.rounds.map(r => `<tr><td>${esc(r.date)}</td><td>${esc(r.round)}${r.stage ? `<div>${stg(r.stage)}</div>` : ""}</td><td>${esc(r.amount)}${r.valuation ? `<div class="muted">${esc(r.valuation)}</div>` : ""}</td><td>${esc(r.leads.join(", "))}</td><td class="muted">${esc(r.others.slice(0, 14).join(", "))}${r.others.length > 14 ? ` +${r.others.length - 14}` : ""}</td><td>${src(r.src)}</td></tr>`).join("")}</tbody></table>`;
 }
 let docKey = null;
 function docBar(key) {
