@@ -537,7 +537,7 @@ a.chip:hover{background:var(--accent-soft);color:var(--accent)}
 <div class="toast" id="toast" role="status"></div>
 <div class="hc" id="hc" role="dialog" aria-label="Quick look"></div>
 
-<script src="data.js?b=31f385e0fe"></script>
+<script src="data.js?b=3f8aac9071"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
@@ -561,7 +561,7 @@ function mergePart(name) {
   if (name === "insights") V.cards.forEach(c => { if (p.items[c.slug]) c.items = p.items[c.slug]; c.full = true; });
   if (name === "docs") DOCS.forEach(d => { d.body = p.bodies[d.kind + ":" + d.slug] ?? ""; });
   if (name === "leads") V.leadrows = p.leadrows;
-  if (name === "raw") Object.assign(A, p);
+  if (name === "raw" || name === "raw2") Object.assign(A, p);
   if (name === "extra") {
     if (p.cos5) p.cos5.forEach(c => { V.cos.push(c); coBySlug[c.slug] = c; });  // non-AI companies, kept out of the first load
     V.cos.forEach(c => (p.rounds[c.slug] || []).forEach((d, i) => c.rounds[i] && Object.assign(c.rounds[i], d)));
@@ -1398,7 +1398,7 @@ VIEWS.library = {
 };
 
 VIEWS.raw = {
-  label: "Raw data", n: "", needs: ["raw"],
+  label: "Raw data", n: "", needs: ["raw", "raw2"],
   render(m) {
     const sets = {
       deals: {rows: A.deals, cols: ["date", "company", "investor_slug", "round", "led", "co_investors", "source_url"]},
