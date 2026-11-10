@@ -80,6 +80,14 @@
 .mixbar{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--line);max-width:320px}
 .mixbar span{background:var(--st)}
 .mixlab{font:11.5px var(--f-data);color:var(--muted)}
+/* Conviction bands */
+.band{display:inline-block;font:600 10.5px/1 var(--f-data);text-transform:uppercase;letter-spacing:.05em;padding:3px 6px;border-radius:4px;white-space:nowrap;border:1px solid transparent}
+.b-double-down,.b-core{background:var(--good-soft);color:var(--good);border-color:color-mix(in srgb,var(--good) 40%,transparent)}
+.b-watch,.b-follow{background:var(--warn-soft);color:var(--warn)}
+.b-fade,.b-noise{background:var(--chip);color:var(--muted)}
+.b-too-early-to-tell{background:var(--chip);color:var(--muted);border-style:dashed;border-color:var(--line)}
+.ratio{display:inline-flex;height:6px;width:60px;border-radius:3px;overflow:hidden;background:var(--line);vertical-align:middle;margin-left:4px}
+.ratio span{background:var(--st)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 var(--f-body);
   padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
@@ -327,7 +335,7 @@ textarea.copy{width:100%;min-height:120px;font:12px var(--f-data);margin-top:8px
 <div class="toast" id="toast" role="status"></div>
 <div class="hc" id="hc" role="dialog" aria-label="Quick look"></div>
 
-<script src="data.js?b=74a6a0c900"></script>
+<script src="data.js?b=ec19e61696"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
@@ -380,6 +388,16 @@ const mixBar = slug => {
   return `<div class="mix" title="Earliest known round in each of ${n} companies"><div class="mixbar">${STGK.filter(k => m[k]).map(k => `<span class="sd-${k}" style="width:${100 * m[k] / n}%"></span>`).join("")}</div>
     <div class="mixlab">Enters at: ${STGK.filter(k => m[k]).map(k => `${pct(k)}% ${STG[k].split(" /")[0].toLowerCase().replace("series c+", "C+")}`).join(" · ")} <span class="muted">(${n} companies)</span></div></div>`;
 };
+const CONV_C = Object.fromEntries((V.conv?.cos || []).map(r => [r.company_slug, r]));
+const CONV_I = Object.fromEntries((V.conv?.inv || []).filter(r => r.slug).map(r => [r.slug, r]));
+const BANDT = {"double-down": "Double down", watch: "Watch", fade: "Fade", "too-early-to-tell": "Too early", core: "Core", follow: "Follows", noise: "Noise"};
+const BANDTIP = {"double-down": "Insiders keep re-upping and leading later rounds", watch: "Mixed signals", fade: "Insiders aren't coming back", "too-early-to-tell": "Not enough rounds yet",
+  core: "Gets in first, leads and sets prices", follow: "Mostly follows others' leads", noise: "Shows up without leading or returning"};
+const band = b => b ? `<span class="band b-${esc(b)}" title="${esc(BANDTIP[b] || "")}">${esc(BANDT[b] || b)}</span>` : "";
+const invName = k => k.startsWith("angel:") ? (bySlug[k.slice(6)]?.name || k.slice(6).replace(/-/g, " ").replace(/\b\w/g, x => x.toUpperCase())) :
+  k.split("-").map(w => w.length <= 3 && !["the", "and"].includes(w) ? w.toUpperCase() : w[0].toUpperCase() + w.slice(1)).join(" ");
+const invLink = (key, slug) => slug ? link(slug, invName(key).replace(/\s*\(.*$/, "")) : esc(invName(key));
+const pct = x => x == null ? "" : Math.round(x * 100) + "%";
 const tierPill = c => `<span class="pill t-${c.tier}">${esc(c.tier_name)}</span>`;
 const firmShort = f => (f || "").split(/[;(]/)[0].trim();
 const clip = (s, n) => esc(String(s || "").slice(0, n)) + (String(s || "").length > n ? "…" : "");
@@ -466,11 +484,11 @@ function hcHTML(key) {
   const isCo = key.startsWith("co:"), slug = key.replace(/^co:/, "");
   const d = bySlug[slug], c = coBySlug[slug];
   if (d && !(isCo && c)) {
-    return `<div class="hh">${d.kind === "person" ? avatar(d.name, d.photo, "md") : `<span class="kdot" style="--c:var(--n-${d.kind === "firm" ? "firm" : d.kind === "lp" ? "lp" : d.kind === "company" ? "company" : "person"})">${(NKINDS.find(k => k[0] === d.kind) || [])[3] || "•"}</span>`}<div><div class="hn">${esc(d.name.replace(/\s*\(.*$/, ""))}</div><div class="hk">${esc(KIND[d.kind] || d.kind)}${d.firm ? " · " + esc(firmShort(d.firm)) : ""}${d.seniority ? " · " + esc(d.seniority) : ""} ${pill(d.lens_fit)}</div></div></div>
+    return `<div class="hh">${d.kind === "person" ? avatar(d.name, d.photo, "md") : `<span class="kdot" style="--c:var(--n-${d.kind === "firm" ? "firm" : d.kind === "lp" ? "lp" : d.kind === "company" ? "company" : "person"})">${(NKINDS.find(k => k[0] === d.kind) || [])[3] || "•"}</span>`}<div><div class="hn">${esc(d.name.replace(/\s*\(.*$/, ""))}</div><div class="hk">${esc(KIND[d.kind] || d.kind)}${d.firm ? " · " + esc(firmShort(d.firm)) : ""}${d.seniority ? " · " + esc(d.seniority) : ""} ${pill(d.lens_fit)} ${band(CONV_I[slug]?.band)}</div></div></div>
       ${knownFor(slug) ? `<div class="hf">${clip(knownFor(slug), 300)}</div>` : ""}${mixBar(slug)}${CARD[slug]?.key ? `<div class="hkey"><span class="sg s2">Key insight</span>${CARD[slug].nk > 1 ? ` <span class="hk">1 of ${CARD[slug].nk}</span>` : ""}<div>${clip(CARD[slug].key.t, 260)}</div>${CARD[slug].key.q ? `<div class="q">“${esc(CARD[slug].key.q)}” ${src(CARD[slug].key.u)}</div>` : ""}</div>` : ""}${socials(slug)}
       <div class="hb"><button class="btn sm on" data-open="${esc(slug)}">Open profile</button>${trackCtl(slug)}</div>`;
   }
-  if (c) return `<div class="hh"><span class="kdot" style="--c:var(--n-company)">■</span><div><div class="hn">${esc(c.name)}</div><div class="hk">Company ${tierPill(c)}</div></div></div>
+  if (c) return `<div class="hh"><span class="kdot" style="--c:var(--n-company)">■</span><div><div class="hn">${esc(c.name)}</div><div class="hk">Company ${tierPill(c)} ${band(CONV_C[slug]?.band)}</div></div></div>
       <div class="hf">${c.n_rounds} round${c.n_rounds === 1 ? "" : "s"}${c.first ? ", first " + esc(c.first.slice(0, 7)) : ""}${c.first_in.length ? ". First in: " + esc(c.first_in.slice(0, 3).join(", ")) : ""}.${c.latest ? " Latest: " + esc(c.latest) : ""}</div>
       <div class="hb"><button class="btn sm on" data-open="co:${esc(slug)}">Open rounds</button>${trackCtl("co:" + slug)}</div>`;
   return "";
@@ -764,7 +782,7 @@ VIEWS.companies = {
       const rows = V.cos.filter(c => ST.ct.includes(c.tier) && (!q || (c.name + " " + c.rounds.map(r => r.leads.join(" ") + " " + r.others.join(" ")).join(" ")).toLowerCase().includes(q)));
       $("cc").textContent = `${rows.length} shown`;
       table($("ct-t"), [
-        {k: "name", t: "Company", h: r => `<span class="name">${esc(r.name)}</span>${r.note ? ` <span class="chip">write-up</span>` : ""}`},
+        {k: "name", t: "Company", h: r => `<span class="name">${esc(r.name)}</span>${r.note ? ` <span class="chip">write-up</span>` : ""}${CONV_C[r.slug] ? ` ${band(CONV_C[r.slug].band)}` : ""}`},
         {k: "tier", t: "Tier", num: 1, v: r => -r.tier, h: r => tierPill(r) + (r.category && r.category !== "non-ai" ? `<div class="muted">${esc(r.category)}</div>` : "")},
         {k: "first", t: "First round", h: r => `<span class="date">${esc(r.first)}</span>`},
         {k: "first_in", t: "First in", v: r => r.first_in.join(" "), h: r => `<span class="muted">${esc(r.first_in.join(", "))}</span>`},
@@ -795,6 +813,59 @@ function backedBy(firm) {
   if (!bs.length) return `<div class="backed none">LPs: <span class="muted">none known yet</span></div>`;
   return `<div class="backed">LPs: ${bs.map(b => `<span class="chip lpchip${b.status === "in" ? "" : " dim"}" title="${esc(b.lp_type + " · " + b.status + (b.how ? " · " + b.how : "") + " · " + b.fund)}">${bySlug[b.lp] ? link(b.lp, b.lp_name) : esc(b.lp_name)}${b.status !== "in" ? ` <span class="muted">(${esc(b.status)})</span>` : ""}</span>`).join(" ")}</div>`;
 }
+VIEWS.conviction = {
+  label: "Conviction", n: (V.conv?.cos || []).filter(r => r.band === "double-down").length,
+  render(m) {
+    const seg0 = S("cvs", "cos");
+    m.innerHTML = `<p class="intro">Who keeps doubling down. <b>Companies</b> are scored on insiders re-upping and leading later rounds, price step-ups, time between rounds, lead quality and strategic money, minus crowding. <b>Investors</b> are scored on getting in first, leading, following on and setting prices. Scores move as more round maps land.</p>
+      <div class="bar">${seg("cvs", [["cos", `Companies ${(V.conv?.cos || []).length}`], ["inv", `Investors ${(V.conv?.inv || []).length}`]], seg0)}
+      <span id="cvb"></span><input type="search" id="cvq" placeholder="Search…" value="${esc(S("cvq", ""))}"><span class="count" id="cvc"></span></div><div id="cvt"></div>`;
+    const draw = () => {
+      const q = ST.cvq.toLowerCase(), isCo = ST.cvs === "cos";
+      const bands = isCo ? ["double-down", "watch", "fade", "too-early-to-tell"] : ["core", "follow", "noise"];
+      if (!bands.includes(ST.cvband)) ST.cvband = "";
+      $("cvb").innerHTML = seg("cvband", [["", "All"], ...bands.map(b => [b, BANDT[b]])], ST.cvband || "");
+      onSeg("cvband", v => { ST.cvband = v; draw(); });
+      if (isCo) {
+        const rows = (V.conv?.cos || []).filter(r => (!ST.cvband || r.band === ST.cvband) && (!q || (r.company + " " + r.top_leads.map(l => l.key).join(" ")).toLowerCase().includes(q)));
+        $("cvc").textContent = `${rows.length} companies`;
+        table($("cvt"), [
+          {k: "company", t: "Company", h: r => `<span class="pl" data-open="co:${esc(r.company_slug)}">${esc(r.company)}</span><div class="muted">${esc(r.category)}</div>`},
+          {k: "band", t: "Call", v: r => ["double-down", "watch", "too-early-to-tell", "fade"].indexOf(r.band), h: r => band(r.band)},
+          {k: "score", t: "Score", num: 1, h: r => r.score?.toFixed(1) ?? ""},
+          {k: "latest_round", t: "Latest", v: r => r.latest_date, h: r => `${stg(r.stage)}<div class="muted">${esc(r.latest_round.slice(0, 40))}${r.latest_date ? " · " + esc(r.latest_date.slice(0, 7)) : ""}</div>`},
+          {k: "insider_reup", t: "Insiders re-up", num: 1, h: r => pct(r.insider_reup)},
+          {k: "insider_led_later", t: "Insider led later", h: r => r.insider_led_later === "yes" ? "yes" : `<span class="muted">${esc(r.insider_led_later || "no")}</span>`},
+          {k: "median_step_up", t: "Step-up", num: 1, h: r => r.median_step_up != null ? r.median_step_up.toFixed(1) + "×" : ""},
+          {k: "median_months_between", t: "Months between", num: 1, h: r => r.median_months_between ?? ""},
+          {k: "strategics", t: "Strategics", h: r => `<span class="muted">${esc((r.strategics || "").replace(/;/g, ", "))}</span>`},
+          {k: "top_leads", t: "Top leads", v: r => r.top_leads.length, h: r => r.top_leads.map(l => invLink(l.key, l.slug)).join(", ")},
+        ], rows, {sort: ["score", -1], empty: "No companies scored yet."});
+      } else {
+        const rows = (V.conv?.inv || []).filter(r => (!ST.cvband || r.band === ST.cvband) && (!q || (invName(r.investor) + " " + r.companies_list.join(" ")).toLowerCase().includes(q)));
+        $("cvc").textContent = `${rows.length} investors`;
+        table($("cvt"), [
+          {k: "investor", t: "Investor", v: r => invName(r.investor), h: r => invLink(r.investor, r.slug)},
+          {k: "band", t: "Call", v: r => ["core", "follow", "noise"].indexOf(r.band), h: r => band(r.band)},
+          {k: "score", t: "Score", num: 1, h: r => r.score?.toFixed(1) ?? ""},
+          {k: "companies", t: "Companies", num: 1},
+          {k: "first_in_rate", t: "First in", num: 1, h: r => pct(r.first_in_rate)},
+          {k: "lead_rate", t: "Leads", num: 1, h: r => pct(r.lead_rate)},
+          {k: "follow_rate", t: "Follows on", num: 1, h: r => pct(r.follow_rate)},
+          {k: "price_setter_leads", t: "Price-setting leads", num: 1},
+          {k: "frontier_share", t: "Frontier", num: 1, h: r => pct(r.frontier_share)},
+          {k: "early_share", t: "Early / late", num: 1, h: r => `${pct(r.early_share)} / ${pct(r.late_share)}<span class="ratio"><span class="sd-early" style="width:${100 * (r.early_share || 0)}%"></span><span class="sd-late" style="width:${100 * (r.late_share || 0)}%"></span></span>`},
+          {k: "companies_list", t: "In", v: r => r.companies_list.length, h: r => `<span class="muted">${r.companies_list.slice(0, 8).map(c => coBySlug[c] ? `<span class="pl" data-open="co:${esc(c)}">${esc(coBySlug[c].name)}</span>` : esc(c)).join(", ")}${r.companies_list.length > 8 ? ` +${r.companies_list.length - 8}` : ""}</span>`},
+        ], rows, {sort: ["score", -1], empty: "No investors scored yet."});
+      }
+      save();
+    };
+    $("cvq").oninput = e => { ST.cvq = e.target.value; draw(); };
+    onSeg("cvs", v => { ST.cvs = v; ST.cvband = ""; draw(); });
+    draw();
+  },
+};
+
 VIEWS.funds = {
   label: "Funds", n: A.firms.length,
   render(m) {
@@ -805,7 +876,7 @@ VIEWS.funds = {
       const q = ST.fq.toLowerCase();
       const rows = firms.filter(f => (!ST.ffit || lvl(f.lens_fit) === ST.ffit) && (!q || (f.name + " " + (V.teams[f.slug] || []).map(x => x.name + " " + x.deals.map(d => d.name).join(" ")).join(" ")).toLowerCase().includes(q)));
       $("fc").textContent = `${rows.length} funds`;
-      $("funds").innerHTML = rows.map(f => `<section class="fund"><h3>${link(f.slug, f.name)} ${pill(f.lens_fit)}${socials(f.slug, 1)}<span class="muted num">${(V.teams[f.slug] || []).length} people</span></h3>
+      $("funds").innerHTML = rows.map(f => `<section class="fund"><h3>${link(f.slug, f.name)} ${pill(f.lens_fit)}${band(CONV_I[f.slug]?.band)}${socials(f.slug, 1)}<span class="muted num">${(V.teams[f.slug] || []).length} people</span></h3>
         ${f.crux || f.take ? `<div class="crux">${clip(f.crux || f.take, 320)}</div>` : ""}${mixBar(f.slug)}${backedBy(f.slug)}${teamGrid(f.slug) || `<p class="muted">No team mapped yet.</p>`}</section>`).join("");
       save();
     };
