@@ -336,7 +336,7 @@ textarea.copy{width:100%;min-height:120px;font:12px var(--f-data);margin-top:8px
 <div class="toast" id="toast" role="status"></div>
 <div class="hc" id="hc" role="dialog" aria-label="Quick look"></div>
 
-<script src="data.js?b=8e2e8759f5"></script>
+<script src="data.js?b=4251e3d9db"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
@@ -560,19 +560,13 @@ addEventListener("scroll", () => { if (HC.key && !canHover) hideHC(); }, true);
 function mentionIndex() {
   const ix = new Map(), add = (name, val) => { name = String(name || "").replace(/\s*\(.*?\)\s*/g, " ").replace(/\s+/g, " ").trim(); if (name.length >= 5 && !ix.has(name)) ix.set(name, val); };
   [...A.people, ...A.firms, ...A.lps].forEach(d => add(d.name, {open: d.slug}));
-  // every company we have rounds, tags or a note for, plus its short form ("Ineffable" for "Ineffable Intelligence")
-  const SUFFIX = /\s+(Intelligence|Labs?|AI|Inc\.?|Technologies|Technology|Systems|Computer|Computing|Robotics|Corporation|Corp\.?|Company|Co\.?|Holdings|Research|Bio|Therapeutics)$/;
-  // short forms that are ordinary words at the start of a sentence stay unlinked
-  const SHORT_STOP = new Set(["Physical", "Scale", "Safe", "General", "World", "Character", "Open", "Magic", "Essential", "Humans", "Applied", "Perfect", "Basis", "Thinking", "Standard", "Periodic", "Black", "Deep", "Cognition", "Hidden", "Liquid", "Figure", "Field", "Common", "Human", "Prime", "Parallel"]);
-  V.cos.forEach(c => add(c.name, {open: "co:" + c.slug}));
-  V.cos.forEach(c => { const short = c.name.replace(SUFFIX, ""); if (short !== c.name && /^[A-Z]/.test(short) && !SHORT_STOP.has(short)) add(short, {open: "co:" + c.slug}); });
+  V.cos.filter(c => c.tier <= 2).forEach(c => add(c.name, {open: "co:" + c.slug}));
   (V.leadrows || []).filter(l => !l.profiled && l.kind !== "company" && (l.kind !== "person" || /\s/.test(l.name)) && !/needs-id/i.test(l.name)).forEach(l => add(l.name, {lead: l.slug}));
   const names = [...ix.keys()].sort((a, b) => b.length - a.length).map(n => n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
   return {ix, re: new RegExp(`(?<![\\w’'])(${names.join("|")})(?![\\w])`, "g"), leads: !!V.leadrows};
 }
 let MIX = null;
 function linkMentions(root, self) {
-  linkMentions.n ||= 0;
   if (!MIX || (!MIX.leads && V.leadrows)) MIX = mentionIndex();
   const done = new Set([self, "co:" + self]), walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
     acceptNode: n => n.parentElement.closest("a, code, pre, h1, .pl, .who, .mention, .docbar, .team") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
@@ -580,12 +574,8 @@ function linkMentions(root, self) {
   nodes.forEach(node => {
     const s = node.nodeValue; MIX.re.lastIndex = 0; let m, last = 0, frag = null;
     while ((m = MIX.re.exec(s))) {
-      const v = MIX.ix.get(m[1]), isCo = (v.open || "").startsWith("co:");
-      // people and funds link once per write-up; companies link once per paragraph, list item or table cell
-      const blk = isCo ? node.parentElement.closest("p, li, td, th, h2, h3, h4, blockquote") : null;
-      if (blk && !blk.dataset.mk) blk.dataset.mk = String(++linkMentions.n);
-      const key = (v.open || "lead:" + v.lead) + (blk ? "|" + blk.dataset.mk : "");
-      if (done.has(key) || (!isCo && done.has(v.open)) || v.open === "co:" + self) continue;
+      const v = MIX.ix.get(m[1]), key = v.open || "lead:" + v.lead;
+      if (done.has(key) || done.has(v.open)) continue;
       done.add(key);
       frag ||= document.createDocumentFragment();
       frag.append(s.slice(last, m.index));
