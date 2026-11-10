@@ -357,7 +357,7 @@ textarea.copy{width:100%;min-height:120px;font:12px var(--f-data);margin-top:8px
 <div class="toast" id="toast" role="status"></div>
 <div class="hc" id="hc" role="dialog" aria-label="Quick look"></div>
 
-<script src="data.js?b=ca6d451fa8"></script>
+<script src="data.js?b=e287d4dafa"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
@@ -1300,15 +1300,20 @@ function renderGraph(m) {
     .map(e => e.source === id ? e.target : e.source).filter(x => nodeById[x]?.kind === "firm");
   const fdDefault = id => { const d = bySlug[id] || {}; return ["mp", "gp"].includes(String(d.seniority || "").toLowerCase().trim()) || /founder|founding|managing partner|managing director|\bceo\b/i.test((d.role || "") + " " + (d.entity_type || "")); };
   const fdOn = id => nodeById[id]?.kind === "person" && (fdFor[id] ?? fdDefault(id));
+  // The firm's book = deals credited to the firm itself plus deals credited to its other partners.
+  const membersOf = f => G.edges.filter(e => e.types.includes("at") && (e.source === f || e.target === f))
+    .map(e => e.source === f ? e.target : e.source).filter(x => nodeById[x]?.kind === "person");
   function viaEdges(id, have) {
     const out = new Map();
-    firmsOf(id).forEach(f => G.edges.forEach(e => {
-      if (!e.types.includes("invested") || (e.source !== f && e.target !== f)) return;
-      const co = e.source === f ? e.target : e.source, n = nodeById[co];
-      if (!n || n.kind !== "company" || have.has(co) || out.has(co) || !st.kinds.company || !st.etypes.invested) return;
+    if (!st.kinds.company || !st.etypes.invested) return [];
+    firmsOf(id).forEach(f => [f, ...membersOf(f).filter(p => p !== id)].forEach(src => G.edges.forEach(e => {
+      if (!e.types.includes("invested") || (e.source !== src && e.target !== src)) return;
+      const co = e.source === src ? e.target : e.source, n = nodeById[co];
+      if (!n || n.kind !== "company" || have.has(co) || out.has(co)) return;
       if ((n.tier || 9) > 4) return;  // non-AI stays out
-      out.set(co, {source: id, target: co, types: ["invested"], w: 1, via: nodeById[f].name, stg: e.stg, ev: [`Via ${nodeById[f].name}: ${e.ev[0] || "firm deal"}`]});
-    }));
+      const who = src === f ? "" : ` (${nodeById[src].name})`;
+      out.set(co, {source: id, target: co, types: ["invested"], w: 1, via: nodeById[f].name, stg: e.stg, ev: [`Via ${nodeById[f].name}${who}: ${(e.ev || [])[0] || "firm deal"}`]});
+    })));
     return [...out.values()];
   }
   let nVia = 0;
