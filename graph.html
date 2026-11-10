@@ -5,7 +5,6 @@
 <script>
   // The graph now lives in index.html#graph. Carry an old graph.html#<slug> deep link across as the focused node.
   var slug = decodeURIComponent(location.hash.slice(1));
-  try { if (slug) localStorage.setItem("aura:gfocus", JSON.stringify(slug)); } catch (e) {}
-  location.replace("index.html#graph");
+  location.replace("index.html#graph" + (slug ? "/net/" + encodeURIComponent(slug) : ""));
 </script>
 <p>The graph now lives in the main page: <a href="index.html#graph">open it</a>.</p>

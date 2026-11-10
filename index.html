@@ -342,6 +342,175 @@ textarea.copy{width:100%;min-height:120px;font:12px var(--f-data);margin-top:8px
   .take{max-width:none}
 }
 @media (prefers-reduced-motion: reduce){aside,.scrim,.toast{transition:none}}
+/* ---- Graph tab: chooser, lenses, detail sheet. Colours are tokens only, so both site styles and light/dark work. ---- */
+:root{--av-bg:45% 88%;--av-fg:45% 28%;--sheet-shadow:0 -8px 30px rgba(0,0,0,.18)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--av-bg:30% 24%;--av-fg:60% 82%}}
+:root[data-theme="dark"]{--av-bg:30% 24%;--av-fg:60% 82%}
+.gnav{display:flex;gap:8px 14px;flex-wrap:wrap;align-items:center;margin-bottom:12px;font-size:13px}
+.gnav a{color:var(--muted);text-decoration:none;white-space:nowrap}
+.gnav a:hover{color:var(--ink);text-decoration:underline}
+.gnav input[type=search],.gch-q input{font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);min-width:0}
+.gnav input[type=search]{flex:1 1 200px;max-width:380px}
+.gnav .sp{margin-left:auto}
+.gtitle{display:flex;gap:8px 10px;align-items:center;flex-wrap:wrap;margin:0 0 4px}
+.gtitle h2{margin:0;font:600 24px/1.15 var(--f-display)}
+.gsub{color:var(--muted);font-size:13px;margin:0 0 12px;max-width:95ch}
+.gsub b{color:var(--ink);font-weight:600}
+.gch-q{display:flex;margin:4px 0 0}
+.gch-q input{flex:1;max-width:640px;padding:11px 14px;font-size:16px;border-radius:10px}
+.glenses{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:14px 0 18px}
+.glens{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:8px;align-content:start;min-width:0}
+.glens svg{width:100%;height:60px;display:block}
+.glens .gl-t{font:600 17px/1.25 var(--f-display);color:var(--ink);text-decoration:none}
+.glens a.gl-t:hover{text-decoration:underline}
+.glens p{margin:0;color:var(--muted);font-size:13px}
+.gex{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.gex .chip{margin:0}
+a.chip{color:inherit;text-decoration:none;white-space:normal}
+a.chip:hover{background:var(--accent-soft);color:var(--accent)}
+.gsec{margin:16px 0 6px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.gl-wrap{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:12px;align-items:start}
+.gsheet{border:1px solid var(--line);border-radius:12px;background:var(--panel);min-width:0;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow-y:auto}
+.gsheet.gpan{position:static;max-height:none;overflow:visible;border:0;background:none}
+.gs-top{display:none}
+.gs-b{padding:16px;font-size:13px}
+.gs-b h3{margin:0;font:600 19px/1.2 var(--f-display)}
+.gs-b h4{margin:14px 0 6px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.gs-b .tlr{grid-template-columns:70px 1fr}
+/* company lens: stage columns */
+.cl{--gut:200px;border:1px solid var(--line);border-radius:12px;background:var(--panel);min-width:0}
+.cl-head,.cl-row,.cl-guides{display:grid;grid-template-columns:var(--gut) var(--cols)}
+.cl-head{position:sticky;top:0;z-index:1;background:var(--panel);border-bottom:1px solid var(--line);border-radius:12px 12px 0 0}
+.cl-h{padding:8px;border-left:1px solid var(--line);min-width:0;font-size:12px}
+.cl-h b{display:flex;align-items:center;gap:6px;font-size:12.5px;white-space:nowrap;min-width:0}
+.cl-h .lg{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.cl{overflow:hidden}
+.cl-h b::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--st,var(--muted));flex:none}
+.cl-h .r{color:var(--muted);font:11px/1.35 var(--f-data);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cl-h .sh{display:none}
+.cl-h.empty{opacity:.45}
+.cl-body{position:relative;padding:4px 0 8px}
+.cl-guides{position:absolute;inset:0;pointer-events:none}
+.cl-guides i{border-left:1px solid var(--line);grid-row:1}
+.cl-row{position:relative;min-height:30px;cursor:pointer;align-items:center}
+.cl-row:hover,.cl-row.on{background:var(--row-hover)}
+.cl-row:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.cl-row.sub .cl-nm{font-size:12.5px;color:var(--muted)}
+.cl-nm{grid-row:1;grid-column:1/calc(var(--j) + 2);text-align:right;padding:0 10px 0 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;min-width:0}
+.cl-nm .up{font:600 10px var(--f-data);color:var(--warn);background:var(--warn-soft);border-radius:4px;padding:1px 4px;margin-right:5px;white-space:nowrap}
+.cl-nm .x{font:11px var(--f-data);color:var(--muted);margin-left:4px}
+.cl-c{grid-row:1;position:relative;height:30px;min-width:0}
+.cl-ln{position:absolute;top:50%;height:2px;margin-top:-1px;background:color-mix(in srgb,var(--est,var(--muted)) 55%,transparent)}
+.cl-d{position:absolute;top:50%;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;border:2px solid var(--st,var(--muted));background:var(--panel);box-sizing:border-box}
+.cl-d.L{background:var(--st,var(--muted))}
+.cl-d.S{box-shadow:0 0 0 2px var(--panel),0 0 0 3.5px var(--st,var(--muted))}
+.cl-d.G{width:22px;height:22px;margin:-11px 0 0 -11px;display:grid;place-items:center;font:600 10px/1 var(--f-data);color:var(--st,var(--muted));border-style:dashed;font-style:normal}
+.cl-c.dense .cl-d:not(.G){width:8px;height:8px;margin:-4px 0 0 -4px;border-width:1.5px}
+.es-early{--est:var(--st-early)} .es-a{--est:var(--st-a)} .es-mid{--est:var(--st-mid)} .es-late{--est:var(--st-late)}
+.cl-key{display:flex;gap:6px 14px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--muted);margin:10px 0}
+.cl-key .cl-d{position:static;margin:0 5px 0 0;display:inline-block;vertical-align:-2px;--st:var(--muted)}
+.cl-key .cl-d.G{display:inline-grid;width:18px;height:18px;vertical-align:-4px}
+.cl-key .cl-d.S{margin:0 8px 0 3px}
+.cl-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px;margin:0 0 12px}
+.cl-sum .gs span{white-space:normal}
+.cl-sum .gs b{font-size:15px;font-family:var(--f-body)}
+/* fund lens: three bands */
+.fb{display:grid;gap:0}
+.fband{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;min-width:0}
+.fband>h4{margin:0 0 8px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.fjoin{justify-self:center;display:grid;justify-items:center;color:var(--muted);font:11px var(--f-data);padding:2px 0}
+.fjoin::before,.fjoin::after{content:"";width:1px;height:8px;background:var(--line)}
+.flp{display:grid;gap:6px}
+.flp-g{display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center}
+.flp-g .t{font:11px var(--f-data);color:var(--muted);min-width:96px}
+.flp-g .chip{margin:0;cursor:pointer;border:1px solid color-mix(in srgb,var(--n-lp) 40%,var(--line));background:none;font:inherit;font-size:12px;color:var(--ink);white-space:normal;text-align:left}
+.flp-g .chip.dim{opacity:.6;border-style:dashed}
+.flp-g .chip:hover,.flp-g .chip.on{background:var(--accent-soft)}
+.fteam{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.fmem{display:inline-flex;gap:7px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:3px 11px 3px 3px;font-size:13px;color:inherit;text-decoration:none;min-width:0}
+.fmem:hover{border-color:var(--accent)}
+.fmem.former{border-style:dashed;color:var(--muted)}
+.fmem .av{width:24px;height:24px;font-size:9.5px}
+.fmem .n{font:11px var(--f-data);color:var(--muted)}
+.fbook{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.fcol{border:1px solid var(--line);border-radius:10px;padding:10px;min-width:0;align-self:start}
+.fcol.former{border-style:dashed}
+.fcol h5{margin:0 0 6px;font-size:13px;display:flex;gap:7px;align-items:center;min-width:0}
+.fcol h5 a{color:inherit;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fcol h5 a:hover{text-decoration:underline}
+.fcol h5 .av{width:22px;height:22px;font-size:9px}
+.fcol h5 .n{font:11px var(--f-data);color:var(--muted);margin-left:auto;font-weight:400}
+.fco{display:flex;align-items:center;gap:7px;padding:3px 0 3px 8px;border-left:3px solid var(--st,var(--line));font-size:13px;margin-top:3px;text-decoration:none;color:inherit;min-width:0}
+.fco:hover{background:var(--row-hover)}
+.fco .m{width:9px;height:9px;border-radius:50%;border:2px solid var(--st,var(--muted));flex:none;box-sizing:border-box}
+.fco.L .m{background:var(--st,var(--muted))}
+.fco .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.fco .t1{font:600 9.5px var(--f-data);color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:0 3px;margin-left:auto;flex:none}
+.fco.dim{opacity:.6}
+/* who moves together: matrix */
+.mx-box{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:10px;min-width:0;overflow:hidden}
+.mx{--mxc:var(--n-firm);display:grid;grid-template-columns:var(--lab) repeat(var(--n),var(--cs));width:max-content;max-width:100%}
+.mx-ch{height:var(--chh,118px);display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;min-width:0;cursor:pointer;background:none;border:0;color:var(--ink);font:inherit}
+.mx-ch span{writing-mode:vertical-rl;transform:rotate(180deg);font-size:11px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-height:100%}
+.mx-rh{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right;padding:0 6px 0 0;height:var(--cs);line-height:var(--cs);cursor:pointer;background:none;border:0;color:var(--ink);font-family:inherit;min-width:0}
+.mx-rh:hover,.mx-ch:hover,.mx-rh.on,.mx-ch.on{color:var(--accent);font-weight:600}
+.mx-c{width:var(--cs);height:var(--cs);border:0;padding:0;margin:0;font:500 10px/1 var(--f-data);color:var(--ink);cursor:pointer;
+  background:color-mix(in srgb,var(--mxc) calc(var(--a,0) * 100%),var(--chip));box-shadow:inset 0 0 0 .5px var(--panel)}
+.mx-c.hi{color:var(--panel)}
+.mx-c.z{cursor:default;background:var(--chip)}
+.mx-c.dg{background:none;cursor:default}
+.mx-c.on{outline:2px solid var(--ink);outline-offset:-2px;position:relative;z-index:1}
+.mx-c:not(.z):not(.dg):hover{outline:2px solid var(--ink);outline-offset:-2px}
+.mx-scale{display:flex;align-items:center;gap:6px;font:11px var(--f-data);color:var(--muted);margin-top:10px;flex-wrap:wrap}
+.mx-scale i{width:16px;height:12px;display:inline-block;background:color-mix(in srgb,var(--n-firm) calc(var(--a) * 100%),var(--chip))}
+.mx-co{padding:7px 0;border-top:1px solid var(--line)}
+.mx-co .ev{font-size:12px;color:var(--muted)}
+/* focus graph: on-canvas legend, tap chip, bottom sheet */
+.gleg{position:absolute;left:10px;bottom:10px;z-index:2;max-width:calc(100% - 20px);background:color-mix(in srgb,var(--panel) 92%,transparent);border:1px solid var(--line);border-radius:10px;font-size:12px;color:var(--muted)}
+.gleg>summary{list-style:none;cursor:pointer;padding:5px 10px;font:500 11px var(--f-data);text-transform:uppercase;letter-spacing:.06em;user-select:none}
+.gleg>summary::-webkit-details-marker{display:none}
+.gleg[open]>summary{border-bottom:1px solid var(--line)}
+.gleg-b{display:grid;gap:6px;padding:8px 10px}
+.gleg-r{display:flex;gap:4px 10px;flex-wrap:wrap;align-items:center}
+.gleg .gchip{padding:2px 8px;font-size:11.5px;background:none}
+.gleg .gchip.dash .ln{background:repeating-linear-gradient(90deg,var(--c) 0 4px,transparent 4px 7px)}
+.gleg .gchip.dot .ln{background:repeating-linear-gradient(90deg,var(--c) 0 2px,transparent 2px 5px)}
+.gleg .stg{font-size:11px}
+.gleg .lk{display:inline-flex;align-items:center;gap:5px;font-size:11.5px}
+.gleg .lk .ln{display:inline-block;width:16px;height:3px;border-radius:2px;background:repeating-linear-gradient(90deg,var(--muted) 0 4px,transparent 4px 7px)}
+.gsel{position:absolute;left:10px;right:10px;top:44px;z-index:2;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px;display:none;gap:6px 8px;align-items:center;flex-wrap:wrap}
+.gsel.on{display:flex}
+.gsel .ev{flex-basis:100%;font-size:12px;color:var(--muted)}
+@media (max-width:900px){
+  .gl-wrap{grid-template-columns:minmax(0,1fr)}
+  .gsheet,.gsheet.gpan{position:fixed;left:0;right:0;bottom:0;top:auto;z-index:3;border:1px solid var(--line);border-bottom:0;border-radius:16px 16px 0 0;background:var(--panel);max-height:74vh;display:none;
+    box-shadow:var(--sheet-shadow);padding-bottom:env(safe-area-inset-bottom,0px);overflow:hidden}
+  .gsheet.has,.gsheet.peek{display:flex;flex-direction:column}
+  .gs-top{display:flex;gap:8px;align-items:center;padding:6px 10px 6px 14px;border-bottom:1px solid var(--line);flex:none}
+  .gs-h{flex:1;min-width:0;display:grid;gap:2px;justify-items:start;background:none;border:0;padding:6px 0;font:600 14px var(--f-body);color:var(--ink);cursor:pointer;text-align:left}
+  .gs-h::before{content:"";width:36px;height:4px;border-radius:2px;background:var(--line);justify-self:center;margin-bottom:2px}
+  .gs-h span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+  .gsheet:not(.open) .gs-b,.gsheet:not(.open) .gpanel{display:none}
+  .gsheet:not(.open) .gs-top{border-bottom:0}
+  .gs-b,.gsheet .gpanel{overflow-y:auto;border:0;border-radius:0;height:auto;min-height:0}
+  .has-sheet{padding-bottom:70px}
+}
+@media (max-width:700px){
+  .gtitle h2{font-size:21px}
+  .cl{--gut:0px}
+  .cl-h{padding:6px 4px}
+  .cl-h b{font-size:11.5px;gap:4px}
+  .cl-h .r,.cl-h .lg{display:none}
+  .cl-h .sh{display:inline}
+  .cl-row{padding-top:22px;min-height:50px}
+  .cl-nm{position:absolute;top:-18px;left:0;right:0;grid-column:1/-1;text-align:left;padding:0 8px 0 min(calc(var(--x) * 1%),52%)}
+  .cl-row.sub .cl-nm{font-size:12px}
+  .cl-c{height:26px}
+  .fbook{grid-template-columns:minmax(0,1fr)}
+  .flp-g .t{min-width:100%}
+  .mx-rh{font-size:11px}
+  .gleg{max-width:calc(100% - 20px)}
+}
 </style>
 
 <header>
@@ -357,7 +526,7 @@ textarea.copy{width:100%;min-height:120px;font:12px var(--f-data);margin-top:8px
 <div class="toast" id="toast" role="status"></div>
 <div class="hc" id="hc" role="dialog" aria-label="Quick look"></div>
 
-<script src="data.js?b=3223c94ebd"></script>
+<script src="data.js?b=32d8a8cb9a"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
@@ -1031,7 +1200,7 @@ VIEWS.coinvest = {
   },
 };
 
-VIEWS.graph = { label: "Graph", n: A.meta.n_graph ?? "", needs: ["extra"], render: m => renderGraph(m) };
+VIEWS.graph = { label: "Graph", n: A.meta.n_graph ?? "", needs: ["extra"], render: m => graphTab(m) };
 
 VIEWS.leads = {
   label: "Leads", n: A.meta.n_leads_new, needs: ["leads"],
@@ -1240,11 +1409,433 @@ VIEWS.raw = {
   },
 };
 
+// ================= Graph tab: a chooser and four lenses =================
+// Each lens and focus is a URL: #graph, #graph/company/<slug>, #graph/fund/<slug>, #graph/person/<slug>,
+// #graph/lp/<slug>, #graph/net/<id> (any node as a small network), #graph/together[/partners], #graph/network.
+// Shared index over the graph part: lookups, links by type, and an importance score per node.
+function gx() {
+  if (gx.c && gx.g === V.graph) return gx.c;
+  const G = V.graph, byId = Object.fromEntries(G.nodes.map(n => [n.id, n]));
+  const inv = {}, at = {}, lp = {};
+  G.edges.forEach(e => {
+    const put = m => { (m[e.source] ||= []).push(e); (m[e.target] ||= []).push(e); };
+    if (e.types.includes("invested")) put(inv);
+    if (e.types.includes("at")) put(at);
+    if (e.types.includes("lp")) put(lp);
+  });
+  const firmByName = {};
+  A.firms.forEach(f => { firmByName[f.name.toLowerCase()] = f.slug; firmByName[firmShort(f.name).toLowerCase()] = f.slug; });
+  const names = {};  // display name -> id, for investors named in round rows
+  [...A.people, ...A.firms, ...A.lps].forEach(d => { names[d.name.toLowerCase()] ??= d.slug; names[d.name.replace(/\s*\(.*?\)\s*/g, " ").trim().toLowerCase()] ??= d.slug; });
+  G.nodes.forEach(n => { if (n.kind !== "company") names[n.name.toLowerCase()] ??= n.id; });
+  const resolve = nm => { const k = String(nm || "").trim().toLowerCase(), s = slugify(nm); return names[k] || (bySlug[s] && bySlug[s].kind !== "company" ? s : byId[s] && byId[s].kind !== "company" ? s : ""); };
+  const invW = id => (inv[id] || []).reduce((a, e) => a + e.w, 0);
+  // Importance: the conviction model's investor score plus fit with the owner's lens, with a small term for
+  // direct investments. Person-to-person "co-invested" links (angel-round cliques) never count.
+  const convOf = n => {
+    let cs = CONV_I[n.id]?.score;
+    if (cs == null && n.kind === "person" && n.firm) cs = 0.6 * (CONV_I[firmByName[firmShort(n.firm).toLowerCase()]]?.score || 0);
+    return cs || 0;
+  };
+  const imp = {};
+  G.nodes.forEach(n => {
+    imp[n.id] = n.kind === "company"
+      ? (5 - (n.tier || 4)) * 4 + (CONV_C[n.id]?.band === "double-down" ? 6 : 0) + Math.min(8, Math.sqrt(invW(n.id)))
+      : convOf(n) + (RANK[lvl(n.fit)] ?? 0) * 4 + Math.min(10, Math.sqrt(invW(n.id)) * 1.2);
+  });
+  gx.g = G;
+  return gx.c = {G, byId, inv, at, lp, firmByName, resolve, invW, imp, other: (e, id) => e.source === id ? e.target : e.source};
+}
+const gKind = id => gx().byId[id]?.kind || (bySlug[id] && ["person", "firm", "lp"].includes(bySlug[id].kind) ? bySlug[id].kind : coBySlug[id] ? "company" : "");
+const gHref = (id, net) => { const k = gKind(id); return "#graph/" + (net ? (k === "person" || k === "lp" ? k : "net") : ({company: "company", firm: "fund", person: "person", lp: "lp"}[k] || "net")) + "/" + encodeURIComponent(id); };
+const gName = id => (gx().byId[id]?.name || bySlug[id]?.name || coBySlug[id]?.name || id).replace(/\s*\(.*?\)/g, "").trim();
+const gNames = () => {
+  const X = gx(), seen = new Set(), out = [];
+  X.G.nodes.forEach(n => { seen.add(n.id); out.push([n.name, n.id, KIND[n.kind]]); });
+  V.cos.forEach(c => { if (!seen.has(c.slug) && c.tier <= 3 && c.n_rounds) out.push([c.name, c.slug, "Company"]); });
+  return out;
+};
+function gSearch(id) {
+  const el = $(id); if (!el) return;
+  const opts = gSearch.o ||= gNames();
+  const go = () => {
+    const v = el.value.trim().toLowerCase(); if (!v) return;
+    const hit = opts.find(o => o[0].toLowerCase() === v) || opts.find(o => gName(o[1]).toLowerCase() === v) || (v.length > 2 && opts.filter(o => o[0].toLowerCase().startsWith(v)).sort((a, b) => (gx().imp[b[1]] || 0) - (gx().imp[a[1]] || 0))[0]);
+    if (hit) location.hash = gHref(hit[1]).slice(1); else toast("No match. Pick a name from the list.");
+  };
+  el.onchange = go; el.onkeydown = e => { if (e.key === "Enter") go(); };
+}
+const gDatalist = () => `<datalist id="gnames">${(gSearch.o ||= gNames()).map(([n, , k]) => `<option value="${esc(n)}">${esc(k)}</option>`).join("")}</datalist>`;
+const gNav = (extra = "") => `<div class="gnav"><a href="#graph">← All lenses</a><input type="search" id="gq" list="gnames" placeholder="Jump to a person, fund, LP or company…" aria-label="Find in graph">${gDatalist()}${extra}</div>`;
+const gSheet = hint => `<div class="gsheet" id="gsheet"><div class="gs-top"><button class="gs-h" id="gsh" aria-label="Expand or collapse details"><span id="gst">Details</span></button><button class="btn sm" id="gsx">Close</button></div><div class="gs-b" id="gsb"><p class="muted" style="margin:0">${hint}</p></div></div>`;
+function sheetWire() {
+  const s = $("gsheet"); if (!s) return;
+  $("gsh").onclick = () => s.classList.toggle("open");
+  $("gsx").onclick = () => { s.classList.remove("has", "open"); document.querySelectorAll(".cl-row.on,.mx-c.on,.mx-rh.on,.mx-ch.on,.flp-g .chip.on").forEach(x => x.classList.remove("on")); };
+}
+function sheetShow(title, html) {
+  const s = $("gsheet"); if (!s) return;
+  $("gst").textContent = title; $("gsb").innerHTML = html; s.classList.add("has", "open"); $("gsb").scrollTop = 0; s.scrollTop = 0;
+}
+const stClass = k => k ? " sd-" + k : "";
+
+function graphTab(m) {
+  const [hash, query = ""] = location.hash.slice(1).split("?");
+  const [, lens = "", id = ""] = hash.split("/").map(x => { try { return decodeURIComponent(x); } catch { return x; } });
+  const X = gx();
+  document.body.classList.remove("has-sheet");
+  if (lens === "company" && coBySlug[id]) return companyLens(m, coBySlug[id]);
+  if (lens === "fund" && (X.byId[id]?.kind === "firm" || bySlug[id]?.kind === "firm")) return fundLens(m, id);
+  if (lens === "together") return togetherLens(m, id);
+  if (lens === "network") return renderGraph(m, {});
+  if (["person", "lp", "net", "company", "fund"].includes(lens) && X.byId[id]) return renderGraph(m, {focus: id, intro: query === "intro"});
+  graphChooser(m, lens ? `Nothing in the graph matches “${id || lens}”. Pick a starting point below.` : "");
+}
+
+const LENS_ART = {
+  company: `<svg viewBox="0 0 240 60" aria-hidden="true"><g fill="none" stroke-width="2"><path d="M30 14H210" stroke="var(--st-early)"/><path d="M78 30H210" stroke="var(--st-a)"/><path d="M126 46H174" stroke="var(--st-mid)"/></g><g stroke-width="2"><circle cx="30" cy="14" r="5" fill="var(--st-early)" stroke="var(--st-early)"/><circle cx="78" cy="14" r="5" fill="var(--panel)" stroke="var(--st-a)"/><circle cx="126" cy="14" r="5" fill="var(--panel)" stroke="var(--st-mid)"/><circle cx="210" cy="14" r="5" fill="var(--st-late)" stroke="var(--st-late)"/><circle cx="78" cy="30" r="5" fill="var(--st-a)" stroke="var(--st-a)"/><circle cx="174" cy="30" r="5" fill="var(--panel)" stroke="var(--st-late)"/><circle cx="210" cy="30" r="5" fill="var(--panel)" stroke="var(--st-late)"/><circle cx="126" cy="46" r="5" fill="var(--st-mid)" stroke="var(--st-mid)"/><circle cx="174" cy="46" r="5" fill="var(--panel)" stroke="var(--st-late)"/></g></svg>`,
+  fund: `<svg viewBox="0 0 240 60" aria-hidden="true"><g fill="var(--n-lp)"><path d="M70 4l7 11H63z"/><path d="M120 4l7 11h-14z"/><path d="M170 4l7 11h-14z"/></g><g stroke="var(--line)" stroke-width="1.5"><path d="M70 16L120 24M120 16V24M170 16L120 24M120 36L60 46M120 36V46M120 36L180 46"/></g><path d="M120 22l8 8-8 8-8-8z" fill="var(--n-firm)"/><g><rect x="34" y="46" width="14" height="10" rx="2" fill="var(--st-early)"/><rect x="52" y="46" width="14" height="10" rx="2" fill="var(--st-early)"/><rect x="70" y="46" width="14" height="10" rx="2" fill="var(--st-a)"/><rect x="104" y="46" width="14" height="10" rx="2" fill="var(--st-a)"/><rect x="122" y="46" width="14" height="10" rx="2" fill="var(--st-mid)"/><rect x="164" y="46" width="14" height="10" rx="2" fill="var(--st-mid)"/><rect x="182" y="46" width="14" height="10" rx="2" fill="var(--st-late)"/></g></svg>`,
+  person: `<svg viewBox="0 0 240 60" aria-hidden="true"><g stroke="var(--line)" stroke-width="1.5"><path d="M120 30L70 12M120 30L64 44M120 30L176 14M120 30L180 46M70 12L28 22M176 14L214 26M180 46L214 26"/></g><circle cx="120" cy="30" r="9" fill="var(--n-person)"/><g fill="var(--n-company)"><rect x="63" y="5" width="13" height="13" rx="3"/><rect x="57" y="38" width="13" height="13" rx="3"/><rect x="170" y="8" width="13" height="13" rx="3"/><rect x="174" y="40" width="13" height="13" rx="3"/></g><circle cx="28" cy="22" r="6" fill="none" stroke="var(--n-person)" stroke-width="2"/><circle cx="214" cy="26" r="6" fill="none" stroke="var(--n-person)" stroke-width="2"/></svg>`,
+  together: `<svg viewBox="0 0 240 60" aria-hidden="true"><g fill="var(--n-firm)">${[[0, 0, .9], [1, 0, .7], [0, 1, .7], [1, 1, .9], [2, 2, .9], [3, 2, .55], [2, 3, .55], [3, 3, .9], [4, 3, .4], [3, 4, .4], [4, 4, .9], [4, 1, .15], [1, 4, .15], [2, 0, .1], [0, 2, .1]].map(([x, y, a]) => `<rect x="${90 + x * 12}" y="${y * 12}" width="11" height="11" opacity="${a}"/>`).join("")}</g></svg>`,
+};
+function graphChooser(m, note = "") {
+  const X = gx();
+  const chip = (id, label) => `<a class="chip" href="${gHref(id)}">${esc(label || gName(id))}</a>`;
+  const dd = (V.conv?.cos || []).filter(r => r.band === "double-down" && coBySlug[r.company_slug]).sort((a, b) => (b.score || 0) - (a.score || 0));
+  const funds = (V.conv?.inv || []).filter(r => r.band === "core" && r.slug && gKind(r.slug) === "firm").sort((a, b) => b.score - a.score).map(r => r.slug);
+  const people = X.G.nodes.filter(n => n.kind === "person" && n.profiled && (X.inv[n.id] || []).length > 2).sort((a, b) => X.imp[b.id] - X.imp[a.id]).map(n => n.id);
+  const tracked = Object.keys(TRACK).map(k => k.replace(/^co:/, "")).filter(k => !k.startsWith("lead:") && gKind(k));
+  const lensCard = (key, href, title, text, ex) => `<div class="glens">${LENS_ART[key]}${href ? `<a class="gl-t" href="${href}">${title} →</a>` : `<span class="gl-t">${title}</span>`}<p>${text}</p>${ex.length ? `<div class="gex"><span class="muted" style="font-size:12px">Try</span>${ex.join("")}</div>` : ""}</div>`;
+  m.innerHTML = `<p class="intro">Start from a question. Each view below lays the same data out so that position means something.</p>
+    ${note ? `<p class="lpcov">${esc(note)}</p>` : ""}
+    <div class="gch-q"><input type="search" id="gq" list="gnames" placeholder="Start with a person, fund, company or LP…" aria-label="Start with a person, fund, company or LP">${gDatalist()}</div>
+    <div class="glenses">
+      ${lensCard("company", "", "A company's cap table over time", "Who came in at which stage, who led, and who came back for later rounds.", dd.slice(0, 4).map(r => chip(r.company_slug)))}
+      ${lensCard("fund", "", "A fund's book", "Its LPs, its partners past and present, and each partner's deals by entry stage.", funds.slice(0, 4).map(s => chip(s)))}
+      ${lensCard("person", "", "A person's network", "Their deals, who invests alongside them, and who can introduce you.", people.slice(0, 4).map(s => chip(s)))}
+      ${lensCard("together", "#graph/together", "Who moves together", "A grid of the core investors, shaded by how many companies each pair shares.", [`<a class="chip" href="#graph/together">Funds</a>`, `<a class="chip" href="#graph/together/partners">Partners</a>`])}
+    </div>
+    <div class="gsec">${STYLE === "couture" ? "Your collection" : "Your list"}</div>
+    <div class="gex">${tracked.length ? tracked.slice(0, 40).map(k => chip(k)).join("") : `<span class="muted" style="font-size:13px">Nothing tracked yet. Press ☆ Track on any profile and it shows up here.</span>`}</div>
+    <div class="gsec">Conviction: double-down companies</div>
+    <div class="gex">${dd.slice(0, 24).map(r => chip(r.company_slug)).join("") || `<span class="muted">None scored yet.</span>`}</div>
+    <p style="margin-top:22px;font-size:13px"><a href="#graph/network">Whole network →</a> <span class="muted">the ${Math.min(90, X.G.nodes.length)} investors and companies that matter most, as one picture.</span></p>`;
+  gSearch("gq");
+}
+
+// ---- company lens: stage columns ----
+const CL_COLS = [["early", "Pre-seed / Seed", "Seed"], ["a", "Series A", "A"], ["mid", "Series B", "B"], ["late", "Series C+", "C+"], ["late", "Growth / Strategic", "Growth"], ["", "Round unknown", "?"]];
+const invSplit = s => { const m = String(s).match(/^(.*?)\s*\((.*)\)\s*$/); return {name: (m ? m[1] : String(s)).trim(), partners: m ? m[2].split(";").map(x => x.trim()).filter(Boolean) : []}; };
+const INV_JUNK = /^(form d\b|undisclosed|unnamed|unknown|angels?$|other investors|others$|existing investors)/i;
+function coModel(c) {
+  const X = gx();
+  let last = -1;
+  const rounds = c.rounds.map((r, i) => {
+    let col = r.stage === "early" ? 0 : r.stage === "a" ? 1 : r.stage === "mid" ? 2 : r.stage === "late" ? (/series[\s-]*[c-z](?![a-z])/i.test(r.round) ? 3 : 4) : -1;
+    // A dated round whose label says nothing about stage sits with the stage before it (growth once past Series B).
+    const inferred = col < 0 && last >= 0 && !!r.date;
+    if (inferred) col = last >= 3 ? 4 : last; else if (col >= 0) last = col;
+    return {...r, i, col: col < 0 ? 5 : col, inferred};
+  });
+  const inv = new Map();
+  rounds.forEach(r => {
+    const ang = new Set(r.angels || []);
+    const add = (s, lead) => {
+      const {name, partners} = invSplit(s);
+      if (!name || INV_JUNK.test(name)) return;
+      const key = name.toLowerCase();
+      const o = inv.get(key) || {key, name, partners: new Set(), hits: [], angel: false};
+      partners.forEach(p => o.partners.add(p));
+      if (ang.has(s)) o.angel = true;
+      const h = o.hits.find(h => h.ri === r.i);
+      if (h) h.lead ||= lead; else o.hits.push({ri: r.i, lead});
+      inv.set(key, o);
+    };
+    (r.leads || []).forEach(s => add(s, true)); (r.others || []).forEach(s => add(s, false));
+  });
+  const list = [...inv.values()];
+  list.forEach(o => {
+    o.id = X.resolve(o.name);
+    if (!o.angel && !o.partners.size && o.id && X.byId[o.id]?.kind === "person") o.angel = true;  // an individual under their own name
+    o.hits.sort((a, b) => a.ri - b.ri);
+    const staged = o.hits.filter(h => rounds[h.ri].col < 5);
+    const e = staged[0] || o.hits[0];
+    o.entry = e.ri; o.col = rounds[e.ri].col; o.ledEntry = e.lead; o.led = o.hits.some(h => h.lead);
+    o.stepped = !e.lead && staged.some(h => h.ri > e.ri && h.lead);
+    o.n = staged.length || 1;
+    o.imp = o.id ? (X.imp[o.id] || 0) : 0;
+  });
+  list.sort((a, b) => a.col - b.col || a.entry - b.entry || (b.ledEntry - a.ledEntry) || b.n - a.n || b.imp - a.imp || a.name.localeCompare(b.name));
+  const inCol = CL_COLS.map((_, j) => rounds.filter(r => r.col === j).map(r => r.i));
+  return {rounds, list, inCol};
+}
+function companyLens(m, c, open = new Set()) {
+  const X = gx(), M = coModel(c), {rounds, list, inCol} = M;
+  const cols = CL_COLS.map((x, j) => j).filter(j => j < 5 || inCol[5].length);
+  const wt = j => inCol[j].length ? Math.min(4, inCol[j].length) : 0.6;
+  const tot = cols.reduce((a, j) => a + wt(j), 0);
+  const startPct = j => 100 * cols.filter(k => k < j).reduce((a, k) => a + wt(k), 0) / tot;
+  const xOf = ri => { const r = rounds[ri], k = inCol[r.col].indexOf(ri), n = inCol[r.col].length; return 100 * (k + 0.5) / n; };
+  const short = s => String(s || "").replace(/\s*\(.*$/, "");
+  const mon = d => (d || "").slice(0, 7);
+  // rows: funds one per row; individuals folded into one node per entry round (3 or more), expandable
+  const rows = [];
+  const firms = list.filter(o => !o.angel), angels = list.filter(o => o.angel);
+  const groups = {};
+  angels.forEach(o => (groups[o.entry] ||= []).push(o));
+  const pending = Object.entries(groups).map(([ri, g]) => ({ri: +ri, col: rounds[+ri].col, g}));
+  const emitGroup = p => {
+    if (p.g.length < 3) return p.g.forEach(o => rows.push({o}));
+    const hits = {};
+    p.g.forEach(o => o.hits.forEach(h => { const x = hits[h.ri] ||= {ri: h.ri, lead: false, n: 0}; x.n++; x.lead ||= h.lead; }));
+    rows.push({grp: p, hits: Object.values(hits)});
+    if (open.has(p.ri)) p.g.forEach(o => rows.push({o, sub: true}));
+  };
+  let pi = 0;
+  pending.sort((a, b) => a.col - b.col || a.ri - b.ri);
+  firms.forEach((o, i) => {
+    while (pi < pending.length && (pending[pi].col < o.col || (pending[pi].col === o.col && pending[pi].ri < o.entry))) emitGroup(pending[pi++]);
+    rows.push({o});
+  });
+  while (pi < pending.length) emitGroup(pending[pi++]);
+
+  const cells = (hits, entryRi, opt = {}) => {
+    const staged = hits.filter(h => rounds[h.ri].col < 5);
+    const js = staged.map(h => rounds[h.ri].col), j0 = Math.min(...js), j1 = Math.max(...js);
+    const x0 = staged.length ? Math.min(...staged.filter(h => rounds[h.ri].col === j0).map(h => xOf(h.ri))) : 0;
+    const x1 = staged.length ? Math.max(...staged.filter(h => rounds[h.ri].col === j1).map(h => xOf(h.ri))) : 0;
+    return cols.map(j => {
+      const mine = hits.filter(h => rounds[h.ri].col === j);
+      const onLine = staged.length > 1 && j >= j0 && j <= j1 && j < 5;
+      if (!mine.length && !onLine) return "";
+      const ln = onLine ? `<i class="cl-ln" style="left:${j === j0 ? x0 : 0}%;right:${j === j1 ? 100 - x1 : 0}%"></i>` : "";
+      return `<div class="cl-c${stClass(CL_COLS[j][0])}${inCol[j].length > 5 ? " dense" : ""}" style="grid-column:${cols.indexOf(j) + 2}">${ln}${mine.map(h => {
+        const r = rounds[h.ri], g = opt.grp && h.ri === entryRi;
+        const tip = `${short(r.round)}${r.date ? " " + mon(r.date) : ""}: ${opt.grp ? `${h.n} of ${opt.grp.g.length} individuals` : h.lead ? "led" : "joined"}`;
+        return `<i class="cl-d${h.lead ? " L" : ""}${opt.stepped && h.lead && h.ri !== entryRi ? " S" : ""}${g ? " G" : ""}" style="left:${xOf(h.ri)}%" title="${esc(tip)}">${g ? h.n : ""}</i>`;
+      }).join("")}</div>`;
+    }).join("");
+  };
+  const rowHtml = (row, i) => {
+    if (row.grp) {
+      const p = row.grp, j = p.col, isOpen = open.has(p.ri);
+      return `<div class="cl-row es-${CL_COLS[j][0] || "x"}" data-grp="${p.ri}" role="button" tabindex="0" aria-expanded="${isOpen}" style="--j:${cols.indexOf(j)};--x:${startPct(j).toFixed(1)}">
+        <div class="cl-nm"><b>${p.g.length} individuals</b><span class="x">${isOpen ? "▾ hide" : "▸ show"}</span></div>${cells(row.hits, p.ri, {grp: p})}</div>`;
+    }
+    const o = row.o, j = o.col;
+    return `<div class="cl-row${row.sub ? " sub" : ""} es-${CL_COLS[j][0] || "x"}" data-inv="${esc(o.key)}" role="button" tabindex="0" style="--j:${cols.indexOf(j)};--x:${startPct(j).toFixed(1)}">
+      <div class="cl-nm" title="${esc(o.name)}">${o.stepped ? `<span class="up" title="Came in as a participant, later led a round">↑ led later</span>` : ""}${o.led && !row.sub ? `<b>${esc(o.name)}</b>` : esc(o.name)}${o.n > 1 ? `<span class="x">×${o.n}</span>` : ""}</div>${cells(o.hits, o.entry, {stepped: o.stepped})}</div>`;
+  };
+  const head = cols.map(j => {
+    const rs = inCol[j].map(i => rounds[i]);
+    return `<div class="cl-h${stClass(CL_COLS[j][0])}${rs.length ? "" : " empty"}"><b><span class="lg">${CL_COLS[j][1]}</span><span class="sh">${CL_COLS[j][2]}</span></b>${
+      rs.slice(0, 4).map(r => `<div class="r" title="${esc(r.round + (r.amount ? " · " + r.amount : "") + (r.valuation ? " · " + r.valuation : ""))}">${r.inferred ? "~ " : ""}${esc(mon(r.date) || short(r.round))}${r.amount ? " · " + esc(short(r.amount)) : ""}</div>`).join("")}${
+      rs.length > 4 ? `<div class="r">+${rs.length - 4} more rounds</div>` : ""}</div>`;
+  }).join("");
+  const firstCol = list.length ? list[0].col : -1;
+  const firstIn = list.filter(o => o.col === firstCol && o.entry === list[0].entry);
+  const reup = list.filter(o => o.n > 1), stepped = list.filter(o => o.stepped);
+  const nm = (o, n = 3) => o.slice(0, n).map(x => esc(x.name)).join(", ") + (o.length > n ? ` +${o.length - n}` : "");
+  const cv = CONV_C[c.slug], node = X.byId[c.slug];
+  m.innerHTML = gNav(`<span class="sp"></span>${node ? `<a href="${gHref(c.slug, true)}">See as a network</a>` : ""}<a href="#companies">Companies table</a>`) +
+    `<div class="gtitle"><h2>${esc(c.name)}</h2>${tierPill(c)}${cv ? band(cv.band) : ""}<button class="btn sm" data-open="co:${esc(c.slug)}">Open full page</button>${trackCtl("co:" + c.slug)}</div>
+    <p class="gsub">Cap table over time. Each investor sits in the column where they <b>first</b> came in; the line runs right to every later round they joined.</p>
+    ${list.length ? `<div class="cl-sum">
+      <div class="gs"><span>First in${firstIn.length && firstCol < 5 ? " (" + CL_COLS[firstCol][2] + ")" : ""}</span><b>${nm(firstIn.filter(o => !o.angel).length ? firstIn.filter(o => !o.angel) : firstIn) || "–"}</b></div>
+      <div class="gs"><span>Came back for a later round</span><b>${reup.length ? `${reup.length} of ${list.length}` : "none yet"}</b></div>
+      <div class="gs"><span>Insiders who later led</span><b>${nm(stepped) || "none"}</b></div>
+      <div class="gs"><span>Known rounds · investors</span><b>${rounds.length} · ${list.length}</b></div></div>
+    <div class="gl-wrap"><div style="min-width:0">
+      <div class="cl" style="--cols:${cols.map(j => `minmax(0,${wt(j)}fr)`).join(" ")}">
+        <div class="cl-head"><div></div>${head}</div>
+        <div class="cl-body"><div class="cl-guides"><i style="grid-column:1;border:0"></i>${cols.map((j, k) => `<i style="grid-column:${k + 2}"></i>`).join("")}</div>${rows.map(rowHtml).join("")}</div>
+      </div>
+      <div class="cl-key"><span><i class="cl-d L"></i>led the round</span><span><i class="cl-d"></i>joined</span><span><i class="cl-d L S"></i>insider who later led</span><span><i class="cl-d G">n</i>individuals, folded per round (tap to list)</span><span>×3 = in three rounds</span>${rounds.some(r => r.inferred) ? `<span>~ stage inferred from the round before</span>` : ""}</div>
+      <div class="gsec">Rounds</div><div class="wrap">${roundsTable(c)}</div>
+    </div>${gSheet("Tap an investor to see every round they joined here.")}</div>` : `<p class="muted">No round data for ${esc(c.name)} yet.</p>`}`;
+  gSearch("gq"); sheetWire();
+  const byKey = Object.fromEntries(list.map(o => [o.key, o]));
+  const detail = o => {
+    const d = o.id && bySlug[o.id], cvI = o.id && CONV_I[o.id];
+    return `<h3>${esc(o.name)}</h3><div class="gpills">${o.angel ? `<span class="chip">individual</span>` : ""}${cvI ? band(cvI.band) : ""}${d?.lens_fit ? `fit ${pill(d.lens_fit)}` : ""}</div>
+      ${o.partners.size ? `<p style="margin:8px 0 0">Partner${o.partners.size > 1 ? "s" : ""} named: ${[...o.partners].map(p => { const s = X.resolve(p); return s ? `<a href="${gHref(s)}">${esc(p)}</a>` : esc(p); }).join(", ")}</p>` : ""}
+      <p style="margin:8px 0 0">${o.col < 5 ? `First in at <b>${CL_COLS[o.col][1]}</b>` : "Round not known"}${o.ledEntry ? ", as lead" : ""}. ${o.n > 1 ? `In ${o.n} rounds.` : "One round so far."}${o.stepped ? " Came in as a participant and later led." : ""}</p>
+      <h4>In ${esc(c.name)}</h4><div class="tl">${o.hits.map(h => { const r = rounds[h.ri]; return `<div class="tlr sc${stClass(r.stage || CL_COLS[r.col][0])}"><span class="date">${esc(mon(r.date) || "–")}</span><span><b>${esc(short(r.round))}</b> · ${h.lead ? "led" : "joined"}${r.amount ? `<span class="muted"> · ${esc(short(r.amount))}</span>` : ""}</span></div>`; }).join("")}</div>
+      <div class="gbtns">${o.id ? `<a class="btn sm on" href="${gHref(o.id)}">${gKind(o.id) === "firm" ? "This fund's book" : "Their network"}</a>` : ""}${d ? `<button class="btn sm" data-open="${esc(o.id)}">Open full page</button>` : ""}</div>
+      ${o.id ? "" : `<p class="muted" style="margin-top:10px">Not profiled yet, so there is no page or network for this name.</p>`}`;
+  };
+  m.querySelectorAll(".cl-row").forEach(r => r.onclick = r.onkeydown = e => {
+    if (e.type === "keydown" && e.key !== "Enter" && e.key !== " ") return;
+    if (e.type === "keydown") e.preventDefault();
+    if (r.dataset.grp != null) { const k = +r.dataset.grp; open.has(k) ? open.delete(k) : open.add(k); const y = window.scrollY; companyLens(m, c, open); window.scrollTo(0, y); return; }
+    const o = byKey[r.dataset.inv]; if (!o) return;
+    m.querySelectorAll(".cl-row.on").forEach(x => x.classList.remove("on")); r.classList.add("on");
+    sheetShow(o.name, detail(o));
+  });
+}
+
+// ---- fund lens: LPs above, the fund and its partners in the middle, the book below ----
+function fundLens(m, id) {
+  const X = gx(), d = bySlug[id], node = X.byId[id], name = d?.name || node?.name || id;
+  const former = {};
+  (X.at[id] || []).forEach(e => { const p = X.other(e, id); if (X.byId[p]?.kind === "person") former[p] = !!e.former; });
+  const mem = ((V.teams || {})[id] || []).map(t => ({...t, former: !!former[t.slug]}));
+  Object.keys(former).forEach(p => { if (!mem.some(t => t.slug === p)) mem.push({slug: p, name: X.byId[p].name, photo: X.byId[p].photo, role: "", deals: [], former: former[p]}); });
+  const credited = new Set(mem.flatMap(t => t.deals.map(x => x.slug)));
+  const own = (X.inv[id] || []).map(e => ({e, n: X.byId[X.other(e, id)]})).filter(x => x.n?.kind === "company" && !credited.has(x.n.id))
+    .map(({e, n}) => ({slug: n.id, name: n.name, tier: n.tier || 4, stage: e.stg || "", lead: (e.ev || []).some(t => /^(co-)?led\b/i.test(t)), round: ""}));
+  const so = k => { const i = STGK.indexOf(k); return i < 0 ? 9 : i; };
+  const bySt = ds => ds.slice().sort((a, b) => so(a.stage) - so(b.stage) || a.tier - b.tier || a.name.localeCompare(b.name));
+  const coRow = x => `<a class="fco${stClass(x.stage)}${x.lead ? " L" : ""}${x.tier > 4 ? " dim" : ""}" href="#graph/company/${encodeURIComponent(x.slug)}" title="${esc((x.lead ? "Led · " : "") + (x.round || STG[x.stage] || "stage unknown"))}"><span class="m"></span><span class="nm">${esc(x.name)}</span>${x.tier === 1 ? `<span class="t1">frontier</span>` : ""}</a>`;
+  const col = (title, ds0, t) => {
+    const seenN = new Set(), ds = ds0.filter(x => { const k = x.name.toLowerCase(); if (seenN.has(k)) return false; seenN.add(k); return true; });
+    const ai = bySt(ds.filter(x => x.tier <= 4)), non = bySt(ds.filter(x => x.tier > 4));
+    return `<div class="fcol${t?.former ? " former" : ""}"><h5>${title}<span class="n">${ds.length}</span></h5>${ai.map(coRow).join("")}${non.length ? `<details class="inl" style="display:block;margin-top:6px;font-size:12px"><summary>+${non.length} outside AI</summary>${non.map(coRow).join("")}</details>` : ""}${ds.length ? "" : `<div class="muted" style="font-size:12px">No deals credited by name yet.</div>`}</div>`;
+  };
+  const withDeals = mem.filter(t => t.deals.length).sort((a, b) => a.former - b.former || b.deals.filter(x => x.tier <= 2).length - a.deals.filter(x => x.tier <= 2).length || b.deals.length - a.deals.length);
+  const pl = t => t.slug && gKind(t.slug) ? `<a href="${gHref(t.slug)}">${esc(t.name.replace(/\s*\(.*?\)/g, ""))}</a>` : esc(t.name);
+  // LPs
+  const lps = {};
+  (V.backers || []).filter(b => b.firm === id).forEach(b => { const o = lps[b.lp] ||= {lp: b.lp, name: b.lp_name, type: b.lp_type, rows: []}; o.rows.push(b); });
+  const types = {};
+  Object.values(lps).forEach(o => (types[o.type || "other"] ||= []).push(o));
+  const isIn = o => o.rows.some(b => ["in", "co-invest"].includes(b.status));
+  const alsoLp = [...new Set((V.backers || []).filter(b => b.lp === id && b.firm && b.firm !== id).map(b => b.firm))];
+  const cur = mem.filter(t => !t.former), old = mem.filter(t => t.former);
+  const memChip = t => { const inner = `${avatar(t.name, t.photo)}<span>${esc(t.name.replace(/\s*\(.*?\)/g, ""))}</span>${t.deals.length ? `<span class="n">${t.deals.length}</span>` : ""}`; return t.slug && gKind(t.slug) ? `<a class="fmem${t.former ? " former" : ""}" href="${gHref(t.slug)}" title="${esc(t.role || "")}">${inner}</a>` : `<span class="fmem${t.former ? " former" : ""}">${inner}</span>`; };
+  const cv = CONV_I[id], nCo = new Set([...credited, ...own.map(x => x.slug)]).size;
+  m.innerHTML = gNav(`<span class="sp"></span>${node ? `<a href="${gHref(id, true)}">See as a network</a>` : ""}<a href="#funds">Funds table</a>`) +
+    `<div class="gtitle"><h2>${esc(name)}</h2>${cv ? band(cv.band) : ""}${d?.lens_fit ? pill(d.lens_fit) : ""}${d ? `<button class="btn sm" data-open="${esc(id)}">Open full page</button>${trackCtl(id)}` : ""}</div>
+    <p class="gsub">The fund's book in three bands: who funds it, who works there, and what each partner is credited with, ordered by the stage they came in at.</p>
+    <div class="gl-wrap"><div class="fb">
+      <div class="fband"><h4>LPs: who funds it <span class="muted">(${Object.keys(lps).length})</span></h4>
+        ${Object.keys(lps).length ? `<div class="flp">${Object.entries(types).sort((a, b) => b[1].length - a[1].length).map(([t, os]) => `<div class="flp-g"><span class="t">${esc(t === "unprofiled" ? "not yet typed" : t)}</span>${os.map(o => `<button class="chip${isIn(o) ? "" : " dim"}" data-lp="${esc(o.lp)}">${esc(o.name)}${isIn(o) ? "" : ` <span class="muted">(${esc(o.rows[0].status || "unknown")})</span>`}</button>`).join("")}</div>`).join("")}</div>` : `<span class="muted">No LP in this fund has been sourced yet.</span>`}
+        ${alsoLp.length ? `<div style="margin-top:8px;font-size:12px" class="muted">${esc(firmShort(name))} is itself an LP in: ${alsoLp.map(f => `<a href="${gHref(f)}">${esc(gName(f))}</a>`).join(", ")}</div>` : ""}</div>
+      <div class="fjoin">commit to</div>
+      <div class="fband"><h4>The fund and its people <span class="muted">(${cur.length}${old.length ? ` + ${old.length} former` : ""})</span></h4>
+        ${d ? `<div style="font-size:13.5px;max-width:95ch">${clip(cruxOf(d) || d.take || "", 320)}</div>` : ""}${mixBar(id)}
+        <div class="fteam">${cur.map(memChip).join("")}${old.map(memChip).join("")}</div>${old.length ? `<div class="muted" style="font-size:12px;margin-top:6px">Dashed = no longer at the fund; their deals from that time stay in the book.</div>` : ""}</div>
+      <div class="fjoin">invest in</div>
+      <div class="fband"><h4>The book <span class="muted">(${nCo} companies)</span></h4>
+        <div class="slegend" style="margin-top:0"><span>Entry stage:</span>${STGK.map(stg).join("")}<span><i class="cl-d L" style="position:static;display:inline-block;margin:0 4px 0 0;vertical-align:-2px;--st:var(--muted)"></i>led</span><span><i class="cl-d" style="position:static;display:inline-block;margin:0 4px 0 0;vertical-align:-2px;--st:var(--muted)"></i>joined</span></div>
+        <div class="fbook">${withDeals.map(t => col(`${avatar(t.name, t.photo)}${pl(t)}${t.former ? ` <span class="muted" style="font-weight:400">(former)</span>` : ""}`, t.deals, t)).join("")}${own.length || !withDeals.length ? col(`<span class="kdot sm" style="--c:var(--n-firm);margin:0"></span><span>${esc(firmShort(name))}, no partner named</span>`, own) : ""}</div></div>
+    </div>${gSheet("Tap an LP to see how the link is known. Tap a company for its cap table.")}</div>`;
+  gSearch("gq"); sheetWire();
+  m.querySelectorAll("[data-lp]").forEach(b => b.onclick = () => {
+    const o = lps[b.dataset.lp]; if (!o) return;
+    m.querySelectorAll(".flp-g .chip.on").forEach(x => x.classList.remove("on")); b.classList.add("on");
+    sheetShow(o.name, `<h3>${esc(o.name)}</h3><div class="gpills"><span class="chip">${esc(o.type || "LP")}</span></div>
+      ${o.rows.map(r => `<div class="mx-co"><b>${esc(r.fund)}</b> <span class="st st-${esc((r.status || "").split(" ")[0])}">${esc(r.status || "unknown")}</span>${r.since ? ` <span class="muted">since ${esc(r.since)}</span>` : ""}${r.how ? ` <span class="chip how-${esc(r.how)}">${esc(r.how)}</span>` : ""}<div class="ev">${clip(r.detail, 360)} ${src(r.src)}</div></div>`).join("")}
+      <div class="gbtns">${gKind(o.lp) ? `<a class="btn sm on" href="${gHref(o.lp)}">${gKind(o.lp) === "firm" ? "This fund's book" : "Their network"}</a>` : ""}${bySlug[o.lp] ? `<button class="btn sm" data-open="${esc(o.lp)}">Open full page</button>` : ""}</div>`);
+  });
+}
+
+// ---- who moves together: a matrix of the core investors ----
+// Every investor's rounds per company, from the round maps: key (profile id, else slugified name) -> company -> [{ri, lead}].
+function ridx() {
+  if (ridx.c) return ridx.c;
+  const X = gx(), out = {};
+  V.cos.forEach(c => c.rounds.forEach((r, ri) => {
+    const put = (s, lead) => {
+      const {name, partners} = invSplit(s); if (!name || INV_JUNK.test(name)) return;
+      [name, ...partners].forEach(nm => { const k = X.resolve(nm) || slugify(nm); if (!k) return; const h = ((out[k] ||= {})[c.slug] ||= []); const e = h.find(x => x.ri === ri); if (e) e.lead ||= lead; else h.push({ri, lead}); });
+    };
+    (r.leads || []).forEach(s => put(s, true)); (r.others || []).forEach(s => put(s, false));
+  }));
+  return ridx.c = out;
+}
+// Order items so similar ones sit together (average-linkage clustering, joined at their most similar ends).
+function seriate(sim) {
+  let cl = sim.map((_, i) => [i]);
+  const link = (a, b) => { let s = 0; for (const i of a) for (const j of b) s += sim[i][j]; return s / (a.length * b.length); };
+  while (cl.length > 1) {
+    let best = -1, bi = 0, bj = 1;
+    for (let i = 0; i < cl.length; i++) for (let j = i + 1; j < cl.length; j++) { const l = link(cl[i], cl[j]); if (l > best) { best = l; bi = i; bj = j; } }
+    const a = cl[bi], b = cl[bj], ra = a.slice().reverse(), rb = b.slice().reverse();
+    const opts = [[a, b], [a, rb], [ra, b], [ra, rb]].sort((p, q) => sim[q[0].at(-1)][q[1][0]] - sim[p[0].at(-1)][p[1][0]]);
+    cl = cl.filter((_, k) => k !== bi && k !== bj).concat([opts[0][0].concat(opts[0][1])]);
+  }
+  return cl[0] || [];
+}
+function togetherLens(m, modeArg) {
+  const X = gx(), mode = modeArg === "partners" ? "partners" : "funds";
+  const gm = store.get("gmx", {});
+  const wide = m.clientWidth >= 700;
+  let N = gm.n || (wide ? 36 : 14);
+  let items;
+  if (mode === "funds") {
+    // core band of the conviction model, firms only, best score first
+    items = (V.conv?.inv || []).filter(r => r.band === "core" && !r.investor.startsWith("angel:") && gKind(r.slug) !== "person").sort((a, b) => b.score - a.score)
+      .map(r => ({id: r.slug || "", key: r.slug || r.investor, name: r.slug ? gName(r.slug) : invName(r.investor), cos: new Set(r.companies_list), score: r.score}));
+  } else {
+    // partners at funds (not people investing personally), ranked by importance; companies from their own deal links
+    items = X.G.nodes.filter(n => n.kind === "person" && n.firm && String(bySlug[n.id]?.seniority || "").toLowerCase() !== "angel" && (X.inv[n.id] || []).length >= 3)
+      .sort((a, b) => X.imp[b.id] - X.imp[a.id])
+      .map(n => ({id: n.id, key: n.id, name: gName(n.id), firm: firmShort(n.firm), cos: new Set((X.inv[n.id] || []).map(e => X.other(e, n.id)).filter(c => X.byId[c]?.kind === "company")), score: X.imp[n.id]}));
+  }
+  const total = items.length;
+  items = items.slice(0, N);
+  const n = items.length;
+  const shared = (a, b) => [...a.cos].filter(c => b.cos.has(c));
+  const cnt = items.map(a => items.map(b => a === b ? 0 : shared(a, b).length));
+  const sim = cnt.map((row, i) => row.map((v, j) => i === j ? 1 : v / Math.sqrt((items[i].cos.size || 1) * (items[j].cos.size || 1))));
+  const order = seriate(sim);
+  const max = Math.max(1, ...cnt.flat());
+  const lab = wide ? 170 : 104, avail = Math.max(200, (wide ? m.clientWidth - 352 : m.clientWidth) - 22 - lab);
+  const cs = Math.max(wide ? 14 : 16, Math.min(26, Math.floor(avail / n)));
+  // Shade by overlap relative to portfolio size (cosine), so the biggest funds don't darken every row; the number is the raw count.
+  const smax = Math.max(0.01, ...sim.flatMap((r, i) => r.filter((_, j) => j !== i)));
+  const alpha = x => x ? (0.1 + 0.9 * Math.sqrt(Math.min(1, x / smax))).toFixed(2) : 0;
+  const nmS = it => esc(it.name);
+  const coName = s => coBySlug[s]?.name || gName(s);
+  m.innerHTML = gNav() + `<div class="gtitle"><h2>Who moves together</h2></div>
+    <p class="gsub">${mode === "funds" ? `The top ${n} <b>core</b> funds from the conviction model (they get in first, lead and set prices), ranked by its score.` : `The top ${n} partners at funds, ranked by their fund's conviction score, fit with your lens and their own deals. People investing personally are left out, so angel rounds don't swamp it.`} A darker cell means the pair shares more of their portfolios (adjusted for size, so the biggest funds don't darken every row); the number is how many companies they share. The order is chosen so investors who share deals sit next to each other.</p>
+    <div class="gtop"><div class="seg" id="mxmode"><button data-v="funds" class="${mode === "funds" ? "on" : ""}">Funds</button><button data-v="partners" class="${mode === "partners" ? "on" : ""}">Partners</button></div>
+      <label class="tog">Show <select id="mxn" aria-label="How many investors">${[14, 24, 36, 48].filter(v => v <= Math.max(14, total)).map(v => `<option value="${v}"${v === N ? " selected" : ""}>top ${v}</option>`).join("")}</select></label></div>
+    <div class="gl-wrap"><div style="min-width:0"><div class="mx-box"><div style="overflow-x:auto"><div class="mx" style="--n:${n};--cs:${cs}px;--lab:${lab}px;--chh:${wide ? 124 : 104}px">
+      <div></div>${order.map(j => `<button class="mx-ch" data-i="${j}" title="${nmS(items[j])}"><span>${nmS(items[j])}</span></button>`).join("")}
+      ${order.map(i => `<button class="mx-rh" data-i="${i}" title="${nmS(items[i])}${items[i].firm ? " · " + esc(items[i].firm) : ""}">${nmS(items[i])}</button>` + order.map(j => {
+        const v = cnt[i][j];
+        return i === j ? `<span class="mx-c dg"></span>` : v ? `<button class="mx-c${sim[i][j] / smax > 0.4 ? " hi" : ""}" style="--a:${alpha(sim[i][j])}" data-a="${i}" data-b="${j}" aria-label="${nmS(items[i])} and ${nmS(items[j])}: ${v} shared">${cs >= 20 ? v : ""}</button>` : `<span class="mx-c z"></span>`;
+      }).join("")).join("")}
+    </div></div>
+    <div class="mx-scale"><span>Overlap for their size:</span><span>low</span>${[0.08, 0.25, 0.5, 1].map(f => `<i style="--a:${alpha(f * smax)}"></i>`).join("")}<span>high</span><span>· the number is companies in common · tap a cell for the companies, a name for that investor's closest partners</span></div></div></div>
+    ${gSheet("Tap a cell to list the companies two investors share and the rounds each was in. Tap a name for its closest co-investors.")}</div>`;
+  gSearch("gq"); sheetWire();
+  onSeg("mxmode", v => { location.hash = "graph/together" + (v === "partners" ? "/partners" : ""); });
+  $("mxn").onchange = e => { gm.n = +e.target.value; store.set("gmx", gm); togetherLens(m, mode); };
+  const R = ridx();
+  const roundsOf = (it, co) => {
+    const c = coBySlug[co], h = (R[it.key] || {})[co];
+    if (c && h && h.length) return h.map(x => `${x.lead ? "led " : ""}${String(c.rounds[x.ri].round).replace(/\s*\(.*$/, "")}${c.rounds[x.ri].date ? " " + c.rounds[x.ri].date.slice(0, 4) : ""}`).join(", ");
+    const e = it.id && (X.inv[it.id] || []).find(e => X.other(e, it.id) === co);
+    return e ? (e.ev || []).slice(0, 2).join("; ") : "";
+  };
+  const who = it => it.id && gKind(it.id) ? `<a href="${gHref(it.id)}">${esc(it.name)}</a>` : esc(it.name);
+  const mark = sel => { m.querySelectorAll(".mx-c.on,.mx-rh.on,.mx-ch.on").forEach(x => x.classList.remove("on")); sel.forEach(x => x && x.classList.add("on")); };
+  const pair = (i, j, btn) => {
+    const a = items[i], b = items[j], cos = shared(a, b).sort((x, y) => (coBySlug[x]?.tier || 9) - (coBySlug[y]?.tier || 9) || coName(x).localeCompare(coName(y)));
+    mark([btn, m.querySelector(`.mx-rh[data-i="${i}"]`), m.querySelector(`.mx-ch[data-i="${j}"]`)]);
+    sheetShow(`${a.name} × ${b.name}`, `<h3>${who(a)} × ${who(b)}</h3><div class="muted" style="margin-top:4px">${cos.length} compan${cos.length === 1 ? "y" : "ies"} in common, of ${a.cos.size} and ${b.cos.size}.</div>
+      ${cos.map(c => { const ra = roundsOf(a, c), rb = roundsOf(b, c); return `<div class="mx-co"><a href="#graph/company/${encodeURIComponent(c)}"><b>${esc(coName(c))}</b></a>${coBySlug[c]?.tier === 1 ? ` <span class="pill t-1">Frontier</span>` : ""}${ra || rb ? `<div class="ev">${ra ? `${esc(a.name)}: ${esc(ra)}` : ""}${ra && rb ? "<br>" : ""}${rb ? `${esc(b.name)}: ${esc(rb)}` : ""}</div>` : ""}</div>`; }).join("")}`);
+  };
+  m.querySelectorAll(".mx-c[data-a]").forEach(b => b.onclick = () => pair(+b.dataset.a, +b.dataset.b, b));
+  m.querySelectorAll(".mx-rh,.mx-ch").forEach(b => b.onclick = () => {
+    const i = +b.dataset.i, a = items[i];
+    mark([m.querySelector(`.mx-rh[data-i="${i}"]`), m.querySelector(`.mx-ch[data-i="${i}"]`)]);
+    const top = items.map((x, j) => [j, cnt[i][j]]).filter(x => x[1]).sort((x, y) => y[1] - x[1]);
+    sheetShow(a.name, `<h3>${who(a)}</h3><div class="muted" style="margin-top:4px">${a.firm ? esc(a.firm) + " · " : ""}${a.cos.size} companies. Closest among the ${n} shown:</div>
+      ${top.map(([j, v]) => `<div class="rank" data-pair="${j}" role="button" tabindex="0" style="cursor:pointer"><span>${esc(items[j].name)} <span class="muted">${v} shared</span></span><span class="bar-mini"><i style="width:${Math.round(100 * v / top[0][1])}%"></i></span></div>`).join("") || `<p class="muted">No shared companies with the others shown.</p>`}`);
+    $("gsb").querySelectorAll("[data-pair]").forEach(r => r.onclick = () => pair(i, +r.dataset.pair, m.querySelector(`.mx-c[data-a="${i}"][data-b="${r.dataset.pair}"]`)));
+  });
+}
+
 let FG = null;
 function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+// Link types. Co-investment is never drawn person-to-person: it runs through the company both invested in.
 const ETYPES = [
-  ["co-invested", "Co-invested", "--e-co", true],
   ["invested", "Invested", "--e-inv", true],
+  ["co-invested", "Co-investors", "--e-co", true],
   ["at", "Works at", "--e-at", true],
   ["lp", "LP in", "--e-lp", true],
   ["knows", "Knows", "--e-knows", false],
@@ -1255,113 +1846,174 @@ function imgOf(url) {
   if (!(url in IMGS)) { const im = new Image(); im.referrerPolicy = "no-referrer"; im.onload = () => FG && FG.refresh && FG.refresh(); im.onerror = () => { IMGS[url] = null; }; im.src = url; IMGS[url] = im; }
   return IMGS[url];
 }
-function renderGraph(m) {
-  const G = V.graph;
-  const nodeById = Object.fromEntries(G.nodes.map(n => [n.id, n]));
-  const cardOf = Object.fromEntries(V.cards.map(c => [c.slug, c]));
-  const rankStrong = G.nodes.filter(n => n.kind === "person").sort((a, b) => b.strong - a.strong);
+const GCAP = {person: {company: 16, firm: 6, person: 8, lp: 5}, firm: {company: 16, person: 12, lp: 6, firm: 3}, company: {person: 16, firm: 18, lp: 2, company: 2}, lp: {firm: 20, person: 10, company: 6, lp: 2}};
+// The small network around one node (opts.focus), or the whole-network picture (no focus).
+function renderGraph(m, opts = {}) {
+  const G = V.graph, X = gx(), nodeById = X.byId;
+  const cardOf = CARD;
+  const whoRank = G.nodes.filter(n => n.kind === "person" || n.kind === "firm").sort((a, b) => X.imp[b.id] - X.imp[a.id]);
+  const rankPeople = whoRank.filter(n => n.kind === "person");
   const gs = store.get("graph", {});
+  const DEF_ET = Object.fromEntries(ETYPES.map(([k, , , on]) => [k, on]));
   const st = {
-    etypes: gs.etypes || Object.fromEntries(ETYPES.map(([k, , , on]) => [k, on])),
+    etypes: {...DEF_ET, ...(gs.etypes || {})},
     kinds: gs.kinds || {person: true, firm: true, lp: true, company: true},
-    apps: gs.apps ?? false, top: gs.top || 90, hops: gs.hops || 1,
+    apps: gs.apps ?? false, top: gs.top || 90,
   };
-  const saveG = () => store.set("graph", {etypes: st.etypes, kinds: st.kinds, apps: st.apps, top: st.top, hops: st.hops, rstep: st.rstep, rkind: st.rkind});
-  m.innerHTML = `<div class="gtop">
-      <input type="search" id="gq" list="gnames" placeholder="Find a person, fund, LP or company…" aria-label="Find in graph">
-      <datalist id="gnames">${G.nodes.map(n => `<option value="${esc(n.name)}">`).join("")}</datalist>
-      <div class="gchips" aria-label="Show node kinds">${NKINDS.map(([k, l, c, s]) => `<button class="gchip${st.kinds[k] ? " on" : ""}" data-kind="${k}" style="--c:var(${c})"><span class="sw">${s}</span>${l}</button>`).join("")}</div>
-      <div class="gchips" aria-label="Show link types">${ETYPES.map(([k, l, c]) => `<button class="gchip line${st.etypes[k] ? " on" : ""}" data-et="${k}" style="--c:var(${c})"><span class="ln"></span>${l}</button>`).join("")}</div>
-      <label class="tog"><input type="checkbox" id="ga" ${st.apps ? "checked" : ""}> AI apps</label>
-      <label class="tog">Show <select id="gtop" aria-label="How many nodes">${[60, 90, 150, 250, 1000].map(v => `<option value="${v}"${v === st.top ? " selected" : ""}>${v === 1000 ? "all" : "top " + v}</option>`).join("")}</select></label>
-    </div>
-    <div class="gwrap"><div class="gbox"><div id="graph"><div class="gloading">Wiring up the back channels…</div></div>
-      <div class="gnote" id="gnote"></div>
-      <div class="gzoom"><button class="btn sm" id="gfit" title="Fit to screen">Fit</button><button class="btn sm" id="greset">Everyone</button></div></div>
-    <div class="gpanel" id="gpanel"></div></div>`;
+  const saveG = () => store.set("graph", {etypes: st.etypes, kinds: st.kinds, apps: st.apps, top: st.top, rstep: st.rstep, rkind: st.rkind});
+  const touch = !canHover;
+  const lineCls = {invested: "", "co-invested": "", at: "", lp: "", knows: " dot"};
+  m.innerHTML = gNav(`<label class="tog"><input type="checkbox" id="ga" ${st.apps ? "checked" : ""}> AI apps</label>
+      ${opts.focus ? "" : `<label class="tog">Show <select id="gtop" aria-label="How many nodes">${[40, 60, 90, 150].map(v => `<option value="${v}"${v === st.top ? " selected" : ""}>top ${v}</option>`).join("")}</select></label>`}
+      <span class="sp"></span><a href="#graph/network">Whole network</a>`) +
+    `<div class="gwrap"><div class="gbox"><div id="graph"><div class="gloading">Wiring up the back channels…</div></div>
+      <div class="gnote" id="gnote"></div><div class="gsel" id="gsel"></div>
+      <div class="gzoom"><button class="btn sm" id="gfit" title="Fit to screen">Fit</button></div>
+      <details class="gleg" id="gleg"${touch || m.clientWidth < 700 ? "" : " open"}><summary>Legend and filters</summary><div class="gleg-b">
+        <div class="gleg-r" aria-label="Show node kinds">${NKINDS.map(([k, l, c, s]) => `<button class="gchip${st.kinds[k] ? " on" : ""}" data-kind="${k}" style="--c:var(${c})"><span class="sw">${s}</span>${l}</button>`).join("")}</div>
+        <div class="gleg-r" aria-label="Show link types">${ETYPES.map(([k, l, c]) => `<button class="gchip line${lineCls[k]}${st.etypes[k] ? " on" : ""}" data-et="${k}" style="--c:var(${k === "invested" ? "--st-a" : k === "co-invested" ? "--muted" : c})" title="${k === "co-invested" ? "People and funds who share at least one of these companies, linked through the company" : ""}"><span class="ln"></span>${l}</button>`).join("")}<span class="lk"><span class="ln"></span>via the firm</span></div>
+        <div class="gleg-r"><span>Line colour = stage they came in at:</span>${STGK.map(stg).join("")}</div>
+      </div></details></div>
+    <div class="gsheet gpan peek" id="gsheet"><div class="gs-top"><button class="gs-h" id="gsh" aria-label="Expand or collapse the card"><span id="gst"></span></button></div><div class="gpanel" id="gpanel"></div></div></div>`;
+  document.body.classList.add("has-sheet");
+  gSearch("gq");
+  $("gsh").onclick = () => $("gsheet").classList.toggle("open");
   if (!window.ForceGraph) { $("graph").querySelector(".gloading").textContent = "The graph library didn't load. Check your connection and reload."; return; }
 
-  let focus = null, path = null, hover = null, hoverSet = new Set(), labelCut = 0, needFit = true;
+  let focus = opts.focus && nodeById[opts.focus] ? opts.focus : null, path = null, hover = null, hoverSet = new Set(), sel = null, needFit = true;
+  const more = {};  // how far each "+N more" group has been opened
+  const TK = {}, tk = v => TK[v] ??= css(v);
+  const mq = matchMedia("(prefers-color-scheme: dark)"), onScheme = () => { Object.keys(TK).forEach(k => delete TK[k]); FG && FG.refresh && FG.refresh(); };
+  mq.addEventListener && mq.addEventListener("change", onScheme);
   const okNode = n => n && st.kinds[n.kind] && (n.kind !== "company" || (n.tier || 9) <= (st.apps ? 3 : 2));
-  // Untagged companies (tier 4) only appear as direct deals of the focused person, so focus mode never hides a deal.
+  // Untagged companies (tier 4) only appear as direct deals of the focused node, so focus mode never hides a deal.
   const fb = n => focus && n && n.kind === "company" && n.tier === 4 && st.kinds.company;
-  // What the default filters would show (link types at their defaults, every node kind on, current AI-apps choice).
-  const DEF_ET = Object.fromEntries(ETYPES.map(([k, , , on]) => [k, on]));
   const okDefNode = n => n && (n.kind !== "company" || (n.tier || 9) <= (st.apps ? 3 : 2) || (focus && n.tier === 4));
   const okDefault = e => e.types.some(t => DEF_ET[t]) && okDefNode(nodeById[e.source]) && okDefNode(nodeById[e.target]);
   const okEdge = e => e.types.some(t => st.etypes[t]) && (
     (okNode(nodeById[e.source]) && okNode(nodeById[e.target])) ||
     (e.source === focus && fb(nodeById[e.target])) || (e.target === focus && fb(nodeById[e.source])));
+  const drawn = e => e.types.some(t => t !== "co-invested" && st.etypes[t]);
   const adj = () => { const a = {}; G.edges.filter(okEdge).forEach(e => { (a[e.source] ||= []).push(e); (a[e.target] ||= []).push(e); }); return a; };
   // "Via <firm>" links: a focused person's firm deals that don't name a partner. For MPs, GPs and founders the firm's
   // book is effectively theirs, so these default on for them and off for everyone else (toggle per person in the card).
   const fdFor = {};
-  const firmsOf = id => G.edges.filter(e => e.types.includes("at") && !e.former && (e.source === id || e.target === id))
-    .map(e => e.source === id ? e.target : e.source).filter(x => ["firm", "lp"].includes(nodeById[x]?.kind));  // lp = a family office the person controls
-  const fdDefault = id => { const d = bySlug[id] || {}; return controlsOffice(id) || ["mp", "gp"].includes(String(d.seniority || "").toLowerCase().trim()) || /founder|founding|managing partner|managing director|\bceo\b/i.test((d.role || "") + " " + (d.entity_type || "")); };
+  const firmsOf = id => (X.at[id] || []).filter(e => !e.former).map(e => X.other(e, id)).filter(x => ["firm", "lp"].includes(nodeById[x]?.kind));  // lp = a family office the person controls
   const controlsOffice = id => firmsOf(id).some(f => nodeById[f]?.kind === "lp");
+  const fdDefault = id => { const d = bySlug[id] || {}; return controlsOffice(id) || ["mp", "gp"].includes(String(d.seniority || "").toLowerCase().trim()) || /founder|founding|managing partner|managing director|\bceo\b/i.test((d.role || "") + " " + (d.entity_type || "")); };
   const fdOn = id => nodeById[id]?.kind === "person" && (fdFor[id] ?? fdDefault(id));
-  // The firm's book = deals credited to the firm itself plus deals credited to its other partners.
-  const membersOf = f => G.edges.filter(e => e.types.includes("at") && (e.source === f || e.target === f))
-    .map(e => ({id: e.source === f ? e.target : e.source, former: !!e.former})).filter(x => nodeById[x.id]?.kind === "person");
+  // The firm's book = deals credited to the firm itself plus deals credited to its other partners (former ones labelled).
+  const membersOf = f => (X.at[f] || []).map(e => ({id: X.other(e, f), former: !!e.former})).filter(x => nodeById[x.id]?.kind === "person");
   function viaEdges(id, have) {
     const out = new Map();
     if (!st.kinds.company || !st.etypes.invested) return [];
-    firmsOf(id).forEach(f => [{id: f}, ...membersOf(f).filter(p => p.id !== id)].forEach(({id: src, former}) => G.edges.forEach(e => {
-      if (e.source !== src && e.target !== src) return;
-      const co = e.source === src ? e.target : e.source, n = nodeById[co];
-      const lpLink = src === f && nodeById[f].kind === "lp" && e.types.includes("lp") && n?.kind === "firm";  // the office's fund commitments
-      if (!lpLink && !e.types.includes("invested")) return;
-      if (!n || (!lpLink && n.kind !== "company") || have.has(co) || out.has(co)) return;
-      if (lpLink) { out.set(co, {source: id, target: co, types: ["lp"], w: 1, via: nodeById[f].name, ev: [`Via ${nodeById[f].name}: LP in ${n.name}`]}); return; }
+    firmsOf(id).forEach(f => [{id: f}, ...membersOf(f).filter(p => p.id !== id)].forEach(({id: src, former}) => {
+      // a family office's own fund commitments show on its principal as "Via <office>: LP in <fund>"
+      if (src === f && nodeById[f].kind === "lp") (X.lp[f] || []).forEach(e => {
+        const fu = X.other(e, f), n = nodeById[fu];
+        if (n?.kind === "firm" && !have.has(fu) && !out.has(fu)) out.set(fu, {source: id, target: fu, types: ["lp"], w: 1, via: nodeById[f].name, ev: [`Via ${nodeById[f].name}: LP in ${n.name}`]});
+      });
+      (X.inv[src] || []).forEach(e => {
+      const co = X.other(e, src), n = nodeById[co];
+      if (!n || n.kind !== "company" || have.has(co) || out.has(co)) return;
       if ((n.tier || 9) > 4) return;  // non-AI stays out
       const who = src === f ? "" : ` (${former ? "former: " : ""}${nodeById[src].name})`;
       out.set(co, {source: id, target: co, types: ["invested"], w: 1, via: nodeById[f].name, stg: e.stg, ev: [`Via ${nodeById[f].name}${who}: ${(e.ev || [])[0] || "firm deal"}`]});
-    })));
+      });
+    }));
     return [...out.values()];
   }
-  let nVia = 0;
-  function data() {
-    let edges = G.edges.filter(okEdge), ids;
-    nVia = 0;
-    if (focus && !path && fdOn(focus)) {
-      const have = new Set(edges.filter(e => e.source === focus || e.target === focus).map(e => e.source === focus ? e.target : e.source));
-      const via = viaEdges(focus, have); nVia = via.length; edges = edges.concat(via);
+  let nVia = 0, nShown = 0, nAll = 0;
+  const STO = k => { const i = STGK.indexOf(k); return i < 0 ? 4 : i; };
+  // One node's neighbourhood, capped at about 40 nodes. Overflow becomes "+N more" nodes that open on tap.
+  function ego() {
+    const F = focus, fn = nodeById[F], oth = e => e.source === F ? e.target : e.source;
+    let direct = G.edges.filter(e => (e.source === F || e.target === F) && okEdge(e) && drawn(e));
+    if (fdOn(F)) { const via = viaEdges(F, new Set(direct.map(oth))); nVia = via.length; direct = direct.concat(via); }
+    const score = e => (X.imp[oth(e)] || 0) + Math.min(8, e.w) * 1.5 + (e.via ? -8 : 0) + (e.types.includes("at") ? (e.former ? 12 : 30) : 0) + (e.types.includes("lp") ? 10 : 0);
+    const byKind = {};
+    direct.sort((a, b) => score(b) - score(a)).forEach(e => (byKind[nodeById[oth(e)].kind] ||= []).push(e));
+    const caps = GCAP[fn.kind] || GCAP.person, keep = [], groups = [];
+    const label = {company: "companies", person: "people", firm: "funds", lp: "LPs"};
+    for (const [k, list] of Object.entries(byKind)) {
+      let cap = (caps[k] || 4) + (more[k] || 0); if (list.length - cap <= 2) cap = list.length;
+      keep.push(...list.slice(0, cap));
+      if (list.length > cap) groups.push({id: "more:" + k, gk: k, n: list.length - cap, name: `+${list.length - cap} more ${label[k]}`});
     }
-    if (path) {
-      ids = new Set(path.nodes);
-      const pairs = new Set(path.nodes.slice(1).map((x, i) => [path.nodes[i], x].sort().join("|")));
-      edges = edges.filter(e => pairs.has([e.source, e.target].sort().join("|")));
-    } else if (focus) {
-      ids = new Set([focus]);
-      let frontier = [focus];
-      for (let h = 0; h < st.hops; h++) {
-        const next = [];
-        edges.forEach(e => {
-          if (frontier.includes(e.source) && !ids.has(e.target)) next.push(e.target);
-          if (frontier.includes(e.target) && !ids.has(e.source)) next.push(e.source);
-        });
-        next.forEach(x => ids.add(x));
-        frontier = next;
-        if (ids.size > 220) break;
-      }
-      edges = edges.filter(e => ids.has(e.source) && ids.has(e.target) && (st.hops > 1 || e.source === focus || e.target === focus));
-    } else {
-      const deg = {}; edges.forEach(e => { deg[e.source] = (deg[e.source] || 0) + e.w; deg[e.target] = (deg[e.target] || 0) + e.w; });
-      ids = new Set(Object.entries(deg).sort((a, b) => b[1] - a[1]).slice(0, st.top).map(x => x[0]));
-      edges = edges.filter(e => ids.has(e.source) && ids.has(e.target));
+    nAll = direct.length;
+    const ids = new Set([F, ...keep.map(oth)]);
+    const links = keep.map(e => ({...e}));
+    const mine = keep.filter(e => e.types.includes("invested") && nodeById[oth(e)].kind === "company").map(oth);
+    if (st.etypes["co-invested"] && st.etypes.invested && fn.kind !== "company" && mine.length) {
+      // Co-investors, two-mode: whoever else is in these companies, ranked by how many they share, then by importance.
+      const mates = new Set(fn.kind === "firm" ? membersOf(F).map(x => x.id) : firmsOf(F).flatMap(f => [f, ...membersOf(f).map(x => x.id)]));
+      const cand = {};
+      mine.forEach(c => (X.inv[c] || []).forEach(e => {
+        const o = X.other(e, c); if (o === F || !okNode(nodeById[o])) return;
+        if (ids.has(o)) { if (!links.some(l => (l.source === o && l.target === c) || (l.source === c && l.target === o))) links.push({...e, co: true}); return; }
+        if (mates.has(o)) return;
+        (cand[o] ||= []).push(e);
+      }));
+      const ranked = Object.entries(cand).sort((a, b) => b[1].length - a[1].length || (X.imp[b[0]] || 0) - (X.imp[a[0]] || 0));
+      const cap = 12 + (more.co || 0);
+      ranked.slice(0, cap).forEach(([o, es]) => { ids.add(o); es.forEach(e => links.push({...e, co: true})); });
+      const rest = ranked.slice(cap).filter(x => x[1].length >= 2).length || (ranked.length > cap ? ranked.length - cap : 0);
+      if (rest > 0) groups.push({id: "more:co", gk: "co", n: rest, name: `+${rest} more co-investors`});
     }
-    return {nodes: [...ids].filter(id => nodeById[id]).map(id => ({...nodeById[id]})), links: edges.map(e => ({...e}))};
+    const nodes = [...ids].map(id => ({...nodeById[id]}));
+    // Companies sit on a ring around the focus, in order of the stage the focus came in at.
+    const ring = keep.filter(e => nodeById[oth(e)].kind === "company").sort((a, b) => STO(a.stg) - STO(b.stg) || b.w - a.w).map(oth);
+    const R = 120 + ring.length * 7;
+    nodes.forEach(n => {
+      if (n.id === F) { n.fx = 0; n.fy = 0; return; }
+      const i = ring.indexOf(n.id);
+      if (i >= 0) { const a = -Math.PI * 0.85 + (i / Math.max(1, ring.length)) * Math.PI * 2; n.tx = R * Math.cos(a); n.ty = R * Math.sin(a); n.x = n.tx; n.y = n.ty; }
+    });
+    groups.forEach((g, i) => { nodes.push({id: g.id, kind: "more", gk: g.gk, name: g.name, n: g.n}); links.push({source: F, target: g.id, types: ["more"], w: 1, ev: [g.name + ". Tap to show them."]}); });
+    nShown = ids.size - 1;
+    return {nodes, links};
   }
-  const NC = {person: "--n-person", firm: "--n-firm", lp: "--n-lp", company: "--n-company"};
+  // The whole-network picture: the investors that matter most (conviction score and fit, not link count) and the
+  // companies at least two of them share. No person-to-person co-investment links, and nothing without a link.
+  function whole() {
+    const invs = G.nodes.filter(n => n.kind !== "company" && okNode(n) && ((X.inv[n.id] || []).length || (X.lp[n.id] || []).length)).sort((a, b) => X.imp[b.id] - X.imp[a.id]).slice(0, Math.round(st.top * 0.55));
+    const S = new Set(invs.map(n => n.id)), cs = {};
+    invs.forEach(n => (X.inv[n.id] || []).forEach(e => { const c = X.other(e, n.id); if (nodeById[c]?.kind === "company" && okNode(nodeById[c])) cs[c] = (cs[c] || 0) + 1; }));
+    Object.entries(cs).filter(x => x[1] >= 2).sort((a, b) => (b[1] + X.imp[b[0]] / 4) - (a[1] + X.imp[a[0]] / 4)).slice(0, Math.max(0, st.top - invs.length)).forEach(x => S.add(x[0]));
+    const links = G.edges.filter(e => S.has(e.source) && S.has(e.target) && okEdge(e) && drawn(e)).map(e => ({...e}));
+    const linked = new Set(); links.forEach(e => { linked.add(e.source); linked.add(e.target); });
+    return {nodes: [...S].filter(id => linked.has(id)).map(id => ({...nodeById[id]})), links};
+  }
+  function data() {
+    nVia = 0;
+    if (path) {
+      // a pure co-investment step is drawn through a company both are in
+      const seq = [path.nodes[0]], links = [];
+      path.edges.forEach((e, i) => {
+        const a = path.nodes[i], b = path.nodes[i + 1];
+        const pure = e.types.every(t => t === "co-invested" || t === "knows") && e.types.includes("co-invested");
+        const ca = pure && new Map((X.inv[a] || []).map(x => [X.other(x, a), x]));
+        const eb = pure && (X.inv[b] || []).filter(x => ca.has(X.other(x, b))).sort((x, y) => y.w - x.w)[0];
+        if (eb) { const c = X.other(eb, b); seq.push(c, b); links.push({...ca.get(c)}, {...eb}); }
+        else { seq.push(b); links.push({...e}); }
+      });
+      return {nodes: [...new Set(seq)].map(id => ({...nodeById[id]})), links};
+    }
+    return focus ? ego() : whole();
+  }
+  const NC = {person: "--n-person", firm: "--n-firm", lp: "--n-lp", company: "--n-company", more: "--muted"};
   const fade = (hex, a) => { const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim()); if (!m) return hex; const n = parseInt(m[1], 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; };
+  const etype = e => e.types.includes("more") ? "more" : (ETYPES.find(([k]) => k !== "co-invested" && e.types.includes(k) && st.etypes[k]) || ETYPES[4])[0];
+  const lid = x => x.id ?? x;
   const ecolor = e => {
-    const t = ETYPES.find(([k]) => e.types.includes(k) && st.etypes[k]) || ETYPES[4];
-    if (e.via) return fade(e.stg ? css("--st-" + e.stg) : css("--muted"), 0.38);
-    if (t[0] === "invested" && e.stg) return fade(css("--st-" + e.stg), 0.7);  // investment links show where the investor entered
-    return css(t[2]);
+    const t = etype(e), hot = hover && (lid(e.source) === hover || lid(e.target) === hover);
+    if (hover && !hot) return fade(tk("--muted"), 0.08);
+    if (t === "more") return fade(tk("--muted"), 0.5);
+    if (t === "invested") return fade(e.stg ? tk("--st-" + e.stg) : tk("--muted"), e.via ? 0.45 : e.co && !hot ? 0.34 : 0.8);
+    return tk(ETYPES.find(x => x[0] === t)[2]);
   };
-  const size = n => Math.min(14, 3.2 + Math.sqrt(n.strong || n.deg || 1) * 1.05);
+  const isEnd = n => n.id === focus || (path && (n.id === path.nodes[0] || n.id === path.nodes.at(-1)));
+  const size = n => n.kind === "more" ? 9 : (isEnd(n) ? 1.35 : 1) * (n.kind === "company" ? 5.5 + (4 - Math.min(4, n.tier || 4)) * 0.9 : Math.min(12, 6.5 + Math.sqrt(X.imp[n.id] || 0) * 0.85));
   const font = css("--f-body") || "sans-serif";
   function shape(ctx, n, r) {
     ctx.beginPath();
@@ -1370,31 +2022,40 @@ function renderGraph(m) {
     else if (n.kind === "lp") { ctx.moveTo(n.x, n.y - r * 1.25); ctx.lineTo(n.x + r * 1.15, n.y + r * 0.85); ctx.lineTo(n.x - r * 1.15, n.y + r * 0.85); ctx.closePath(); }
     else ctx.arc(n.x, n.y, r, 0, 2 * Math.PI);
   }
-  const fitView = ms => { FG.zoomToFit(ms, 70); setTimeout(() => { if (FG.zoom() > 3.5) FG.zoom(3.5, 300); }, ms + 30); };
   const el = $("graph");
+  const fitView = ms => { FG.zoomToFit(ms, el.clientWidth < 500 ? 34 : 64); setTimeout(() => { if (FG && FG.zoom() > 2.6) FG.zoom(2.6, 300); }, ms + 30); };
+  const short = n => { const s = n.name.replace(/\s*\(.*?\)/g, "").trim(); return s.length > 24 ? s.slice(0, 23).trimEnd() + "…" : s; };
   el.innerHTML = "";
   FG = ForceGraph()(el)
     .width(el.clientWidth).height(el.clientHeight)
     .backgroundColor("rgba(0,0,0,0)")
     .nodeId("id")
-    .nodeLabel(n => `<b>${esc(n.name)}</b><br>${KIND[n.kind]}${n.firm ? " · " + esc(n.firm) : ""}${n.kind === "person" && n.strong ? `<br>${n.strong} deal links` : ""}`)
+    .nodeLabel(n => touch ? "" : n.kind === "more" ? `<b>${esc(n.name)}</b><br>Click to show them` : `<b>${esc(n.name)}</b><br>${KIND[n.kind]}${n.firm ? " · " + esc(n.firm) : ""}${CONV_I[n.id] ? `<br>Conviction: ${esc(BANDT[CONV_I[n.id].band] || "")}` : ""}`)
     .linkColor(ecolor)
-    .linkVisibility(e => !!(focus || path) || e.w >= 2 || (hover && ((e.source.id ?? e.source) === hover || (e.target.id ?? e.target) === hover)))
-    .linkWidth(e => (hover && (e.source.id === hover || e.target.id === hover) ? 2 : (focus || path) ? 1 : 0.55) * Math.min(5, 0.5 + Math.sqrt(e.w) * 0.9))
-    .linkLineDash(e => e.via ? [2.5, 2.5] : null)
-    .linkCurvature(e => e.types.includes("knows") && !e.types.includes("co-invested") ? 0.18 : 0)
-    .linkLabel(e => e.ev.map(esc).join("<br>"))
-    .linkDirectionalParticles(e => (focus || path) && e.types.includes("co-invested") ? 2 : 0)
-    .linkDirectionalParticleWidth(2.2)
-    .linkDirectionalParticleColor(() => css("--e-co"))
+    .linkWidth(e => (hover && (lid(e.source) === hover || lid(e.target) === hover) ? 1.8 : 1) * (e.co ? 0.8 : Math.min(3.6, 0.6 + Math.sqrt(e.w) * 0.6)))
+    .linkLineDash(e => e.via ? [3, 3] : etype(e) === "knows" || etype(e) === "more" ? [1, 3] : null)
+    .linkCurvature(e => etype(e) === "knows" ? 0.18 : 0)
+    .linkLabel(e => touch ? "" : (e.ev || []).map(esc).join("<br>"))
     .nodeCanvasObject((n, ctx, scale) => {
-      const r = size(n), isF = n.id === focus || (path && (n.id === path.nodes[0] || n.id === path.nodes.at(-1)));
+      const r = size(n), isF = isEnd(n);
       const dim = hover && hover !== n.id && !hoverSet.has(n.id);
       ctx.globalAlpha = dim ? 0.14 : 1;
-      if (isF) { ctx.beginPath(); ctx.arc(n.x, n.y, r * 2.1, 0, 2 * Math.PI); ctx.fillStyle = css("--glow"); ctx.fill(); }
-      shape(ctx, n, r); ctx.fillStyle = css(n.kind === "company" && n.tier === 4 ? "--muted" : (NC[n.kind] || "--muted")); ctx.fill();
-      const im = n.photo && imgOf(n.photo);
-      if (im && im.complete && im.naturalWidth && (focus || path || scale > 1.6 || r > 9)) {
+      if (n.kind === "more") {
+        ctx.beginPath(); ctx.arc(n.x, n.y, r, 0, 2 * Math.PI); ctx.fillStyle = tk("--chip"); ctx.fill();
+        ctx.setLineDash([2 / scale * 2, 2 / scale * 2]); ctx.lineWidth = 1.2 / scale; ctx.strokeStyle = tk("--muted"); ctx.stroke(); ctx.setLineDash([]);
+        ctx.font = `600 ${r * 0.8}px ${font}`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = tk("--ink"); ctx.fillText("+" + n.n, n.x, n.y + r * 0.05);
+        ctx.globalAlpha = 1; return;
+      }
+      if (isF || n.id === sel) { ctx.beginPath(); ctx.arc(n.x, n.y, r * 1.9, 0, 2 * Math.PI); ctx.fillStyle = tk("--glow"); ctx.fill(); }
+      const im = n.kind === "person" && n.photo && imgOf(n.photo), hasIm = im && im.complete && im.naturalWidth;
+      shape(ctx, n, r);
+      if (n.kind === "person" && !hasIm) {
+        // no photo: initials on a tinted disc, same tint as the avatars elsewhere
+        const h = hue(n.name);
+        ctx.fillStyle = `hsl(${h} ${tk("--av-bg")})`; ctx.fill();
+        if (r * scale >= 6.5) { ctx.font = `600 ${r * 0.82}px ${font}`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = `hsl(${h} ${tk("--av-fg")})`; ctx.fillText(initials(n.name), n.x, n.y + r * 0.06); }
+      } else { ctx.fillStyle = tk(n.kind === "company" && n.tier === 4 ? "--muted" : (NC[n.kind] || "--muted")); ctx.fill(); }
+      if (hasIm) {
         ctx.save(); ctx.beginPath(); ctx.arc(n.x, n.y, r - 0.6 / scale, 0, 2 * Math.PI); ctx.clip();
         // Cover-crop: take a centred square (biased up, where faces sit) so photos keep their aspect ratio.
         const iw = im.naturalWidth, ih = im.naturalHeight, sq = Math.min(iw, ih);
@@ -1402,52 +2063,85 @@ function renderGraph(m) {
         try { ctx.drawImage(im, sx, sy, sq, sq, n.x - r, n.y - r, r * 2, r * 2); } catch (e) {}
         ctx.restore(); ctx.beginPath(); ctx.arc(n.x, n.y, r, 0, 2 * Math.PI);
       }
-      ctx.lineWidth = (n.profiled ? 1.6 : 0.8) / scale; ctx.strokeStyle = n.profiled ? css("--ink") : css("--panel"); ctx.stroke();
-      if (hasKey(n.id) && (scale > 1.2 || isF || focus || path)) { ctx.beginPath(); ctx.arc(n.x + r * 0.78, n.y - r * 0.78, Math.max(r * 0.28, 2.2 / scale), 0, 2 * Math.PI); ctx.fillStyle = css("--warn"); ctx.fill(); ctx.lineWidth = 1 / scale; ctx.strokeStyle = css("--panel"); ctx.stroke(); }
-      if (n.kind === "company" && n.tier === 1) { ctx.beginPath(); ctx.arc(n.x, n.y, r * 0.32, 0, 2 * Math.PI); ctx.fillStyle = css("--panel"); ctx.fill(); }
-      const show = isF || (focus || path ? true : (scale > 2.4 || (n.strong || n.deg) >= labelCut)) || n.id === hover || hoverSet.has(n.id);
-      if (show && !dim) {
-        const fs = Math.max(11.5 / scale, 2.2);
-        ctx.font = `${isF ? 600 : 500} ${fs}px ${font}`;
-        ctx.textAlign = "center"; ctx.textBaseline = "top";
-        const y = n.y + r * 1.3 + 1.5 / scale;
-        const label = n.name.replace(/\s*\(.*$/, "").slice(0, 28);
-        ctx.lineJoin = "round"; ctx.lineWidth = 3.5 / scale; ctx.strokeStyle = css("--panel"); ctx.strokeText(label, n.x, y);
-        ctx.fillStyle = css("--ink"); ctx.fillText(label, n.x, y);
-      }
+      ctx.lineWidth = (n.kind === "person" ? 1.4 : n.profiled ? 1.2 : 0.8) / scale; ctx.strokeStyle = n.kind === "person" ? tk("--n-person") : n.profiled ? tk("--ink") : tk("--panel"); ctx.stroke();
+      if (hasKey(n.id) && (scale > 1.2 || isF)) { ctx.beginPath(); ctx.arc(n.x + r * 0.78, n.y - r * 0.78, Math.max(r * 0.28, 2.2 / scale), 0, 2 * Math.PI); ctx.fillStyle = tk("--warn"); ctx.fill(); ctx.lineWidth = 1 / scale; ctx.strokeStyle = tk("--panel"); ctx.stroke(); }
+      if (n.kind === "company" && n.tier === 1) { ctx.beginPath(); ctx.arc(n.x, n.y, r * 0.32, 0, 2 * Math.PI); ctx.fillStyle = tk("--panel"); ctx.fill(); }
       ctx.globalAlpha = 1;
     })
-    .nodePointerAreaPaint((n, color, ctx) => { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(n.x, n.y, size(n) * 1.4 + 2, 0, 2 * Math.PI); ctx.fill(); })
-    .onNodeHover(n => {
-      hover = n ? n.id : null; hoverSet = new Set();
-      if (n) FG.graphData().links.forEach(l => { const s = l.source.id ?? l.source, t = l.target.id ?? l.target; if (s === n.id) hoverSet.add(t); if (t === n.id) hoverSet.add(s); });
-      el.style.cursor = n ? "pointer" : "";
+    // Labels are drawn after every node, most important first; a label that would cover a node or another label is
+    // moved (below, right, left, above) or skipped.
+    .onRenderFramePost((ctx, scale) => {
+      const nodes = FG.graphData().nodes.filter(n => n.x != null);
+      const boxes = nodes.map(n => { const r = size(n) * (n.kind === "firm" || n.kind === "lp" ? 1.25 : 1.05); return [n.x - r, n.y - r, n.x + r, n.y + r]; });
+      const hit = b => boxes.some(o => b[0] < o[2] && b[2] > o[0] && b[1] < o[3] && b[3] > o[1]);
+      const direct = new Set(); if (focus) FG.graphData().links.forEach(l => { if (lid(l.source) === focus) direct.add(lid(l.target)); if (lid(l.target) === focus) direct.add(lid(l.source)); });
+      const prio = n => (isEnd(n) ? 1e6 : 0) + (path ? 1e5 : 0) + (n.id === hover || n.id === sel ? 1e4 : 0) + (hoverSet.has(n.id) ? 5e3 : 0) + (direct.has(n.id) ? 200 : 0) + (n.kind === "more" ? 150 : 0) + (X.imp[n.id] || 0);
+      const fs = Math.max(11.5 / scale, 2.2), gap = 2.5 / scale, h = fs * 1.15;
+      ctx.textBaseline = "top"; ctx.lineJoin = "round";
+      nodes.slice().sort((a, b) => prio(b) - prio(a)).forEach(n => {
+        if (hover && hover !== n.id && !hoverSet.has(n.id)) return;
+        const must = isEnd(n) || n.id === hover || n.id === sel;
+        ctx.font = `${isEnd(n) ? 600 : 500} ${fs}px ${font}`;
+        const label = short(n), w = ctx.measureText(label).width, r = size(n) * (n.kind === "firm" || n.kind === "lp" ? 1.25 : 1.05);
+        const spots = [[n.x - w / 2, n.y + r + gap], [n.x + r + gap * 1.5, n.y - h / 2], [n.x - r - gap * 1.5 - w, n.y - h / 2], [n.x - w / 2, n.y - r - gap - h]];
+        let p = spots.find(([x, y]) => !hit([x - gap, y, x + w + gap, y + h]));
+        if (!p && must) p = spots[0];
+        if (!p) return;
+        boxes.push([p[0] - gap, p[1], p[0] + w + gap, p[1] + h]);
+        ctx.textAlign = "left"; ctx.lineWidth = 3.5 / scale; ctx.strokeStyle = tk("--panel"); ctx.strokeText(label, p[0], p[1]);
+        ctx.fillStyle = tk(n.kind === "more" ? "--muted" : "--ink"); ctx.fillText(label, p[0], p[1]);
+      });
     })
-    .onNodeClick(n => setFocus(n.id))
-    .onBackgroundClick(() => { if (path) { path = null; load(); } })
-    .cooldownTicks(160)
+    .nodePointerAreaPaint((n, color, ctx) => { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(n.x, n.y, size(n) * 1.4 + (touch ? 7 : 2), 0, 2 * Math.PI); ctx.fill(); })
+    .onNodeHover(n => { if (touch) return; setHover(n ? n.id : null); el.style.cursor = n ? "pointer" : ""; })
+    .onNodeClick(n => {
+      if (n.kind === "more") { more[n.gk] = (more[n.gk] || 0) + 20; setHover(null); return load(); }
+      // By touch there is no hover: the first tap picks a node and shows what it is, the second opens it.
+      if (touch && sel !== n.id && n.id !== focus) { sel = n.id; setHover(n.id); return showSel(n); }
+      setFocus(n.id);
+    })
+    .onLinkClick(e => { if (!touch) return; const s = $("gsel"); s.innerHTML = `<b>${esc(nodeById[lid(e.source)]?.name || "")} · ${esc(nodeById[lid(e.target)]?.name || "")}</b><div class="ev">${(e.ev || []).slice(0, 4).map(esc).join("<br>")}</div>`; s.classList.add("on"); })
+    .onBackgroundClick(() => { if (sel || hover) { sel = null; setHover(null); $("gsel").classList.remove("on"); } else if (path) { path = null; load(); } })
+    .cooldownTicks(140)
     .maxZoom(6)
-    .onEngineStop(() => { if (needFit) { needFit = false; fitView(500); } });
-  FG.d3Force("charge").strength(n => -150 - size(n) * 22).distanceMax(420);
-  FG.d3Force("link").distance(l => 26 + 70 / Math.sqrt(l.w || 1));
+    .onEngineStop(() => { if (needFit) { needFit = false; fitView(400); } });
+  FG.d3Force("charge").strength(n => -170 - size(n) * 24).distanceMax(460);
+  FG.d3Force("link").distance(l => l.co ? 46 : 34 + 60 / Math.sqrt(l.w || 1)).strength(l => l.co ? 0.25 : lid(l.source) === focus || lid(l.target) === focus ? 0.12 : 0.5);
+  { // pulls ring companies to their slot
+    let ns = [];
+    const f = alpha => ns.forEach(n => { if (n.tx == null) return; n.vx += (n.tx - n.x) * 0.35 * alpha; n.vy += (n.ty - n.y) * 0.35 * alpha; });
+    f.initialize = x => { ns = x; };
+    FG.d3Force("ring", f);
+  }
+  function setHover(id) {
+    hover = id; hoverSet = new Set();
+    if (id) FG.graphData().links.forEach(l => { const s = lid(l.source), t = lid(l.target); if (s === id) hoverSet.add(t); if (t === id) hoverSet.add(s); });
+    FG.refresh && FG.refresh();
+  }
+  function showSel(n) {
+    const s = $("gsel");
+    s.innerHTML = `<span class="kdot sm" style="--c:var(${NC[n.kind]})"></span><b>${esc(n.name)}</b><span class="muted">${KIND[n.kind]}${n.firm ? " · " + esc(firmShort(n.firm)) : ""}</span><span style="margin-left:auto;display:flex;gap:6px"><button class="btn sm on" id="gselgo">Focus</button>${n.kind === "company" || n.kind === "firm" ? `<a class="btn sm" href="${gHref(n.id)}">${n.kind === "company" ? "Cap table" : "Book"}</a>` : ""}</span>`;
+    s.classList.add("on");
+    $("gselgo").onclick = () => setFocus(n.id);
+  }
 
   function load(fit = true) {
     const d = data();
-    const vals = d.nodes.map(n => n.strong || n.deg).sort((a, b) => b - a);
-    labelCut = vals[Math.min(22, vals.length - 1)] || 0;
+    sel = null; hover = null; hoverSet = new Set(); $("gsel").classList.remove("on");
     FG.graphData(d);
-    $("gnote").textContent = path ? `Path: ${path.nodes.length - 1} step${path.nodes.length === 2 ? "" : "s"}. Click the background to leave it.`
-      : focus ? `${d.nodes.length - 1} connections${st.hops > 1 ? " within 2 steps" : ""}${nVia ? ` · ${nVia} via firm (dashed)` : ""}` : `Showing the ${d.nodes.length} most connected of ${G.nodes.length}`;
+    FG.d3ReheatSimulation && FG.d3ReheatSimulation();
+    const real = d.nodes.filter(n => n.kind !== "more").length;
+    $("gnote").textContent = path ? `Path: ${path.nodes.length - 1} step${path.nodes.length === 2 ? "" : "s"}. ${touch ? "Tap" : "Click"} the background to leave it.`
+      : focus ? `${nShown} of ${nodeById[focus].name.replace(/\s*\(.*$/, "")}'s links and co-investors${nVia ? ` · ${nVia} via the firm (dashed)` : ""}` : `The ${real} that matter most, of ${G.nodes.length}: ranked by conviction score and fit, not by link count`;
     // Saved toggles can hide a focused node's links; say so instead of showing an empty graph.
-    const hidden = focus && !path ? G.edges.filter(e => (e.source === focus || e.target === focus) && !okEdge(e) && okDefault(e)).length : 0;
+    const hidden = focus && !path ? G.edges.filter(e => (e.source === focus || e.target === focus) && !(okEdge(e) && drawn(e)) && okDefault(e) && e.types.some(t => t !== "co-invested" && DEF_ET[t])).length : 0;
     if (hidden) {
       const nb = document.createElement("span");
       nb.innerHTML = ` · <b>${hidden} link${hidden === 1 ? "" : "s"} hidden by your filters</b> <button class="btn sm" id="gshowall">Show all</button>`;
       $("gnote").append(nb);
       $("gshowall").onclick = () => { resetFilters(); };
     }
-    if (fit) needFit = true;
-    store.set("gfocus", focus);
+    if (fit) { needFit = true; clearTimeout(load.t); load.t = setTimeout(() => { if (needFit && FG) { needFit = false; fitView(400); } }, 2200); }  // fallback when the engine is slow to settle
     saveG();
     panel();
   }
@@ -1457,7 +2151,13 @@ function renderGraph(m) {
     m.querySelectorAll("[data-kind]").forEach(b => b.classList.add("on"));
     load();
   }
-  function setFocus(id) { focus = id; path = null; $("gq").value = id ? nodeById[id].name : ""; load(); }
+  function setFocus(id) {
+    if (!id) { location.hash = "graph/network"; return; }
+    focus = id; path = null; Object.keys(more).forEach(k => delete more[k]);
+    const h = gHref(id, true); if (location.hash !== h) history.pushState(null, "", h);
+    $("gq").value = ""; $("gsheet").classList.remove("open");
+    load();
+  }
   function findPath(a, b) {
     const A = adj(), prev = {[a]: null}, q = [a];
     while (q.length) {
@@ -1491,14 +2191,13 @@ function renderGraph(m) {
     const {dist, via} = reach(focus);
     const all = Object.keys(dist).filter(id => id !== focus && nodeById[id]);
     const cnt = k => all.filter(id => dist[id] === st.rstep && nodeById[id].kind === k).length;
-    const fitR = id => RANK[lvl(bySlug[id]?.lens_fit)] ?? 1;
     const rows = all.filter(id => dist[id] === st.rstep && nodeById[id].kind === st.rkind && (!rq || nodeById[id].name.toLowerCase().includes(rq)))
-      .sort((a, b) => fitR(b) - fitR(a) || via[b].size - via[a].size || (nodeById[b].strong || 0) - (nodeById[a].strong || 0));
+      .sort((a, b) => (X.imp[b] || 0) + 2 * Math.min(4, via[b].size) - (X.imp[a] || 0) - 2 * Math.min(4, via[a].size));
     const steps = [1, 2, 3].map(k => [k, `${k} step${k > 1 ? "s" : ""} <span class="muted">${all.filter(id => dist[id] === k).length}</span>`]);
     const kinds = NKINDS.filter(([k]) => st.kinds[k]).map(([k, l]) => [k, `${l} <span class="muted">${cnt(k)}</span>`]);
     const nm = id => esc((nodeById[id]?.name || id).replace(/\s*\(.*$/, ""));
     box.innerHTML = `<h4>Who ${esc(nodeById[focus].name.split(" ")[0])} can reach</h4>
-      <div class="muted rhelp">${st.rstep === 1 ? "Direct links." : `Everyone ${st.rstep} steps away, with the direct contacts that get there. More bridges means more ways in.`} Tap a name to see the chain.</div>
+      <div class="muted rhelp">${st.rstep === 1 ? "Direct links." : `Everyone ${st.rstep} steps away, best fit first, with the direct contacts that get there. More bridges means more ways in.`} Tap a name to draw the chain.</div>
       <div class="seg" id="rstep">${steps.map(([k, l]) => `<button data-v="${k}" class="${k === st.rstep ? "on" : ""}">${l}</button>`).join("")}</div>
       <div class="seg" id="rkind">${kinds.map(([k, l]) => `<button data-v="${k}" class="${k === st.rkind ? "on" : ""}">${l}</button>`).join("")}</div>
       <input type="search" id="grq" placeholder="Filter by name…" value="${esc(rq)}" aria-label="Filter reachable names">
@@ -1507,15 +2206,15 @@ function renderGraph(m) {
         return `<div class="rrow" data-path="${esc(id)}" role="button" tabindex="0"><span class="kdot sm" style="--c:var(${NC[n.kind]})"></span>
           <span class="rn"><b>${nm(id)}</b>${pill(bySlug[id]?.lens_fit)}<span class="muted"> ${esc(firmShort(n.firm || ""))}</span></span>
           ${st.rstep > 1 ? `<span class="rv">via ${v.slice(0, 2).map(nm).join(", ")}${v.length > 2 ? ` +${v.length - 2}` : ""}${v.length > 1 ? ` <span class="rb">${v.length} bridges</span>` : ""}</span>` : ""}</div>`;
-      }).join("") || `<p class="muted">Nobody here with the links switched on. Try turning on "Knows" or another step count.</p>`}
+      }).join("") || `<p class="muted">Nobody here with the links switched on. Try turning on "Knows" in the legend, or another step count.</p>`}
       ${rows.length > rlimit ? `<button class="btn sm" id="rmore">Show all ${rows.length}</button>` : ""}</div>`;
     box.querySelectorAll("#rstep button").forEach(b => b.onclick = () => { st.rstep = +b.dataset.v; rlimit = 40; saveG(); drawReach(); });
     box.querySelectorAll("#rkind button").forEach(b => b.onclick = () => { st.rkind = b.dataset.v; rlimit = 40; saveG(); drawReach(); });
     $("grq").oninput = e => { rq = e.target.value.toLowerCase(); const pos = e.target.selectionStart; drawReach(); const i = $("grq"); i.focus(); i.setSelectionRange(pos, pos); };
-    const more = $("rmore"); if (more) more.onclick = () => { rlimit = 1e9; drawReach(); };
+    const mo = $("rmore"); if (mo) mo.onclick = () => { rlimit = 1e9; drawReach(); };
     box.querySelectorAll("[data-path]").forEach(r => r.onclick = r.onkeydown = e => {
       if (e.type === "keydown" && e.key !== "Enter") return;
-      const res = findPath(focus, r.dataset.path); if (res) { path = res; load(); }
+      const res = findPath(focus, r.dataset.path); if (res) { path = res; $("gsheet").classList.remove("open"); load(); }
     });
   }
   const stat = (v, l) => `<div class="gs"><b>${v}</b><span>${l}</span></div>`;
@@ -1526,26 +2225,28 @@ function renderGraph(m) {
   function card(n) {
     const d = bySlug[n.id], co = coBySlug[n.id];
     const crux = (d && (d.crux || d.take)) || (cardOf[n.id] && cruxOf(cardOf[n.id])) || "";
-    const pos = n.kind === "person" ? rankStrong.findIndex(x => x.id === n.id) + 1 : 0;
+    const pos = n.kind === "person" ? rankPeople.findIndex(x => x.id === n.id) + 1 : 0;
+    const nCo = (X.inv[n.id] || []).length;
     let h = `<div class="gcard-head">${n.kind === "person" ? avatar(n.name, n.photo, "lg") : `<span class="kdot" style="--c:var(${NC[n.kind]})">${NKINDS.find(k => k[0] === n.kind)?.[3] || ""}</span>`}<div><h3>${esc(n.name)}</h3>
       <div class="muted">${KIND[n.kind]}${n.firm ? " · " + esc(n.firm) : ""}${d?.role ? " · " + clip(d.role.split(/[(;]/)[0].trim(), 60) : ""}</div></div></div>
-      <div class="gpills">${co ? tierPill(co) + (co.category ? ` <span class="chip">${esc(co.category)}</span>` : "") : ""}${d?.lens_fit ? `fit ${pill(d.lens_fit)}` : ""}${n.profiled ? ` <span class="chip">profiled</span>` : ""}</div>
+      <div class="gpills">${co ? tierPill(co) + (co.category ? ` <span class="chip">${esc(co.category)}</span>` : "") : ""}${CONV_I[n.id] ? band(CONV_I[n.id].band) : ""}${co && CONV_C[n.id] ? band(CONV_C[n.id].band) : ""}${d?.lens_fit ? `fit ${pill(d.lens_fit)}` : ""}${n.profiled ? ` <span class="chip">profiled</span>` : ""}</div>
       ${d?.known_for && d.known_for !== crux ? `<p class="gcrux"><b>Known for:</b> ${clip(d.known_for, 260)}</p>` : ""}${crux ? `<p class="gcrux">${clip(crux, 420)}</p>` : ""}${socials(n.id) ? `<div style="margin-top:8px">${socials(n.id)}</div>` : ""}`;
-    if (["person", "firm"].includes(n.kind) && V.mix?.[n.id]) h += mixBar(n.id) + stageLegend("Invested links in the graph use these colours.");
-    if (n.kind === "person") h += `<div class="gstats">${stat(n.strong, "deal links")}${stat("#" + pos, "of " + rankStrong.length + " people")}${stat(cardOf[n.id]?.n || 0, "insights")}</div>`;
+    if (["person", "firm"].includes(n.kind) && V.mix?.[n.id]) h += mixBar(n.id);
+    if (n.kind === "person") h += `<div class="gstats">${stat(nCo, "companies")}${stat("#" + pos, "of " + rankPeople.length + " by importance")}${stat(cardOf[n.id]?.n || 0, "insights")}</div>`;
     if (co) {
       h += `<div class="gstats">${stat(co.n_rounds, "rounds")}${stat(esc(co.first.slice(0, 7) || "–"), "first round")}${stat(co.people.length, "people profiled")}</div>`;
       if (co.rounds.length) h += `<h4>Rounds</h4><div class="tl">${co.rounds.slice(-6).reverse().map(r => `<div class="tlr sc${r.stage ? " sd-" + r.stage : ""}" title="${esc(STG[r.stage] || "stage unknown")}"><span class="date">${esc(r.date.slice(0, 7))}</span><span><b>${esc(r.round)}</b>${r.amount ? " · " + esc(r.amount) : ""}<span class="muted">${(r.leads || []).length ? " · led by " + esc(r.leads.slice(0, 2).join(", ")) : ""}</span></span></div>`).join("")}${co.rounds.length > 6 ? `<div class="muted">+${co.rounds.length - 6} earlier rounds</div>` : ""}</div>`;
       if (co.first_in.length) h += `<p class="muted">First in: ${esc(co.first_in.join(", "))}</p>`;
     }
-    h += `<div class="gbtns"><button class="btn sm on" id="gopen">Open full page</button>${trackCtl(co && n.kind === "company" ? "co:" + n.id : n.id)}${focus && n.kind === "person" && firmsOf(n.id).length ? `<button class="btn sm${fdOn(n.id) ? " on" : ""}" id="gfd" title="Show the firm's deals that don't name a partner, as dashed links">Firm deals ${fdOn(n.id) ? "on" : "off"}</button>` : ""}${focus ? `<div class="seg" id="ghops"><button data-v="1" class="${st.hops === 1 ? "on" : ""}">1 step</button><button data-v="2" class="${st.hops === 2 ? "on" : ""}">2 steps</button></div>` : ""}</div>
+    h += `<div class="gbtns">${n.kind === "company" && co ? `<a class="btn sm on" href="${gHref(n.id)}">Cap table over time</a>` : n.kind === "firm" ? `<a class="btn sm on" href="${gHref(n.id)}">Fund's book</a>` : ""}<button class="btn sm${n.kind === "company" && co || n.kind === "firm" ? "" : " on"}" id="gopen">Open full page</button>${trackCtl(co && n.kind === "company" ? "co:" + n.id : n.id)}${n.kind === "person" && firmsOf(n.id).length ? `<button class="btn sm${fdOn(n.id) ? " on" : ""}" id="gfd" title="Show the firm's deals that don't name a partner, as dashed links">Firm deals ${fdOn(n.id) ? "on" : "off"}</button>` : ""}</div>
       <div class="greach" id="greach"></div>`;
     h += insightList(n.id);
     const es = G.edges.filter(e => (e.source === n.id || e.target === n.id) && okEdge(e)).map(e => ({...e, other: e.source === n.id ? e.target : e.source})).sort((a, b) => b.w - a.w);
-    const groups = [["co-invested", "Co-invested with"], ["invested", n.kind === "company" ? "Investors" : "Invested in"], ["at", n.kind === "firm" ? "People at this fund" : "Works at"], ["lp", "LP links"], ["knows", "Knows"]];
+    const groups = [["invested", n.kind === "company" ? "Investors" : "Invested in"], ["at", n.kind === "firm" ? "People at this fund" : "Works at"], ["lp", "LP links"], ["co-invested", "Shares deals with"], ["knows", "Knows"]];
     const seen = new Set();
     h += groups.map(([t, label]) => {
       const g = es.filter(e => e.types.includes(t) && !seen.has(e.other)); g.forEach(e => seen.add(e.other));
+      if (t === "co-invested") g.sort((a, b) => b.w - a.w || (X.imp[b.other] || 0) - (X.imp[a.other] || 0));
       return g.length ? `<h4>${label} <span class="muted">(${g.length})</span></h4>${g.slice(0, 30).map(e => `<div class="nb"><span><span class="kdot sm" style="--c:var(${NC[nodeById[e.other]?.kind]})"></span><span class="pl" data-focus="${esc(e.other)}">${esc(nodeById[e.other]?.name || e.other)}</span></span><span class="ev">${e.ev.slice(0, 2).map(esc).join(" · ")}</span></div>`).join("")}${g.length > 30 ? `<div class="muted">+${g.length - 30} more</div>` : ""}` : "";
     }).join("");
     return h;
@@ -1553,32 +2254,34 @@ function renderGraph(m) {
   function panel() {
     const p = $("gpanel");
     if (path) {
-      p.innerHTML = `<h3>How they're connected</h3><div class="muted">Shortest chain through the links you have switched on.</div><div class="chain">${path.nodes.map((id, i) => `<div class="cn"><span class="kdot sm" style="--c:var(${NC[nodeById[id].kind]})"></span><span class="pl" data-focus="${esc(id)}">${esc(nodeById[id].name)}</span></div>${i < path.edges.length ? `<div class="ce">${esc(path.edges[i].ev[0] || path.edges[i].types.join(", "))}</div>` : ""}`).join("")}</div><button class="btn sm" id="gback">Back</button>`;
+      $("gst").textContent = "How they're connected";
+      p.innerHTML = `<h3>How they're connected</h3><div class="muted">Shortest chain through the links you have switched on. A shared deal is drawn through the company.</div><div class="chain">${path.nodes.map((id, i) => `<div class="cn"><span class="kdot sm" style="--c:var(${NC[nodeById[id].kind]})"></span><span class="pl" data-focus="${esc(id)}">${esc(nodeById[id].name)}</span></div>${i < path.edges.length ? `<div class="ce">${esc(path.edges[i].ev[0] || path.edges[i].types.join(", "))}</div>` : ""}`).join("")}</div><button class="btn sm" id="gback">Back</button>`;
       $("gback").onclick = () => { path = null; load(); };
     } else if (!focus) {
-      p.innerHTML = `<h3>Most connected people</h3><div class="muted">Ranked by deal links: investing together and investing, weighted toward lead roles. Relationship notes don't count. Tap any node, or a name below, to open its card.</div>
-        ${rankStrong.slice(0, 30).map((n, i) => `<div class="rank"><span><span class="num muted">${i + 1}</span> <span class="pl" data-focus="${esc(n.id)}">${esc(n.name)}</span> <span class="muted">${esc(n.firm || "")}</span></span><span class="bar-mini"><i style="width:${Math.round(100 * n.strong / (rankStrong[0].strong || 1))}%"></i></span></div>`).join("")}`;
+      $("gst").textContent = "Who matters most";
+      p.innerHTML = `<h3>Who matters most</h3><div class="muted">Ranked by the conviction model's investor score (first in, leads, sets prices) and fit with your lens. Sharing an angel round with many people doesn't count. Tap a name to see its network.</div>
+        ${whoRank.slice(0, 40).map((n, i) => `<div class="rank"><span><span class="num muted">${i + 1}</span> <span class="kdot sm" style="--c:var(${NC[n.kind]})"></span><span class="pl" data-focus="${esc(n.id)}">${esc(n.name.replace(/\s*\(.*?\)/g, ""))}</span> <span class="muted">${esc(firmShort(n.firm || ""))}</span></span><span class="bar-mini"><i style="width:${Math.round(100 * X.imp[n.id] / (X.imp[whoRank[0].id] || 1))}%"></i></span></div>`).join("")}`;
     } else {
+      $("gst").textContent = nodeById[focus].name.replace(/\s*\(.*?\)/g, "");
       p.innerHTML = card(nodeById[focus]);
       $("gopen").onclick = () => openDoc(coBySlug[focus] && nodeById[focus].kind === "company" ? "co:" + focus : focus);
-      const hs = $("ghops"); if (hs) hs.querySelectorAll("button").forEach(b => b.onclick = () => { st.hops = +b.dataset.v; load(); });
       const fd = $("gfd"); if (fd) fd.onclick = () => { fdFor[focus] = !fdOn(focus); load(); };
       drawReach();
     }
     p.scrollTop = 0;
     p.querySelectorAll("[data-focus]").forEach(x => x.onclick = e => { e.stopPropagation(); setFocus(x.dataset.focus); });
   }
-  $("gq").onchange = e => { const n = G.nodes.find(n => n.name.toLowerCase() === e.target.value.toLowerCase()); if (n) setFocus(n.id); };
   m.querySelectorAll("[data-kind]").forEach(b => b.onclick = () => { st.kinds[b.dataset.kind] = !st.kinds[b.dataset.kind]; b.classList.toggle("on"); load(); });
   m.querySelectorAll("[data-et]").forEach(b => b.onclick = () => { st.etypes[b.dataset.et] = !st.etypes[b.dataset.et]; b.classList.toggle("on"); load(); });
   $("ga").onchange = e => { st.apps = e.target.checked; load(); };
-  $("gtop").onchange = e => { st.top = +e.target.value; load(); };
-  $("greset").onclick = () => setFocus(null);
-  $("gfit").onclick = () => fitView(500);
-  new ResizeObserver(() => FG && FG.width(el.clientWidth).height(el.clientHeight)).observe(el);
-  const want = store.get("gfocus", null); focus = want && nodeById[want] ? want : null;
-  if (focus) $("gq").value = nodeById[focus].name;
+  if ($("gtop")) $("gtop").onchange = e => { st.top = +e.target.value; load(); };
+  $("gfit").onclick = () => fitView(400);
+  // keep the picture fitted when the canvas changes size (rotation, the sheet opening, the first layout pass on phones)
+  let rsz = 0;
+  new ResizeObserver(() => { if (!FG || !el.isConnected) return; FG.width(el.clientWidth).height(el.clientHeight); clearTimeout(rsz); rsz = setTimeout(() => FG && !needFit && fitView(300), 120); }).observe(el);
+  if (opts.intro) { st.rstep = 2; st.rkind = "person"; }
   load();
+  if (opts.intro) $("gsheet").classList.add("open");
 }
 
 function roundsTable(c) {
@@ -1596,10 +2299,11 @@ function docBar(key) {
 }
 document.addEventListener("click", e => {
   const b = e.target.closest("[data-intro]"); if (!b) return;
-  e.stopPropagation(); store.set("gfocus", b.dataset.intro);
+  e.stopPropagation();
   // Coming from "Who can introduce me": start from default link filters so saved toggles can't hide the paths.
   const g = store.get("graph", {}); g.rstep = 2; g.rkind = "person"; delete g.etypes; delete g.kinds; store.set("graph", g);
-  closeDoc(); if (location.hash === "#graph") route(); else location.hash = "graph";
+  const h = "graph/" + (bySlug[b.dataset.intro]?.kind === "lp" ? "lp" : bySlug[b.dataset.intro]?.kind === "firm" ? "net" : "person") + "/" + encodeURIComponent(b.dataset.intro) + "?intro";
+  closeDoc(); if (location.hash === "#" + h) route(); else location.hash = h;
 }, true);
 function openDoc(key) {
   docKey = key; hideHC();
@@ -1651,13 +2355,16 @@ $("close").onclick = closeDoc; $("scrim").onclick = closeDoc;
 let view = "brief";
 function tabs() {
   $("tabs").innerHTML = Object.entries(VIEWS).map(([k, v]) => `<button data-v="${k}" class="${k === view ? "on" : ""}">${v.label}${v.n !== "" ? `<span class="n">${v.n}</span>` : ""}</button>`).join("");
-  $("tabs").querySelectorAll("button").forEach(b => b.onclick = () => { location.hash = b.dataset.v; });
+  $("tabs").querySelectorAll("button").forEach(b => b.onclick = () => { if (location.hash === "#" + b.dataset.v) route(); else location.hash = b.dataset.v; });
 }
 const OLD_ROUTES = {insights: "brief", syndicates: "coinvest", deals: "raw", rels: "raw", notes: "library"};
 function route() {
   let h = location.hash.slice(1);
   if (OLD_ROUTES[h]) { h = OLD_ROUTES[h]; history.replaceState(null, "", "#" + h); }
-  view = VIEWS[h] ? h : "brief";
+  const key = h.split("/")[0];
+  if (OLD_ROUTES[key]) { h = OLD_ROUTES[key]; history.replaceState(null, "", "#" + h); }
+  view = VIEWS[key] ? key : "brief";
+  document.body.classList.remove("has-sheet");
   tabs();
   if (FG) { try { FG._destructor && FG._destructor(); } catch {} FG = null; }
   const needs = (VIEWS[view].needs || []).filter(n => !loaded(n));
