@@ -150,6 +150,12 @@ a{color:var(--accent)}
 .rank{display:grid;grid-template-columns:1fr 70px;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--line);font-size:13px}
 .bar-mini{height:6px;background:var(--chip);border-radius:3px;overflow:hidden}
 .bar-mini i{display:block;height:100%;background:var(--n-person);border-radius:3px}
+.lpcov{margin:4px 0 12px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:13px;line-height:1.6}
+.backed{margin:8px 0 4px;font-size:13px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lpchip{border-color:color-mix(in srgb,var(--n-lp) 40%,var(--line))}
+.lpchip.dim{opacity:.7}
+.st{font-size:12px;font-weight:600}.st-in{color:var(--good)}.st-out,.st-redeemed{color:var(--warn)}.st-passed{color:var(--muted)}
+.how-filing{border-color:var(--good);color:var(--good)}.how-aggregator{opacity:.7}
 .greach{margin-top:14px}
 .greach .seg{margin:6px 0;flex-wrap:wrap}
 .greach input{width:100%;font:inherit;font-size:13px;padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);margin:4px 0 6px}
@@ -433,6 +439,11 @@ function teamGrid(firm, max = 99) {
     <div class="dl">${m.deals.slice(0, 8).map(d => `<span class="chip link${d.lead ? " lead" : ""}${d.tier === 1 ? " t1" : ""}" data-open="co:${esc(d.slug)}" title="${esc(d.round || "")}${d.lead ? " · led" : ""}">${esc(d.name)}</span>`).join("")}${m.deals.length > 8 ? `<span class="muted">+${m.deals.length - 8}</span>` : ""}${m.deals.length ? "" : `<span class="muted">No named deals yet</span>`}</div></div></div>`).join("")}${t.length > max ? `<div class="muted">+${t.length - max} more people</div>` : ""}</div>`;
 }
 
+function backedBy(firm) {
+  const bs = (V.backers || []).filter(b => b.firm === firm && b.status !== "passed");
+  if (!bs.length) return `<div class="backed none">LPs: <span class="muted">none known yet</span></div>`;
+  return `<div class="backed">LPs: ${bs.map(b => `<span class="chip lpchip${b.status === "in" ? "" : " dim"}" title="${esc(b.lp_type + " · " + b.status + (b.how ? " · " + b.how : "") + " · " + b.fund)}">${bySlug[b.lp] ? link(b.lp, b.lp_name) : esc(b.lp_name)}${b.status !== "in" ? ` <span class="muted">(${esc(b.status)})</span>` : ""}</span>`).join(" ")}</div>`;
+}
 VIEWS.funds = {
   label: "Funds", n: A.firms.length,
   render(m) {
@@ -444,7 +455,7 @@ VIEWS.funds = {
       const rows = firms.filter(f => (!ST.ffit || lvl(f.lens_fit) === ST.ffit) && (!q || (f.name + " " + (V.teams[f.slug] || []).map(x => x.name + " " + x.deals.map(d => d.name).join(" ")).join(" ")).toLowerCase().includes(q)));
       $("fc").textContent = `${rows.length} funds`;
       $("funds").innerHTML = rows.map(f => `<section class="fund"><h3>${link(f.slug, f.name)} ${pill(f.lens_fit)}<span class="muted num">${(V.teams[f.slug] || []).length} people</span></h3>
-        ${f.crux || f.take ? `<div class="crux">${clip(f.crux || f.take, 320)}</div>` : ""}${teamGrid(f.slug) || `<p class="muted">No team mapped yet.</p>`}</section>`).join("");
+        ${f.crux || f.take ? `<div class="crux">${clip(f.crux || f.take, 320)}</div>` : ""}${backedBy(f.slug)}${teamGrid(f.slug) || `<p class="muted">No team mapped yet.</p>`}</section>`).join("");
       save();
     };
     $("fq").oninput = e => { ST.fq = e.target.value; draw(); };
@@ -536,17 +547,55 @@ VIEWS.leads = {
 };
 
 VIEWS.lps = {
-  label: "LPs", n: A.lps.length,
+  label: "LPs", n: (V.backers || []).length,
   render(m) {
-    m.innerHTML = `<p class="intro">Endowments and allocators: how they size commitments, which managers they back, and whether they'd back an early-stage frontier-AI manager.</p><div id="lp-t"></div>`;
-    table($("lp-t"), [
-      {k: "name", t: "Allocator", h: r => `<span class="name">${esc(r.name)}</span>`},
-      {k: "lens_fit", t: "Fit for you", num: 1, v: r => RANK[lvl(r.lens_fit)] ?? -1, h: r => pill(r.lens_fit)},
-      {k: "cio", t: "CIO", h: r => link(r.cio)},
-      {k: "crux", t: "How they decide", h: r => `<div class="take">${clip(r.crux || r.take, 280)}</div>`},
-      {k: "commit_count", t: "Managers", num: 1},
-      {k: "insight_count", t: "Insights", num: 1},
-    ], A.lps, {open: r => r.slug, sort: ["lens_fit", -1]});
+    const B = V.backers || [];
+    const types = ["endowment", "foundation", "pension", "sovereign", "fund-of-funds", "family office", "VC firm", "individual", "allocator", "unprofiled"].filter(t => B.some(b => b.lp_type === t));
+    const covered = new Set(B.filter(b => b.firm && b.status !== "passed").map(b => b.firm));
+    const bare = A.firms.filter(f => !covered.has(f.slug)).sort((a, b) => (RANK[lvl(b.lens_fit)] ?? 0) - (RANK[lvl(a.lens_fit)] ?? 0));
+    m.innerHTML = `<p class="intro">Who is an LP in which fund. Any kind of backer counts: endowments, foundations, pensions, sovereigns, fund-of-funds, family offices, other VC firms and individuals. <b>How known</b> says where the link comes from: a filing, the GP, the LP, press, or an aggregator (weakest).</p>
+      <div class="bar">${seg("lv", [["links", "Who backs whom"], ["alloc", "Allocators"]], S("lv", "links"))}<span class="count" id="lc"></span></div><div id="lp-body"></div>`;
+    const drawLinks = () => {
+      const body = $("lp-body");
+      body.innerHTML = `<div class="lpcov"><b>${covered.size} of ${A.firms.length}</b> profiled funds have at least one known LP.${bare.length ? ` <span class="muted">No LPs known yet:</span> ${bare.map(f => link(f.slug, f.name.replace(/\s*\(.*$/, ""))).join(", ")}` : ""}</div>
+        <div class="bar"><input type="search" id="lq" placeholder="Search LPs or funds…" value="${esc(S("lq", ""))}">${seg("lt", [["", "All"], ...types.map(t => [t, t])], S("lt", ""))}${sel("ls", "Any status", [...new Set(B.map(b => b.status).filter(Boolean))].sort(), S("ls", ""))}</div><div id="lp-t"></div>`;
+      const draw = () => {
+        const q = ST.lq.toLowerCase();
+        const rows = B.filter(b => (!ST.lt || b.lp_type === ST.lt) && (!ST.ls || b.status === ST.ls) && (!q || (b.lp_name + " " + b.fund + " " + b.detail).toLowerCase().includes(q)));
+        $("lc").textContent = `${rows.length} links`;
+        table($("lp-t"), [
+          {k: "lp_name", t: "LP", h: r => bySlug[r.lp] ? link(r.lp, r.lp_name) : `<span class="name">${esc(r.lp_name)}</span>`},
+          {k: "lp_type", t: "Type", h: r => `<span class="chip">${esc(r.lp_type)}</span>`},
+          {k: "fund", t: "Fund", h: r => r.firm && bySlug[r.firm] ? link(r.firm, r.fund) : esc(r.fund)},
+          {k: "status", t: "Status", h: r => `<span class="st st-${esc(r.status.replace(/\s+/g, "-"))}">${esc(r.status)}</span>`},
+          {k: "how", t: "How known", h: r => r.how ? `<span class="chip how-${esc(r.how)}">${esc(r.how)}</span>` : `<span class="muted">–</span>`},
+          {k: "detail", t: "Detail", h: r => `<div class="take">${clip(r.detail.replace(/^(filing|gp-said|lp-said|press|aggregator):\s*/i, ""), 200)}</div>`},
+          {k: "since", t: "Since", h: r => `<span class="date">${esc(r.since)}</span>`},
+          {k: "src", t: "", h: r => src(r.src)},
+        ], rows, {sort: ["lp_name", 1]});
+        save();
+      };
+      $("lq").oninput = e => { ST.lq = e.target.value; draw(); };
+      onSeg("lt", v => { ST.lt = v; draw(); });
+      $("ls").onchange = e => { ST.ls = e.target.value; draw(); };
+      draw();
+    };
+    const drawAlloc = () => {
+      $("lc").textContent = `${A.lps.length} allocators profiled`;
+      $("lp-body").innerHTML = `<div id="lp-t"></div>`;
+      table($("lp-t"), [
+        {k: "name", t: "Allocator", h: r => `<span class="name">${esc(r.name)}</span>`},
+        {k: "lens_fit", t: "Fit for you", num: 1, v: r => RANK[lvl(r.lens_fit)] ?? -1, h: r => pill(r.lens_fit)},
+        {k: "cio", t: "CIO", h: r => link(r.cio)},
+        {k: "crux", t: "How they decide", h: r => `<div class="take">${clip(r.crux || r.take, 280)}</div>`},
+        {k: "commit_count", t: "Managers", num: 1, v: r => B.filter(b => b.lp === r.slug).length, h: r => B.filter(b => b.lp === r.slug).length},
+        {k: "insight_count", t: "Insights", num: 1},
+      ], A.lps, {open: r => r.slug, sort: ["lens_fit", -1]});
+      save();
+    };
+    const go = () => (ST.lv === "alloc" ? drawAlloc : drawLinks)();
+    onSeg("lv", v => { ST.lv = v; go(); });
+    go();
   },
 };
 
