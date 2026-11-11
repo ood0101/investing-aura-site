@@ -558,7 +558,7 @@ a.chip:hover{background:var(--accent-soft);color:var(--accent)}
 <div class="toast" id="toast" role="status"></div>
 <div class="hc" id="hc" role="dialog" aria-label="Quick look"></div>
 
-<script src="data.js?b=3efe290f10"></script>
+<script src="data.js?b=4801d603b9"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
@@ -1213,7 +1213,7 @@ VIEWS.dealmakers = {
       table($("dt"), [
         {k: "pn", t: "Person", h: r => `${r.prof ? link(r.p, r.pn) : `<span class="name">${esc(r.pn)}</span>`}${quiet(r) ? ` <span class="chip">quiet</span>` : ""}
           <div class="muted">${clip(r.role, 90)}</div>`},
-        {k: "co", t: "Seat", v: r => r.co, h: r => `${esc(r.co)}<div class="muted">${esc(SEATS[r.seat] || r.seat)}${r.sen ? " · " + esc(r.sen) : ""}</div>${r.moved ? `<div class="muted">left ${esc(r.moved.until)} → ${esc(r.moved.now || "?")}</div>` : ""}`},
+        {k: "co", t: "Seat", v: r => r.co, h: r => `${esc(r.co)}<div class="muted">${esc(r.seat === "moved" && r.was ? "Was: " + (SEATS[r.was] || r.was).toLowerCase() : SEATS[r.seat] || r.seat)}${r.sen ? " · " + esc(r.sen) : ""}</div>${r.moved ? `<div class="muted">left ${esc(r.moved.until)} → ${esc(r.moved.now || "?")}</div>` : ""}`},
         {k: "nr", t: "Recent", num: 1},
         {k: "nf", t: "Frontier", num: 1},
         {k: "t", t: "Tested", num: 1, h: r => r.t || ""},
