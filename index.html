@@ -556,7 +556,7 @@ a.chip:hover{background:var(--accent-soft);color:var(--accent)}
 <div class="toast" id="toast" role="status"></div>
 <div class="hc" id="hc" role="dialog" aria-label="Quick look"></div>
 
-<script src="data.js?b=7571ea46c4"></script>
+<script src="data.js?b=b4359f0a93"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
@@ -1134,6 +1134,16 @@ function backedBy(firm) {
 const TB_ROLES = {evaluated: "Evaluated", tested: "Tested", signed: "Signed", quoted: "Quoted"};
 const tbRole = r => `<span class="tb-role r-${esc(r)}">${esc(TB_ROLES[r] || r)}</span>`;
 const tbFor = {company: c => (V.tbuyers || []).filter(x => x.c === c), person: p => (V.tbuyers || []).filter(x => x.p === p)};
+function lpAccess(lp) {
+  // LP co-invest access: rounds where this allocator sat next to a GP. "LP link on record" = we have the commitment;
+  // "inferred" = the allocator only shows up in the same (small) rounds, a lead to check, never proof.
+  const e = (V.lpaccess || {})[lp]; if (!e) return "";
+  const row = x => `${link(x.c, x.cn)} <span class="muted">${esc(x.r)}${x.d ? " · " + esc(x.d) : ""}${x.n ? " · " + x.n + " investors" : ""}</span>`;
+  const conf = e.conf.map(g => `<div class="row"><b>${link(g.g, g.gn)}</b> <span class="pill">LP link on record</span><div class="muted">${g.rows.map(row).join("; ")}</div></div>`).join("");
+  const cand = e.cand.map(g => `<div class="row"><b>${link(g.g, g.gn)}</b> <span class="pill">inferred from co-investing</span> <span class="muted num">${g.np} shared round${g.np === 1 ? "" : "s"}</span><div class="muted">${g.rows.map(row).join("; ")}</div></div>`).join("");
+  return `<section class="tbwho"><h2>Co-invest access</h2><p class="muted">Rounds where this allocator invested directly alongside a fund. Hot-deal co-invest usually comes through a GP relationship, so a fund it keeps showing up next to is a lead on a commitment we haven't found.</p>` +
+    (conf ? `<h3>Alongside funds it backs</h3>${conf}` : "") + (cand ? `<h3>Funds to check (no LP link on record yet)</h3>${cand}` : "") + `</section>`;
+}
 function whoTested(company) {
   const L = tbFor.company(company); if (!L.length) return "";
   return `<section class="tbwho"><h2>Who tested it <span class="muted num">${L.length}</span></h2>${L.map(x => `<div class="row">${link(x.p, x.pn)}${x.f ? ` <span class="muted">${link(x.f, x.fn)}</span>` : ""} ${tbRole(x.role)} <span>${esc(x.w)}</span>${x.q ? ` <span class="tb-q">“${esc(x.q)}”</span>` : ""} ${src(x.u)}</div>`).join("")}</section>`;
@@ -2441,6 +2451,7 @@ function openDoc(key) {
     if (d.kind === "firm" && (V.teams || {})[d.slug]) html = html.replace(/(<h1[^>]*>.*?<\/h1>)/, `$1${teamGrid(d.slug, 8)}`);
     // LPs: point to the spoken-word notes (podcasts, fireside chats) kept as sources/lp-voice-<slug>.md
     if (d.kind === "lp" && bySlug["lp-voice-" + d.slug]) html = html.replace(/(<h1[^>]*>.*?<\/h1>)/, `$1<p class="docnote">In their own words: ${link("lp-voice-" + d.slug, "podcast and fireside-chat notes")}</p>`);
+    if (d.kind === "lp") html += lpAccess(d.slug);
   }
   $("dpath").textContent = path;
   $("dbody").innerHTML = window.DOMPurify ? DOMPurify.sanitize(html) : html;
