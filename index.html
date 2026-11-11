@@ -65,6 +65,19 @@
 [data-style="couture"] #tabs button{text-transform:uppercase;letter-spacing:.12em;font-size:11.5px}
 [data-style="couture"] .pl,[data-style="couture"] .md a{text-decoration-color:var(--gold)}
 [data-style="couture"] .docnote{margin:6px 0 10px;padding:8px 12px;border-left:3px solid var(--warn);background:var(--warn-soft);border-radius:0 6px 6px 0;font-size:13.5px}
+.dl1{margin:12px 0 4px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.dl1 h2{font-size:14px;margin:0 0 8px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.dl1 .dls{display:flex;flex-wrap:wrap;gap:6px}
+.dl1 .dc{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);border-left:3px solid var(--st,var(--line));border-radius:6px;padding:3px 8px;background:var(--bg);cursor:pointer;font-size:13px}
+.dl1 .dc:hover{border-color:var(--accent)}
+.dl1 .dc .dm{color:var(--muted);font:11.5px var(--f-data)}
+.dl1 .dc.led{background:var(--accent-soft)}
+.hotb{font:600 10px/1 var(--f-data);text-transform:uppercase;letter-spacing:.05em;padding:2px 5px;border-radius:4px;background:var(--warn-soft);color:var(--warn);border:1px solid color-mix(in srgb,var(--warn) 40%,transparent)}
+.dl1 .more{margin-top:8px;font-size:12.5px;color:var(--muted)}
+.dl1 .intel{display:grid;gap:8px;margin-top:6px}
+.dl1 .intel .it{border-left:3px solid var(--good);padding-left:10px;font-size:13.5px}
+.dl1 .intel .it.s2{border-left-color:var(--warn)}
+.dl1 .intel .q{color:var(--muted);font-style:italic;font-size:12.5px}
 .colophon{font:italic 13px var(--f-display);text-align:center;letter-spacing:.02em}
 .style-sw{margin-left:auto;font:500 11px var(--f-data);text-transform:uppercase;letter-spacing:.1em;background:none;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:4px 10px;cursor:pointer}
 .style-sw:hover{color:var(--ink);border-color:var(--ink)}
@@ -537,19 +550,21 @@ a.chip:hover{background:var(--accent-soft);color:var(--accent)}
 <div class="toast" id="toast" role="status"></div>
 <div class="hc" id="hc" role="dialog" aria-label="Quick look"></div>
 
-<script src="data.js?b=fd83b8d620"></script>
+<script src="data.js?b=47f25764b4"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
 <script>
 const A = window.AURA, V = A.v;
 const $ = id => document.getElementById(id);
+const dict = es => Object.assign(Object.create(null), Object.fromEntries(es));  // null-prototype lookups: an id like "constructor" must not resolve to Object.prototype members
+
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const slugify = s => String(s || "").replace(/\(.*?\)/g, "").toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const DOCS = [...A.people, ...A.firms, ...A.lps, ...A.companies, ...A.sources, ...A.patterns];
-const bySlug = Object.fromEntries(DOCS.map(d => [d.slug, d]));
-const coBySlug = Object.fromEntries(V.cos.map(c => [c.slug, c]));
-const CARD = Object.fromEntries(V.cards.map(c => [c.slug, c]));
+const bySlug = dict(DOCS.map(d => [d.slug, d]));
+const coBySlug = dict(V.cos.map(c => [c.slug, c]));
+const CARD = dict(V.cards.map(c => [c.slug, c]));
 const SIG = ["", "Notable", "Key"];
 const sigTag = i => i.sig ? `<span class="sg s${i.sig}" title="${i.sig === 2 ? "Key: non-obvious, high confidence, high fit with your lens" : "Notable: not in press or on firm pages"}">${SIG[i.sig]}</span>` : "";
 const cruxOf = c => c.crux || bySlug[c.slug]?.crux || bySlug[c.slug]?.take || "";
@@ -566,9 +581,10 @@ function mergePart(name) {
     if (p.cos5) p.cos5.forEach(c => { V.cos.push(c); coBySlug[c.slug] = c; });  // non-AI companies, kept out of the first load
     V.cos.forEach(c => (p.rounds[c.slug] || []).forEach((d, i) => c.rounds[i] && Object.assign(c.rounds[i], d)));
     V.graph = p.graph;
+    V.pdeals = p.pdeals; V.hot = p.hot;
     V.backers = p.backers; V.conv = p.conv; A.syn = p.syn; V.teams = p.teams;
-    Object.assign(CONV_C, Object.fromEntries((V.conv?.cos || []).map(r => [r.company_slug, r])));
-    Object.assign(CONV_I, Object.fromEntries((V.conv?.inv || []).filter(r => r.slug).map(r => [r.slug, r])));
+    Object.assign(CONV_C, dict((V.conv?.cos || []).map(r => [r.company_slug, r])));
+    Object.assign(CONV_I, dict((V.conv?.inv || []).filter(r => r.slug).map(r => [r.slug, r])));
   }
   return p;
 }
@@ -711,7 +727,7 @@ document.addEventListener("input", e => {
 });
 
 // ---- quick look: hover (desktop) or tap a linked name inside a write-up (phones) ----
-const leadBySlug = () => V.leadrows ? (leadBySlug.m ||= Object.fromEntries(V.leadrows.map(l => [l.slug, l]))) : {};
+const leadBySlug = () => V.leadrows ? (leadBySlug.m ||= dict(V.leadrows.map(l => [l.slug, l]))) : {};
 function hcHTML(key) {
   if (key.startsWith("lead:")) {
     const l = leadBySlug()[key.slice(5)]; if (!l) return "";
@@ -784,7 +800,7 @@ function linkMentions(root, self) {
   linkMentions.n ||= 0;
   if (!MIX || (!MIX.leads && V.leadrows)) MIX = mentionIndex();
   const done = new Set([self, "co:" + self]), walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-    acceptNode: n => n.parentElement.closest("a, code, pre, h1, .pl, .who, .mention, .docbar, .team") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+    acceptNode: n => n.parentElement.closest("a, code, pre, h1, .pl, .who, .mention, .docbar, .team, .dl1") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
   const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
   nodes.forEach(node => {
     const s = node.nodeValue; MIX.re.lastIndex = 0; let m, last = 0, frag = null;
@@ -1427,8 +1443,8 @@ VIEWS.raw = {
 // Shared index over the graph part: lookups, links by type, and an importance score per node.
 function gx() {
   if (gx.c && gx.g === V.graph) return gx.c;
-  const G = V.graph, byId = Object.fromEntries(G.nodes.map(n => [n.id, n]));
-  const inv = {}, at = {}, lp = {};
+  const G = V.graph, byId = dict(G.nodes.map(n => [n.id, n]));
+  const inv = Object.create(null), at = Object.create(null), lp = Object.create(null);  // null-prototype: an id like "constructor" must not hit Object.prototype
   G.edges.forEach(e => {
     const put = m => { (m[e.source] ||= []).push(e); (m[e.target] ||= []).push(e); };
     if (e.types.includes("invested")) put(inv);
@@ -1666,7 +1682,7 @@ function companyLens(m, c, open = new Set()) {
       <div class="gsec">Rounds</div><div class="wrap">${roundsTable(c)}</div>
     </div>${gSheet("Tap an investor to see every round they joined here.")}</div>` : `<p class="muted">No round data for ${esc(c.name)} yet.</p>`}`;
   gSearch("gq"); sheetWire();
-  const byKey = Object.fromEntries(list.map(o => [o.key, o]));
+  const byKey = dict(list.map(o => [o.key, o]));
   const detail = o => {
     const d = o.id && bySlug[o.id], cvI = o.id && CONV_I[o.id];
     return `<h3>${esc(o.name)}</h3><div class="gpills">${o.angel ? `<span class="chip">individual</span>` : ""}${cvI ? band(cvI.band) : ""}${d?.lens_fit ? `fit ${pill(d.lens_fit)}` : ""}</div>
@@ -1746,11 +1762,11 @@ function fundLens(m, id) {
 // Every investor's rounds per company, from the round maps: key (profile id, else slugified name) -> company -> [{ri, lead}].
 function ridx() {
   if (ridx.c) return ridx.c;
-  const X = gx(), out = {};
+  const X = gx(), out = Object.create(null);
   V.cos.forEach(c => c.rounds.forEach((r, ri) => {
     const put = (s, lead) => {
       const {name, partners} = invSplit(s); if (!name || INV_JUNK.test(name)) return;
-      [name, ...partners].forEach(nm => { const k = X.resolve(nm) || slugify(nm); if (!k) return; const h = ((out[k] ||= {})[c.slug] ||= []); const e = h.find(x => x.ri === ri); if (e) e.lead ||= lead; else h.push({ri, lead}); });
+      [name, ...partners].forEach(nm => { const k = X.resolve(nm) || slugify(nm); if (!k) return; const h = ((out[k] ||= Object.create(null))[c.slug] ||= []); const e = h.find(x => x.ri === ri); if (e) e.lead ||= lead; else h.push({ri, lead}); });
     };
     (r.leads || []).forEach(s => put(s, true)); (r.others || []).forEach(s => put(s, false));
   }));
@@ -1866,7 +1882,7 @@ function renderGraph(m, opts = {}) {
   const whoRank = G.nodes.filter(n => n.kind === "person" || n.kind === "firm").sort((a, b) => X.imp[b.id] - X.imp[a.id]);
   const rankPeople = whoRank.filter(n => n.kind === "person");
   const gs = store.get("graph", {});
-  const DEF_ET = Object.fromEntries(ETYPES.map(([k, , , on]) => [k, on]));
+  const DEF_ET = dict(ETYPES.map(([k, , , on]) => [k, on]));
   const st = {
     etypes: {...DEF_ET, ...(gs.etypes || {})},
     kinds: gs.kinds || {person: true, firm: true, lp: true, company: true},
@@ -1906,7 +1922,7 @@ function renderGraph(m, opts = {}) {
     (okNode(nodeById[e.source]) && okNode(nodeById[e.target])) ||
     (e.source === focus && fb(nodeById[e.target])) || (e.target === focus && fb(nodeById[e.source])));
   const drawn = e => e.types.some(t => t !== "co-invested" && st.etypes[t]);
-  const adj = () => { const a = {}; G.edges.filter(okEdge).forEach(e => { (a[e.source] ||= []).push(e); (a[e.target] ||= []).push(e); }); return a; };
+  const adj = () => { const a = Object.create(null); G.edges.filter(okEdge).forEach(e => { (a[e.source] ||= []).push(e); (a[e.target] ||= []).push(e); }); return a; };
   // "Via <firm>" links: a focused person's firm deals that don't name a partner. For MPs, GPs and founders the firm's
   // book is effectively theirs, so these default on for them and off for everyone else (toggle per person in the card).
   const fdFor = {};
@@ -1959,7 +1975,7 @@ function renderGraph(m, opts = {}) {
     if (st.etypes["co-invested"] && st.etypes.invested && fn.kind !== "company" && mine.length) {
       // Co-investors, two-mode: whoever else is in these companies, ranked by how many they share, then by importance.
       const mates = new Set(fn.kind === "firm" ? membersOf(F).map(x => x.id) : firmsOf(F).flatMap(f => [f, ...membersOf(f).map(x => x.id)]));
-      const cand = {};
+      const cand = Object.create(null);
       mine.forEach(c => (X.inv[c] || []).forEach(e => {
         const o = X.other(e, c); if (o === F || !okNode(nodeById[o])) return;
         if (ids.has(o)) { if (!links.some(l => (l.source === o && l.target === c) || (l.source === c && l.target === o))) links.push({...e, co: true}); return; }
@@ -2301,6 +2317,41 @@ function roundsTable(c) {
   return stageLegend() + `<table><thead><tr><th>Date</th><th>Round</th><th>Amount</th><th>Led by</th><th>Also in</th><th></th></tr></thead><tbody>${
     c.rounds.map(r => `<tr><td>${esc(r.date)}</td><td>${esc(r.round)}${r.stage ? `<div>${stg(r.stage)}</div>` : ""}</td><td>${esc(r.amount)}${r.valuation ? `<div class="muted">${esc(r.valuation)}</div>` : ""}</td><td>${esc((r.leads || []).join(", "))}</td><td class="muted">${esc((r.others || []).slice(0, 14).join(", "))}${(r.others || []).length > 14 ? ` +${r.others.length - 14}` : ""}</td><td>${src(r.src)}</td></tr>`).join("")}</tbody></table>`;
 }
+// ---- profile "Deals first" block: the companies a person (or fund) is named on, hot and recent first, then top intel ----
+const CHIP_MAX = 24;
+function dealChip(x) {
+  const hot = V.hot && V.hot[x.c], nm = esc(x.n), tip = `${x.r || "round"}${x.d ? " · " + x.d.slice(0, 7) : ""}${x.l ? " · led" : ""}`;
+  return `<span class="dc${x.l ? " led" : ""}${x.s ? " sd-" + x.s : ""}" data-open="co:${esc(x.c)}" title="${esc(tip)}" tabindex="0">${nm}${hot ? ` <span class="hotb" title="Hot: ${esc(hot)}">hot</span>` : ""}<span class="dm">${esc(x.r.replace(/^Series /, ""))}${x.d ? " " + esc(x.d.slice(2, 7)) : ""}</span></span>`;
+}
+function firmBookOf(slug) {  // companies credited to a firm itself or to anyone on its team
+  const out = new Map();
+  ((V.teams || {})[slug] || []).forEach(m => (m.deals || []).forEach(x => out.has(x.slug) || out.set(x.slug, {c: x.slug, n: x.name, r: (x.round || "").replace(/\s*\(.*$/, "").slice(0, 40), d: "", s: x.stage || "", l: x.lead ? 1 : 0, t: x.tier})));
+  ((V.graph && V.graph.edges) || []).forEach(e => { if (!e.types.includes("invested") || (e.source !== slug && e.target !== slug)) return;
+    const c = e.source === slug ? e.target : e.source; if (!out.has(c) && coBySlug[c]) out.set(c, {c, n: coBySlug[c].name, r: "", d: "", s: e.stg || "", l: 0, t: coBySlug[c].tier}); });
+  return [...out.values()].filter(x => x.t <= 4);
+}
+function dealsFirst(d) {
+  const person = d.kind === "person", own = person ? ((V.pdeals || {})[d.slug] || []) : firmBookOf(d.slug);
+  const items = own.filter(x => x.t <= 4).sort((a, b) => (!!(V.hot && V.hot[b.c]) - !!(V.hot && V.hot[a.c])) || (a.t - b.t) || (b.l - a.l) || (b.d || "").localeCompare(a.d || ""));
+  let more = "";
+  if (person && items.length) {  // founders and MPs: their firm's book is effectively theirs
+    const firm = ((V.graph && V.graph.edges) || []).find(e => e.types.includes("at") && !e.former && (e.source === d.slug || e.target === d.slug) && bySlug[e.source === d.slug ? e.target : e.source]?.kind === "firm");
+    const f = firm && (firm.source === d.slug ? firm.target : firm.source);
+    const fname = f ? bySlug[f].name.replace(/\s*\(.*$/, "").toLowerCase() : "";
+    // only partners who run the firm: seniority mp/gp, or a "founder" role that names this firm (not a company they founded)
+    if (f && (["mp", "gp"].includes(String(d.seniority || "").toLowerCase().trim()) || (String(d.seniority || "").toLowerCase().trim() !== "angel" && fname && new RegExp("(founder|founding partner|managing partner).{0,40}" + fname.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i").test(d.role || "")))) {
+      const mine = new Set(items.map(x => x.c)), rest = firmBookOf(f).filter(x => !mine.has(x.c));
+      if (rest.length) more = `<div class="more">+${rest.length} more via ${link(f, bySlug[f].name.replace(/\s*\(.*$/, ""))}, the firm's other deals. <span class="pl" data-graph-hash="graph/person/${esc(d.slug)}">See them in the graph</span></div>`;
+    }
+  }
+  const c = CARD[d.slug], intel = c && c.items ? c.items.slice(0, 3) : [];
+  if (!items.length && !intel.length) return "";
+  const hotN = items.filter(x => V.hot && V.hot[x.c]).length;
+  return `<section class="dl1"><h2>${person ? "Deals" : "Portfolio"} <span class="muted num">${items.length}</span>${hotN ? `<span class="hotb">${hotN} hot</span>` : ""}</h2>
+    ${items.length ? `<div class="dls">${items.slice(0, CHIP_MAX).map(dealChip).join("")}</div>${items.length > CHIP_MAX ? `<div class="more">+${items.length - CHIP_MAX} more. <span class="pl" data-graph-hash="graph/${person ? "person" : "fund"}/${esc(d.slug)}">See all in the graph</span></div>` : ""}` : `<p class="muted">No named deals yet.</p>`}${more}
+    ${intel.length ? `<h2 style="margin-top:14px">Intel${c.nk ? ` <span class="sg s2">${c.nk} key</span>` : ""}</h2><div class="intel">${intel.map(i => `<div class="it${i.sig === 2 ? " s2" : ""}"><div>${esc(i.insight)}</div>${i.evidence_quote ? `<div class="q">“${esc(i.evidence_quote)}” ${src(i.source_url)}</div>` : ""}</div>`).join("")}</div>` : ""}
+  </section>`;
+}
 let docKey = null;
 function docBar(key) {
   const slug = key.replace(/^co:/, ""), d = bySlug[slug];
@@ -2321,6 +2372,7 @@ function openDoc(key) {
   docKey = key; hideHC();
   if (!V.leadrows) need("leads").then(() => { MIX = null; if (docKey === key && $("drawer").classList.contains("on") && loaded("docs")) openDoc(key); }).catch(() => {});
   if (!loaded("extra")) need("extra").then(() => { if (docKey === key && $("drawer").classList.contains("on") && loaded("docs")) openDoc(key); }).catch(() => {});
+  if (!loaded("insights")) need("insights").then(() => { if (docKey === key && $("drawer").classList.contains("on") && loaded("docs")) openDoc(key); }).catch(() => {});
   if (!loaded("docs")) {
     const d = bySlug[key.replace(/^co:/, "")];
     $("dpath").textContent = d ? d.path : "";
@@ -2350,13 +2402,16 @@ function openDoc(key) {
   $("dpath").textContent = path;
   $("dbody").innerHTML = window.DOMPurify ? DOMPurify.sanitize(html) : html;
   const h1 = $("dbody").querySelector("h1"), bar = docBar(key);
-  if (h1) h1.insertAdjacentHTML("afterend", bar); else $("dbody").insertAdjacentHTML("afterbegin", bar);
+  const first = !key.startsWith("co:") && ["person", "firm"].includes(bySlug[key]?.kind) ? dealsFirst(bySlug[key]) : "";
+  if (h1) h1.insertAdjacentHTML("afterend", bar + first); else $("dbody").insertAdjacentHTML("afterbegin", bar + first);
   try { linkMentions($("dbody"), key.replace(/^co:/, "")); } catch (err) { console.warn(err); }
   $("dbody").querySelectorAll("a").forEach(a => { a.target = "_blank"; a.rel = "noopener"; });
   $("drawer").classList.add("on"); $("scrim").classList.add("on"); $("drawer").scrollTop = 0;
 }
 function closeDoc() { $("drawer").classList.remove("on"); $("scrim").classList.remove("on"); }
 document.addEventListener("click", e => {
+  const g = e.target.closest("[data-graph-hash]");
+  if (g) { e.stopPropagation(); closeDoc(); location.hash = g.dataset.graphHash; return; }
   const t = e.target.closest("[data-open]");
   if (t && !e.target.closest("a") && !e.target.closest("[data-pick]")) { e.stopPropagation(); openDoc(t.dataset.open); }
 });
