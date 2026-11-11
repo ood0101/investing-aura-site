@@ -78,6 +78,12 @@
 .dl1 .intel .it{border-left:3px solid var(--good);padding-left:10px;font-size:13.5px}
 .dl1 .intel .it.s2{border-left-color:var(--warn)}
 .dl1 .intel .q{color:var(--muted);font-style:italic;font-size:12.5px}
+.tb-role{font:600 10.5px/1 var(--f-data);text-transform:uppercase;letter-spacing:.05em;padding:3px 6px;border-radius:4px;white-space:nowrap;background:var(--chip);color:var(--ink)}
+.tb-role.r-signed{background:var(--warn-soft);color:var(--warn)} .tb-role.r-tested,.tb-role.r-evaluated{background:var(--good-soft);color:var(--good)} .tb-role.r-board{background:var(--accent-soft);color:var(--accent)}
+.tb-q{color:var(--muted);font-style:italic;font-size:12.5px}
+.tbwho{margin:12px 0 4px;padding:10px 14px;border:1px solid var(--line);border-left:3px solid var(--good);border-radius:8px;background:var(--panel);font-size:13.5px}
+.tbwho h2{font-size:14px;margin:0 0 6px}
+.tbwho .row{display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;margin:4px 0}
 .colophon{font:italic 13px var(--f-display);text-align:center;letter-spacing:.02em}
 .style-sw{margin-left:auto;font:500 11px var(--f-data);text-transform:uppercase;letter-spacing:.1em;background:none;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:4px 10px;cursor:pointer}
 .style-sw:hover{color:var(--ink);border-color:var(--ink)}
@@ -550,7 +556,7 @@ a.chip:hover{background:var(--accent-soft);color:var(--accent)}
 <div class="toast" id="toast" role="status"></div>
 <div class="hc" id="hc" role="dialog" aria-label="Quick look"></div>
 
-<script src="data.js?b=47f25764b4"></script>
+<script src="data.js?b=7571ea46c4"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
@@ -581,7 +587,7 @@ function mergePart(name) {
     if (p.cos5) p.cos5.forEach(c => { V.cos.push(c); coBySlug[c.slug] = c; });  // non-AI companies, kept out of the first load
     V.cos.forEach(c => (p.rounds[c.slug] || []).forEach((d, i) => c.rounds[i] && Object.assign(c.rounds[i], d)));
     V.graph = p.graph;
-    V.pdeals = p.pdeals; V.hot = p.hot;
+    V.pdeals = p.pdeals; V.hot = p.hot; V.tbuyers = p.tbuyers || [];
     V.backers = p.backers; V.conv = p.conv; A.syn = p.syn; V.teams = p.teams;
     Object.assign(CONV_C, dict((V.conv?.cos || []).map(r => [r.company_slug, r])));
     Object.assign(CONV_I, dict((V.conv?.inv || []).filter(r => r.slug).map(r => [r.slug, r])));
@@ -1124,6 +1130,41 @@ function backedBy(firm) {
   if (!bs.length) return `<div class="backed none">LPs: <span class="muted">none known yet</span></div>`;
   return `<div class="backed">LPs: ${bs.map(b => `<span class="chip lpchip${b.status === "in" ? "" : " dim"}" title="${esc(b.lp_type + " · " + b.status + (b.how ? " · " + b.how : "") + " · " + b.fund)}">${bySlug[b.lp] ? link(b.lp, b.lp_name) : esc(b.lp_name)}${b.status !== "in" ? ` <span class="muted">(${esc(b.status)})</span>` : ""}</span>`).join(" ")}</div>`;
 }
+// ---- Technical buyers: the engineers and CTOs who tested, signed or were quoted on a deal ----
+const TB_ROLES = {evaluated: "Evaluated", tested: "Tested", signed: "Signed", quoted: "Quoted"};
+const tbRole = r => `<span class="tb-role r-${esc(r)}">${esc(TB_ROLES[r] || r)}</span>`;
+const tbFor = {company: c => (V.tbuyers || []).filter(x => x.c === c), person: p => (V.tbuyers || []).filter(x => x.p === p)};
+function whoTested(company) {
+  const L = tbFor.company(company); if (!L.length) return "";
+  return `<section class="tbwho"><h2>Who tested it <span class="muted num">${L.length}</span></h2>${L.map(x => `<div class="row">${link(x.p, x.pn)}${x.f ? ` <span class="muted">${link(x.f, x.fn)}</span>` : ""} ${tbRole(x.role)} <span>${esc(x.w)}</span>${x.q ? ` <span class="tb-q">“${esc(x.q)}”</span>` : ""} ${src(x.u)}</div>`).join("")}</section>`;
+}
+VIEWS.tbuyers = {
+  label: "Technical buyers", n: A.meta.n_tbuyers || "", needs: ["extra"],
+  render(m) {
+    const all = V.tbuyers || [], roles = Object.keys(TB_ROLES).filter(r => all.some(x => x.role === r));
+    m.innerHTML = `<p class="intro">The person who matters on a chip or infrastructure deal is often not an investor. It's the engineer or CTO who tested the hardware, signed the order or or is quoted in the announcement. Each row is one person, one company and one role, with the evidence.</p>
+      ${all.length ? `<div class="bar"><input type="search" id="tq" placeholder="Search company, firm or person…" value="${esc(S("tq", ""))}">${seg("tr", [["", "All roles"], ...roles.map(r => [r, TB_ROLES[r]])], S("tr", ""))}<span class="count" id="tc"></span></div><div id="tt"></div>`
+        : `<p class="muted">Nothing here yet. Rows are written as relationships starting "evaluated:", "tested:", "signed:" or "quoted:" (see the Technical buyers rule in CLAUDE.md).</p>`}`;
+    if (!all.length) return;
+    const draw = () => {
+      const q = ST.tq.toLowerCase(), rows = all.filter(x => (!ST.tr || x.role === ST.tr) && (!q || (x.cn + " " + x.fn + " " + x.pn + " " + x.w).toLowerCase().includes(q)));
+      $("tc").textContent = `${rows.length} of ${all.length}`;
+      table($("tt"), [
+        {k: "cn", t: "Company", h: r => link(r.c, r.cn)},
+        {k: "fn", t: "Firm", h: r => r.f ? link(r.f, r.fn) : ""},
+        {k: "pn", t: "Person", h: r => link(r.p, r.pn)},
+        {k: "role", t: "Role", v: r => r.role, h: r => tbRole(r.role)},
+        {k: "w", t: "What they did", h: r => esc(r.w)},
+        {k: "q", t: "Evidence", h: r => `${r.q ? `<span class="tb-q">“${esc(r.q)}”</span> ` : ""}${src(r.u)}`},
+      ], rows, {sort: ["cn", 1], empty: "No matches"});
+      save();
+    };
+    $("tq").oninput = e => { ST.tq = e.target.value; draw(); };
+    onSeg("tr", v => { ST.tr = v; draw(); });
+    draw();
+  },
+};
+
 VIEWS.conviction = {
   label: "Conviction", n: A.meta.n_double_down ?? "", needs: ["extra"],
   render(m) {
@@ -2345,9 +2386,11 @@ function dealsFirst(d) {
     }
   }
   const c = CARD[d.slug], intel = c && c.items ? c.items.slice(0, 3) : [];
-  if (!items.length && !intel.length) return "";
+  if (!items.length && !intel.length && !tb.length) return "";
   const hotN = items.filter(x => V.hot && V.hot[x.c]).length;
-  return `<section class="dl1"><h2>${person ? "Deals" : "Portfolio"} <span class="muted num">${items.length}</span>${hotN ? `<span class="hotb">${hotN} hot</span>` : ""}</h2>
+  const tb = person ? tbFor.person(d.slug) : [];
+  const tbHtml = tb.length ? `<div class="more" style="margin:0 0 8px"><span class="tb-role r-tested">Technical buyer</span> ${tb.map(x => `${tbRole(x.role)} ${link(x.c, x.cn)}`).join(" · ")}</div>` : "";
+  return `<section class="dl1">${tbHtml}<h2>${person ? "Deals" : "Portfolio"} <span class="muted num">${items.length}</span>${hotN ? `<span class="hotb">${hotN} hot</span>` : ""}</h2>
     ${items.length ? `<div class="dls">${items.slice(0, CHIP_MAX).map(dealChip).join("")}</div>${items.length > CHIP_MAX ? `<div class="more">+${items.length - CHIP_MAX} more. <span class="pl" data-graph-hash="graph/${person ? "person" : "fund"}/${esc(d.slug)}">See all in the graph</span></div>` : ""}` : `<p class="muted">No named deals yet.</p>`}${more}
     ${intel.length ? `<h2 style="margin-top:14px">Intel${c.nk ? ` <span class="sg s2">${c.nk} key</span>` : ""}</h2><div class="intel">${intel.map(i => `<div class="it${i.sig === 2 ? " s2" : ""}"><div>${esc(i.insight)}</div>${i.evidence_quote ? `<div class="q">“${esc(i.evidence_quote)}” ${src(i.source_url)}</div>` : ""}</div>`).join("")}</div>` : ""}
   </section>`;
@@ -2387,7 +2430,7 @@ function openDoc(key) {
     const c = coBySlug[key.slice(3)]; if (!c) return;
     const d = bySlug[c.slug];
     path = d ? d.path : "company";
-    html = `<h1>${esc(c.name)}</h1><p>${tierPill(c)} ${c.people.length ? "People we profiled: " + c.people.map(s => link(s)).join(", ") : ""}</p><h2>Rounds</h2>${roundsTable(c)}` +
+    html = `<h1>${esc(c.name)}</h1><p>${tierPill(c)} ${c.people.length ? "People we profiled: " + c.people.map(s => link(s)).join(", ") : ""}</p><h2>Rounds</h2>${roundsTable(c)}${whoTested(c.slug)}` +
       (d ? (window.marked ? marked.parse(d.body.replace(/^# .*\n/, "")) : `<pre>${esc(d.body)}</pre>`) : "<p class='muted'>No write-up yet.</p>");
   } else {
     const d = bySlug[key];
