@@ -556,7 +556,7 @@ a.chip:hover{background:var(--accent-soft);color:var(--accent)}
 <div class="toast" id="toast" role="status"></div>
 <div class="hc" id="hc" role="dialog" aria-label="Quick look"></div>
 
-<script src="data.js?b=de3557f8df"></script>
+<script src="data.js?b=bc3cbfaa7f"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
@@ -594,18 +594,33 @@ function mergePart(name) {
   }
   return p;
 }
-function need(name) {
-  if (PARTS[name]) return PARTS[name];
-  return PARTS[name] = new Promise((ok, no) => {
-    if (window.AURA_PART && window.AURA_PART[name]) return ok(mergePart(name));
+function loadScript(src) {
+  return new Promise((ok, no) => {
     const s = document.createElement("script");
-    s.src = `data-${name}.js?b=${(A.meta && A.meta.build) || ""}`;
-    s.onload = () => window.AURA_PART && window.AURA_PART[name] ? ok(mergePart(name)) : no(new Error(name));
-    s.onerror = () => { delete PARTS[name]; no(new Error("Could not load " + name)); };
+    s.src = src; s.onload = ok; s.onerror = () => no(new Error("Could not load " + src));
     document.head.appendChild(s);
   });
 }
-const loaded = name => !!(window.AURA_PART && window.AURA_PART[name] && PARTS[name]);
+// A big part is cut into chunk files (build_ui.py chunked()): data-<k>.js carries __n, data-<k>.2.js .. .<n>.js the rest.
+function need(name) {
+  if (PARTS[name]) return PARTS[name];
+  const b = (A.meta && A.meta.build) || "", P = window.AURA_PART || (window.AURA_PART = {});
+  return PARTS[name] = (async () => {
+    if (!P[name]) { await loadScript(`data-${name}.js?b=${b}`); if (!P[name]) throw new Error(name); }
+    const n = P[name].__n || 1;
+    if (n > 1) {
+      await Promise.all(Array.from({length: n - 1}, (_, i) => P[`${name}.${i + 2}`] ? 0 : loadScript(`data-${name}.${i + 2}.js?b=${b}`)));
+      for (let i = 2; i <= n; i++) {
+        const c = P[`${name}.${i}`]; if (!c) throw new Error(name);
+        for (const [f, v] of Object.entries(c)) P[name][f] = Array.isArray(v) ? (P[name][f] || []).concat(v) : Object.assign(P[name][f] || {}, v);
+        delete P[`${name}.${i}`];
+      }
+      P[name].__n = 1;
+    }
+    return mergePart(name);
+  })().catch(e => { delete PARTS[name]; throw e; });
+}
+const loaded = name => !!(window.AURA_PART && window.AURA_PART[name] && PARTS[name] && (window.AURA_PART[name].__n || 1) === 1);
 const RANK = {high: 3, medium: 2, low: 1, skip: 0};
 const lvl = v => { const k = String(v || "").toLowerCase().split(/[^a-z]/)[0]; return k in RANK ? k : ""; };
 const pill = v => { const k = lvl(v); return k ? `<span class="pill p-${k}">${k}</span>` : ""; };
