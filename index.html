@@ -558,7 +558,7 @@ a.chip:hover{background:var(--accent-soft);color:var(--accent)}
 <div class="toast" id="toast" role="status"></div>
 <div class="hc" id="hc" role="dialog" aria-label="Quick look"></div>
 
-<script src="data.js?b=889b88559a"></script>
+<script src="data.js?b=955afc0e48"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
@@ -589,7 +589,7 @@ function mergePart(name) {
     if (p.cos5) p.cos5.forEach(c => { V.cos.push(c); coBySlug[c.slug] = c; });  // non-AI companies, kept out of the first load
     V.cos.forEach(c => (p.rounds[c.slug] || []).forEach((d, i) => c.rounds[i] && Object.assign(c.rounds[i], d)));
     V.graph = p.graph;
-    V.pdeals = p.pdeals; V.hot = p.hot; V.tbuyers = p.tbuyers || []; V.lpaccess = p.lpaccess || {};
+    V.pdeals = p.pdeals; V.hot = p.hot; V.tbuyers = p.tbuyers || []; V.dealmakers = p.dealmakers || []; V.lpaccess = p.lpaccess || {};
     V.backers = p.backers; V.conv = p.conv; A.syn = p.syn; V.teams = p.teams;
     Object.assign(CONV_C, dict((V.conv?.cos || []).map(r => [r.company_slug, r])));
     Object.assign(CONV_I, dict((V.conv?.inv || []).filter(r => r.slug).map(r => [r.slug, r])));
@@ -1188,6 +1188,52 @@ VIEWS.tbuyers = {
     };
     $("tq").oninput = e => { ST.tq = e.target.value; draw(); };
     onSeg("tr", v => { ST.tr = v; draw(); });
+    draw();
+  },
+};
+
+// ---- Operator dealmakers: people inside operating companies who are on deals (today's "Volpi at Cisco") ----
+const SEATS = {cvc: "Corporate venture arm", "corp-dev": "Corporate development", "technical-buyer": "Tested it", moved: "Moved to a fund"};
+VIEWS.dealmakers = {
+  label: "Dealmakers", n: A.meta.n_dealmakers || "", needs: ["extra"],
+  render(m) {
+    const all = V.dealmakers || [], seats = Object.keys(SEATS).filter(k => all.some(x => x.seat === k));
+    m.innerHTML = `<p class="intro">People inside operating companies who are on deals: corporate venture arms, corporate development, and the engineers who test a product before their company buys or invests. Think Mike Volpi running deals at Cisco before he was a VC. <b>Recent</b> counts companies they were named on in the last 24 months, and <b>Frontier</b> is how many of those are labs, chips or compute. <b>Quiet</b> means few of our profiles mention them yet.</p>
+      <div class="bar"><input type="search" id="dq" placeholder="Search person, company or seat…" value="${esc(S("dq", ""))}">
+        ${seg("dseat", [["", "All seats"], ...seats.map(k => [k, SEATS[k]])], S("dseat", ""))}
+        <label class="tog"><input type="checkbox" id="dquiet" ${S("dquiet", false) ? "checked" : ""}> Quiet only</label>
+        <label class="tog"><input type="checkbox" id="dnew" ${S("dnew", false) ? "checked" : ""}> Not profiled yet</label>
+        <span class="count" id="dc"></span></div><div id="dt"></div>`;
+    const quiet = r => r.by <= 3;
+    const draw = () => {
+      const q = ST.dq.toLowerCase(), tri = picks();
+      const rows = all.filter(r => (!ST.dseat || r.seat === ST.dseat) && (!ST.dquiet || quiet(r)) && (!ST.dnew || !r.prof)
+        && (!q || (r.pn + " " + r.co + " " + r.role + " " + r.cos.map(c => c.n).join(" ")).toLowerCase().includes(q)));
+      $("dc").textContent = `${rows.length} of ${all.length}`;
+      table($("dt"), [
+        {k: "pn", t: "Person", h: r => `${r.prof ? link(r.p, r.pn) : `<span class="name">${esc(r.pn)}</span>`}${quiet(r) ? ` <span class="chip">quiet</span>` : ""}
+          <div class="muted">${clip(r.role, 90)}</div>`},
+        {k: "co", t: "Seat", v: r => r.co, h: r => `${esc(r.co)}<div class="muted">${esc(SEATS[r.seat] || r.seat)}${r.sen ? " · " + esc(r.sen) : ""}</div>${r.moved ? `<div class="muted">left ${esc(r.moved.until)} → ${esc(r.moved.now || "?")}</div>` : ""}`},
+        {k: "nr", t: "Recent", num: 1},
+        {k: "nf", t: "Frontier", num: 1},
+        {k: "t", t: "Tested", num: 1, h: r => r.t || ""},
+        {k: "cos", t: "Named on", v: r => r.n, h: r => r.cos.map(c => `<span class="chip link${c.t === 1 ? " t1" : ""}" data-open="co:${esc(c.s)}"${c.r ? "" : ` style="opacity:.6" title="more than 24 months ago"`}>${esc(c.n)}</span>`).join("") + (r.n > r.cos.length ? `<span class="muted">+${r.n - r.cos.length}</span>` : "")},
+        {k: "by", t: "Named by", num: 1},
+        {k: "q", t: "", v: r => r.prof ? 1 : 0, h: r => r.prof ? "" : `<button class="btn sm${tri[r.p] === "keep" ? " on" : ""}" data-dq="${esc(r.p)}">${tri[r.p] === "keep" ? "Queued" : "Queue"}</button>`},
+      ], rows, {sort: ["nr", -1], limit: 200, empty: "No one matches."});
+      save();
+    };
+    $("dt").addEventListener("click", e => {
+      const b = e.target.closest("[data-dq]"); if (!b) return;
+      e.stopPropagation();
+      const r = all.find(x => x.p === b.dataset.dq), on = picks()[r.p] === "keep";
+      setPick(r.p, on ? null : "keep", {name: r.pn, kind: "person", note: `Operator dealmaker: ${SEATS[r.seat] || r.seat} at ${r.co}; named on ${r.nr} recent deals`});
+      draw(); tabs();
+    });
+    $("dq").oninput = e => { ST.dq = e.target.value; draw(); };
+    onSeg("dseat", v => { ST.dseat = v; draw(); });
+    $("dquiet").onchange = e => { ST.dquiet = e.target.checked; draw(); };
+    $("dnew").onchange = e => { ST.dnew = e.target.checked; draw(); };
     draw();
   },
 };
