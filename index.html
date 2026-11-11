@@ -301,6 +301,8 @@ aside{overflow-x:hidden}
 .md table{font-size:12px;margin:8px 0;display:block;overflow-x:auto}
 .md th{position:static;cursor:default}
 .md td,.md th{padding:6px 8px;border:1px solid var(--line)}
+.md img{max-width:100%;height:auto}
+.md td img{width:44px;height:44px;max-width:none;object-fit:cover;border-radius:50%;display:block}
 .md blockquote{margin:8px 0;padding:6px 12px;border-left:3px solid var(--line);color:var(--muted)}
 .md code{background:var(--chip);padding:1px 4px;border-radius:3px;font-size:12px}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}
@@ -556,7 +558,7 @@ a.chip:hover{background:var(--accent-soft);color:var(--accent)}
 <div class="toast" id="toast" role="status"></div>
 <div class="hc" id="hc" role="dialog" aria-label="Quick look"></div>
 
-<script src="data.js?b=f2eb37a78d"></script>
+<script src="data.js?b=346ae65b38"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
