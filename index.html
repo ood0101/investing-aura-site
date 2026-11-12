@@ -235,6 +235,10 @@ a{color:var(--accent)}
 .sg{font:600 10.5px/1 var(--f-data);text-transform:uppercase;letter-spacing:.04em;padding:3px 6px;border-radius:4px;white-space:nowrap}
 .sg.s2{background:var(--warn-soft);color:var(--warn);border:1px solid color-mix(in srgb,var(--warn) 45%,transparent)}
 .sg.s1{background:var(--good-soft);color:var(--good)}
+.vf{font:500 10.5px/1 var(--f-data);padding:3px 6px;border-radius:4px;white-space:nowrap;border:1px solid var(--line)}
+.vf.ok{color:var(--good)}
+.vf.over{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 45%,transparent)}
+.vf.dead{color:var(--muted,#888)}
 .pl.k::after,.mention.k::after{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--warn);margin-left:3px;vertical-align:super}
 .hc .hkey{margin:8px 0 4px;padding:7px 9px;border-left:3px solid var(--warn);background:var(--warn-soft);border-radius:0 6px 6px 0;line-height:1.45}
 .hc .hkey .q{color:var(--muted);font-style:italic;font-size:12px;margin-top:3px}
@@ -559,7 +563,7 @@ a.chip:hover{background:var(--accent-soft);color:var(--accent)}
 <div class="toast" id="toast" role="status"></div>
 <div class="hc" id="hc" role="dialog" aria-label="Quick look"></div>
 
-<script src="data.js?b=712525d5ce"></script>
+<script src="data.js?b=407a9785f8"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
@@ -575,6 +579,9 @@ const bySlug = dict(DOCS.map(d => [d.slug, d]));
 const coBySlug = dict(V.cos.map(c => [c.slug, c]));
 const CARD = dict(V.cards.map(c => [c.slug, c]));
 const SIG = ["", "Notable", "Key"];
+// Codex quote checks (build_ui verify_marks): ok = quote found in the source, over = insight reads more into the source than it says, dead = source not reachable
+const VF = {ok: ["✓ verified", "The quote was re-checked and found in the source"], over: ["reads beyond source", "The quote is real, but this insight claims more than the source says; confidence was lowered"], dead: ["source not reachable", "The source link could not be opened when re-checked"]};
+const vfTag = i => VF[i.vf] ? `<span class="vf ${i.vf}" title="${VF[i.vf][1]}">${VF[i.vf][0]}</span>` : "";
 const sigTag = i => i.sig ? `<span class="sg s${i.sig}" title="${i.sig === 2 ? "Key: non-obvious, high confidence, high fit with your lens" : "Notable: not in press or on firm pages"}">${SIG[i.sig]}</span>` : "";
 const cruxOf = c => c.crux || bySlug[c.slug]?.crux || bySlug[c.slug]?.take || "";
 const hasKey = s => (CARD[s]?.nk || 0) > 0;
@@ -952,7 +959,7 @@ VIEWS.brief = {
       $("cards").innerHTML = cards.slice(0, limit).map(c => {
         const items = c.items.filter(i => (!ST.bs || i.source_type === ST.bs) && (!ST.bsg || (i.sig || 0) >= +ST.bsg));
         const ins = i => `<div class="ins s${i.sig || 0}"><div>${esc(i.insight)}</div>${i.evidence_quote ? `<div class="q">“${esc(i.evidence_quote)}”</div>` : ""}
-          <div class="meta">${sigTag(i)}<span class="chip">${esc(i.type)}</span>${i.non_obvious ? `non-obvious ${pill(i.non_obvious)}` : ""}<span>${esc(i.source_type)}${i.timestamp_in_source ? " · " + esc(i.timestamp_in_source) : ""}</span>${src(i.source_url)}</div></div>`;
+          <div class="meta">${sigTag(i)}${vfTag(i)}<span class="chip">${esc(i.type)}</span>${i.non_obvious ? `non-obvious ${pill(i.non_obvious)}` : ""}<span>${esc(i.source_type)}${i.timestamp_in_source ? " · " + esc(i.timestamp_in_source) : ""}</span>${src(i.source_url)}</div></div>`;
         return `<article class="card"><h3>${c.kind === "person" ? avatar(c.name, photoOf(c.slug), "md") : ""}${link(c.slug, c.name)} <span class="chip">${KIND[c.kind] || c.kind}</span>${pill(c.fit)}<span class="muted num">${(c.full || ST.bs || ST.bsg) ? items.length : c.n} insight${((c.full || ST.bs || ST.bsg) ? items.length : c.n) === 1 ? "" : "s"}</span>${c.nk ? `<span class="sg s2">${c.nk} key</span>` : ""}${socials(c.slug, 1)}</h3>
           ${cruxOf(c) ? `<div class="crux">${clip(cruxOf(c), 360)}</div>` : ""}
           ${items.slice(0, 3).map(ins).join("")}
@@ -2364,7 +2371,7 @@ function renderGraph(m, opts = {}) {
   const stat = (v, l) => `<div class="gs"><b>${v}</b><span>${l}</span></div>`;
   const insightList = (slug, n = 3) => {
     const c = cardOf[slug]; if (!c) return "";
-    return `<h4>Best insights <span class="muted">(${c.n})</span></h4>${c.items.slice(0, n).map(i => `<div class="gi s${i.sig || 0}"><div>${esc(i.insight)}</div>${i.evidence_quote ? `<div class="q">“${esc(i.evidence_quote)}”</div>` : ""}<div class="meta">${sigTag(i)} ${pill(i.non_obvious)} <span>${esc(i.source_type)}</span> ${src(i.source_url)}</div></div>`).join("")}`;
+    return `<h4>Best insights <span class="muted">(${c.n})</span></h4>${c.items.slice(0, n).map(i => `<div class="gi s${i.sig || 0}"><div>${esc(i.insight)}</div>${i.evidence_quote ? `<div class="q">“${esc(i.evidence_quote)}”</div>` : ""}<div class="meta">${sigTag(i)} ${vfTag(i)} ${pill(i.non_obvious)} <span>${esc(i.source_type)}</span> ${src(i.source_url)}</div></div>`).join("")}`;
   };
   function card(n) {
     const d = bySlug[n.id], co = coBySlug[n.id];
