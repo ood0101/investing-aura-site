@@ -185,6 +185,11 @@ a{color:var(--accent)}
 .mem .nm{font-weight:600} .mem .rl{font-size:12px;color:var(--muted)}
 .mem .dl{margin-top:6px;display:flex;flex-wrap:wrap;gap:3px}
 .chip.lead{background:var(--accent-soft);color:var(--accent)}
+a.chip{text-decoration:none} .chip.sg-left{background:var(--warn-soft);color:var(--warn)} .chip.sg-fund,.chip.sg-new{background:var(--accent-soft);color:var(--accent)} .chip.sg-lp{background:var(--good-soft);color:var(--good)}
+.chip .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;margin-right:5px;vertical-align:1px}
+.tnote{font:inherit;font-size:12px;padding:3px 6px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);width:100%;min-width:120px;margin-top:4px}
+.tlog{width:100%;font-size:13px} .tlog div{padding:3px 0;border-top:1px solid var(--line)} .tlog b{font-weight:600;margin-right:6px;font-variant-numeric:tabular-nums}
+details.em{margin-top:22px} details.em>summary{cursor:pointer;font-weight:600;padding:6px 0}
 .chip.t1{border:1px solid color-mix(in srgb, var(--accent) 40%, transparent)}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .av{background:hsl(var(--h,200) 30% 24%);color:hsl(var(--h,200) 60% 82%)}}
 :root[data-theme="dark"] .av{background:hsl(var(--h,200) 30% 24%);color:hsl(var(--h,200) 60% 82%)}
@@ -563,7 +568,7 @@ a.chip:hover{background:var(--accent-soft);color:var(--accent)}
 <div class="toast" id="toast" role="status"></div>
 <div class="hc" id="hc" role="dialog" aria-label="Quick look"></div>
 
-<script src="data.js?b=ed893ec1e9"></script>
+<script src="data.js?b=6488f7b315"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
@@ -597,7 +602,7 @@ function mergePart(name) {
     if (p.cos5) p.cos5.forEach(c => { V.cos.push(c); coBySlug[c.slug] = c; });  // non-AI companies, kept out of the first load
     V.cos.forEach(c => (p.rounds[c.slug] || []).forEach((d, i) => c.rounds[i] && Object.assign(c.rounds[i], d)));
     V.graph = p.graph;
-    V.pdeals = p.pdeals; V.hot = p.hot; V.tbuyers = p.tbuyers || []; V.dealmakers = p.dealmakers || []; V.lpaccess = p.lpaccess || {};
+    V.pdeals = p.pdeals; V.hot = p.hot; V.tbuyers = p.tbuyers || []; V.dealmakers = p.dealmakers || []; V.lpaccess = p.lpaccess || {}; V.emerging = p.emerging || {};
     V.backers = p.backers; V.conv = p.conv; A.syn = p.syn; V.teams = p.teams;
     Object.assign(CONV_C, dict((V.conv?.cos || []).map(r => [r.company_slug, r])));
     Object.assign(CONV_I, dict((V.conv?.inv || []).filter(r => r.slug).map(r => [r.slug, r])));
@@ -706,7 +711,7 @@ function setPick(slug, val, meta = {}) {
   if (!window.claude?.use) return;  // public site: no shared database
   try {
     const db = await window.claude.use("db"); if (!db) return;
-    PICKS.db = db; PICKS.shared = true;
+    PICKS.db = db; PICKS.shared = true; trackSyncInit(db);
     let first = true;
     db.collection("picks").onSnapshot(snap => {
       const remote = {}; snap.docs.forEach(d => { const v = d.data(); if (v?.pick) remote[d.id] = v.pick; });
@@ -729,12 +734,45 @@ const knownFor = key => { const d = bySlug[key]; return d ? (d.known_for || d.ta
 // ---- your tracking list (this browser only; export/import to move it) ----
 const TSTAT = [["want", "Want to meet"], ["reached", "Reached out"], ["met", "Met"], ["follow", "Follow up"], ["pass", "Not a fit"]];
 const TRACK = store.get("track", {});
-const saveTrack = () => store.set("track", TRACK);
+const saveTrack = () => { store.set("track", TRACK); clearTimeout(saveTrack.t); saveTrack.t = setTimeout(syncTrack, 1500); };
+// Contact log: dated one-line notes per person (TRACK[key].log). On the private artifact the whole list is also saved to the
+// artifact's database (collection "contacts"), so it outlives this browser and research sessions can read it.
+const trackName = k => k.startsWith("lead:") ? (leadBySlug()[k.slice(5)]?.name || k.slice(5)) : k.startsWith("co:") ? (coBySlug[k.slice(3)]?.name || k.slice(3)) : (bySlug[k]?.name || k);
+const lastTouch = key => { const l = TRACK[key]?.log || []; return l.length ? l[l.length - 1].d : ""; };
+function addLog(key, text) {
+  text = String(text || "").trim(); if (!text) return false;
+  const t = TRACK[key] ||= {s: "met", t: Date.now()};
+  (t.log ||= []).push({d: new Date().toISOString().slice(0, 10), n: text.slice(0, 500)}); t.t = Date.now(); saveTrack(); return true;
+}
+let TSHADOW = null;
+function syncTrack() {
+  if (!PICKS.db || !TSHADOW) return;
+  const col = PICKS.db.collection("contacts"), id = k => k.replace(/[^A-Za-z0-9_-]/g, "__");
+  for (const k of new Set([...Object.keys(TRACK), ...Object.keys(TSHADOW)])) {
+    const a = TRACK[k] ? JSON.stringify(TRACK[k]) : "", b = TSHADOW[k] || ""; if (a === b) continue;
+    (a ? col.doc(id(k)).set({key: k, name: trackName(k), ...TRACK[k]}) : col.doc(id(k)).delete()).catch(() => {});
+    if (a) TSHADOW[k] = a; else delete TSHADOW[k];
+  }
+}
+function trackSyncInit(db) {
+  let first = true;
+  try {
+    db.collection("contacts").onSnapshot(snap => {
+      const remote = {}; snap.docs.forEach(d => { const v = d.data(); if (v?.key) { const {key, name, ...rest} = v; remote[key] = rest; } });
+      if (first) { first = false; TSHADOW = {}; }
+      let changed = false;
+      Object.entries(remote).forEach(([k, v]) => { if (!TRACK[k] || (v.t || 0) > (TRACK[k].t || 0)) { TRACK[k] = v; changed = true; } if (!TSHADOW[k] || (v.t || 0) >= (TRACK[k].t || 0)) TSHADOW[k] = JSON.stringify(v); });
+      if (changed) store.set("track", TRACK);
+      syncTrack();
+      if (changed && typeof view !== "undefined" && ["mine", "emerging"].includes(view) && !document.querySelector("input:focus, textarea:focus")) route();
+    }, () => {});
+  } catch {}
+}
 // a lead that has since been profiled moves to its profile
 Object.keys(TRACK).forEach(k => { const s = k.slice(5); if (k.startsWith("lead:") && bySlug[s] && !TRACK[s]) { TRACK[s] = TRACK[k]; delete TRACK[k]; } }); saveTrack();
 function trackCtl(key, full) {
   const t = TRACK[key];
-  return `<span class="trk" data-trk="${esc(key)}"><button class="btn sm star${t ? " on" : ""}" data-tact="toggle">${t ? "★ Tracking" : "☆ Track"}</button>${t ? `<select data-tact="s" aria-label="Status">${TSTAT.map(([v, l]) => `<option value="${v}"${t.s === v ? " selected" : ""}>${l}</option>`).join("")}</select><input type="date" data-tact="d" value="${esc(t.d || "")}" aria-label="Next step date" title="Next step date">` : ""}${t && full ? `<textarea data-tact="n" placeholder="Notes: who introduced you, what to ask, what they said…">${esc(t.n || "")}</textarea>` : ""}</span>`;
+  return `<span class="trk" data-trk="${esc(key)}"><button class="btn sm star${t ? " on" : ""}" data-tact="toggle">${t ? "★ Tracking" : "☆ Track"}</button>${t ? `<select data-tact="s" aria-label="Status">${TSTAT.map(([v, l]) => `<option value="${v}"${t.s === v ? " selected" : ""}>${l}</option>`).join("")}</select><input type="date" data-tact="d" value="${esc(t.d || "")}" aria-label="Next step date" title="Next step date">` : ""}${t && full ? `<textarea data-tact="n" placeholder="Notes: who introduced you, what to ask, what they said…">${esc(t.n || "")}</textarea>` : ""}${full ? `<input class="tnote" data-tlog placeholder="Log a contact: what happened, in one line, then Enter">${t?.log?.length ? `<div class="tlog">${t.log.slice().reverse().map(l => `<div><b>${esc(l.d)}</b>${esc(l.n)}</div>`).join("")}</div>` : ""}` : ""}</span>`;
 }
 document.addEventListener("click", e => {
   const b = e.target.closest("[data-tact=toggle]"); if (!b) return;
@@ -750,6 +788,13 @@ document.addEventListener("change", e => {
   const el = e.target.closest("[data-tact]"); if (!el || el.dataset.tact === "toggle") return;
   const key = el.closest("[data-trk]").dataset.trk; if (!TRACK[key]) return;
   TRACK[key][el.dataset.tact] = el.value; TRACK[key].t = Date.now(); saveTrack();
+});
+document.addEventListener("keydown", e => {
+  const el = e.target.closest("input[data-tlog]"); if (!el || e.key !== "Enter") return;
+  e.preventDefault();
+  const box = el.closest("[data-trk]"), key = box.dataset.trk;
+  if (!addLog(key, el.value)) return;
+  toast("Logged for today"); box.outerHTML = trackCtl(key, true); tabs();
 });
 document.addEventListener("input", e => {
   const el = e.target.closest("textarea[data-tact=n]"); if (!el) return;
@@ -1160,6 +1205,17 @@ function backedBy(firm) {
 const TB_ROLES = {evaluated: "Evaluated", tested: "Tested", signed: "Signed", quoted: "Quoted"};
 const tbRole = r => `<span class="tb-role r-${esc(r)}">${esc(TB_ROLES[r] || r)}</span>`;
 const tbFor = {company: c => (V.tbuyers || []).filter(x => x.c === c), person: p => (V.tbuyers || []).filter(x => x.p === p)};
+function notableBackers(firm) {
+  // Who backs whom: famous individuals (personally, or through a family office or foundation) on record as LPs in this fund,
+  // and the other funds the same people back. They tend to travel in packs.
+  const B = (V.emerging || {}).backers || {}, mine = B[firm]; if (!mine || !mine.length) return "";
+  const also = {};
+  Object.entries(B).forEach(([f, l]) => { if (f === firm) return; const sh = l.filter(x => mine.some(m => m[0] === x[0])); if (sh.length) also[f] = sh; });
+  const rows = Object.entries(also).sort((a, b) => b[1].length - a[1].length).slice(0, 14)
+    .map(([f, sh]) => `<div class="row"><b>${link(f)}</b> <span class="muted">${sh.map(x => esc(x[1])).join(", ")}</span></div>`).join("");
+  return `<section class="tbwho"><h2>Notable individual backers <span class="muted num">${mine.length}</span></h2><p>${mine.map(x => `<span class="chip sg-lp link" data-open="${esc(x[0])}">${esc(x[1])}</span>`).join("")}</p>` +
+    (rows ? `<h3>The same people also back</h3>${rows}` : "") + `</section>`;
+}
 function lpAccess(lp) {
   // LP co-invest access: rounds where this allocator sat next to a GP. "LP link on record" = we have the commitment;
   // "inferred" = the allocator only shows up in the same (small) rounds, a lead to check, never proof.
@@ -1203,6 +1259,68 @@ VIEWS.tbuyers = {
 
 // ---- Operator dealmakers: people inside operating companies who are on deals (today's "Volpi at Cisco") ----
 const SEATS = {cvc: "Corporate venture arm", "corp-dev": "Corporate development", "technical-buyer": "Tested it", moved: "Moved to a fund"};
+VIEWS.emerging = {
+  label: "Emerging", n: A.meta.n_emerging ?? "", needs: ["extra"],
+  render(m) {
+    const E = V.emerging || {}, all = (E.rows || []).filter(r => bySlug[r.slug]), today = new Date(), days = d => d ? Math.round((today - new Date(d.length === 7 ? d + "-15" : d.length === 4 ? d + "-07-01" : d)) / 864e5) : 9999;
+    const KINDS = [["", "All"], ["left", "Left a firm"], ["fund", "New fund"], ["lp", "Notable backers"], ["deal", "In hot rounds"]];
+    const has = (r, k) => r.sig.some(s => s.t === k || (k === "fund" && (s.t === "new" || s.t === "mgr")));
+    m.innerHTML = `<p class="intro">People to get to know before everyone else does: investors who just left a firm, filed or started a first fund, keep showing up early in hot companies, or are backed by a famous individual. A dot marks a signal from the last 45 days. <b>Last contact</b> is your own log: type one line when something happens and it is dated for you.</p>
+      <div class="bar"><input type="search" id="eq" placeholder="Search person, firm or signal…" value="${esc(S("eq", ""))}">
+        ${seg("ek", KINDS, S("ek", ""))}
+        <label class="tog"><input type="checkbox" id="enew" ${S("enew", false) ? "checked" : ""}> Not contacted yet</label>
+        <span class="count" id="ec"></span></div><div id="et"></div>
+      <details class="em"><summary>First-time funds filed with the SEC <span class="muted num">${(E.funds || []).length}</span></summary><p class="muted">New venture funds from the weekly Form D watch whose name mentions AI or whose people we hold. “$0 sold” at filing usually means the raise is open.</p><div id="ef"></div></details>
+      <details class="em"><summary>Repeat early backers with no profile yet <span class="muted num">${(E.repeat || []).length}</span></summary><p class="muted">Named in two or more early rounds of hot or thesis companies. Queue the ones worth a full profile.</p><div id="er"></div></details>`;
+    const chip = s => { const f = days(s.date) <= 45 ? `<span class="dot"></span>` : "", tip = esc(s.cos ? s.cos.map(c => coBySlug[c]?.name || c).join(", ") : s.date || "");
+      return s.url ? `<a class="chip sg-${s.t}" href="${esc(s.url)}" target="_blank" rel="noopener" title="${tip}">${f}${esc(s.label)}</a>` : `<span class="chip sg-${s.t}" title="${tip}">${f}${esc(s.label)}</span>`; };
+    const draw = () => {
+      const q = ST.eq.toLowerCase();
+      const rows = all.filter(r => (!ST.ek || has(r, ST.ek)) && (!ST.enew || !lastTouch(r.slug))
+        && (!q || (bySlug[r.slug].name + " " + bySlug[r.slug].firm + " " + r.sig.map(s => s.label).join(" ")).toLowerCase().includes(q)));
+      $("ec").textContent = `${rows.length} of ${all.length}`;
+      table($("et"), [
+        {k: "slug", t: "Person", v: r => bySlug[r.slug].name, h: r => `${link(r.slug, bySlug[r.slug].name.replace(/\s*\(.*$/, ""))}<div class="muted">${clip(bySlug[bySlug[r.slug].firm]?.name || firmShort(bySlug[r.slug].firm) || bySlug[r.slug].role, 70)}</div>`},
+        {k: "sig", t: "Why now", v: r => String(r.score).padStart(3, "0") + r.fresh, h: r => r.sig.map(chip).join("")},
+        {k: "fresh", t: "Latest signal", v: r => r.fresh, h: r => r.fresh ? `<span class="num">${esc(r.fresh)}</span>` : ""},
+        {k: "lc", t: "Last contact", v: r => lastTouch(r.slug), h: r => { const l = TRACK[r.slug]?.log || [], x = l[l.length - 1];
+          return `${x ? `<span class="num">${esc(x.d)}</span> <span class="muted">${clip(x.n, 60)}</span>` : `<span class="muted">none logged</span>`}<input class="tnote" data-enote="${esc(r.slug)}" placeholder="Log a contact, then Enter" aria-label="Log a contact with ${esc(bySlug[r.slug].name)}">`; }},
+      ], rows, {sort: ["sig", -1], limit: 150, empty: "No one matches."});
+      save();
+    };
+    $("et").addEventListener("keydown", e => {
+      const el = e.target.closest("[data-enote]"); if (!el || e.key !== "Enter") return;
+      e.preventDefault(); if (addLog(el.dataset.enote, el.value)) { toast("Logged for today"); draw(); tabs(); }
+    });
+    $("et").addEventListener("click", e => { if (e.target.closest("[data-enote]")) e.stopPropagation(); }, true);
+    $("eq").oninput = e => { ST.eq = e.target.value; draw(); };
+    onSeg("ek", v => { ST.ek = v; draw(); });
+    $("enew").onchange = e => { ST.enew = e.target.checked; draw(); };
+    draw();
+    table($("ef"), [
+      {k: "name", t: "Fund", h: r => `<a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.name)}</a>${r.new ? ` <span class="chip lead">new this week</span>` : ""}<div class="muted">${esc(r.where)}</div>`},
+      {k: "date", t: "Filed"},
+      {k: "off", t: "Target"},
+      {k: "sold", t: "Sold"},
+      {k: "who", t: "People", h: r => r.known.length ? r.known.map(k => link(k)).join(", ") : `<span class="muted">${esc(r.who)}</span>`},
+    ], E.funds || [], {sort: ["date", -1], limit: 120, empty: "No filings yet."});
+    const tri = () => picks();
+    const drawRep = () => table($("er"), [
+      {k: "name", t: "Name", h: r => `<span class="name">${esc(r.name)}</span><div class="muted">${esc(r.with.join(" · "))}</div>`},
+      {k: "hot", t: "Hot", num: 1}, {k: "thesis", t: "Thesis", num: 1}, {k: "before", t: "Before the lead", num: 1},
+      {k: "cos", t: "Companies", v: r => r.cos.length, h: r => r.cos.map(c => `<span class="chip link" data-open="co:${esc(c)}">${esc(coBySlug[c]?.name || c)}</span>`).join("")},
+      {k: "q", t: "", v: r => 0, h: r => `<button class="btn sm${tri()[r.id] === "keep" ? " on" : ""}" data-rq="${esc(r.id)}">${tri()[r.id] === "keep" ? "Queued" : "Queue"}</button>`},
+    ], E.repeat || [], {sort: ["hot", -1], limit: 80, empty: "None."});
+    drawRep();
+    $("er").addEventListener("click", e => {
+      const b = e.target.closest("[data-rq]"); if (!b) return; e.stopPropagation();
+      const r = E.repeat.find(x => x.id === b.dataset.rq), on = picks()[r.id] === "keep";
+      setPick(r.id, on ? null : "keep", {name: r.name, kind: "person", note: `Repeat early backer: ${r.hot} hot and ${r.thesis} thesis companies, ${r.before} before the lead`});
+      drawRep(); tabs();
+    });
+  },
+};
+
 VIEWS.dealmakers = {
   label: "Dealmakers", n: A.meta.n_dealmakers || "", needs: ["extra"],
   render(m) {
@@ -2443,11 +2561,12 @@ function roundsTable(c) {
 // ---- profile "Deals first" block: the companies a person (or fund) is named on, hot and recent first, then top intel ----
 const CHIP_MAX = 24;
 function dealChip(x) {
-  const hot = V.hot && V.hot[x.c], nm = esc(x.n), tip = `${x.r || "round"}${x.d ? " · " + x.d.slice(0, 7) : ""}${x.l ? " · led" : ""}`;
+  const hot = V.hot && V.hot[x.c], nm = esc(x.n), tip = `${x.r ? (x.re ? "Entered: " : "") + x.r : "round"}${x.d ? " · " + x.d.slice(0, 7) : ""}${x.l ? " · led" : ""}${x.re && x.re.length ? " · then " + x.re.join(", ") : ""}`;
   return `<span class="dc${x.l ? " led" : ""}${x.s ? " sd-" + x.s : ""}" data-open="co:${esc(x.c)}" title="${esc(tip)}" tabindex="0">${nm}${hot ? ` <span class="hotb" title="Hot: ${esc(hot)}">hot</span>` : ""}<span class="dm">${esc(x.r.replace(/^Series /, ""))}${x.d ? " " + esc(x.d.slice(2, 7)) : ""}</span></span>`;
 }
 function firmBookOf(slug) {  // companies credited to a firm itself or to anyone on its team
   const out = new Map();
+  ((V.pdeals || {})[slug] || []).forEach(x => out.set(x.c, x));  // the firm's own rows carry the entry round
   ((V.teams || {})[slug] || []).forEach(m => (m.deals || []).forEach(x => out.has(x.slug) || out.set(x.slug, {c: x.slug, n: x.name, r: (x.round || "").replace(/\s*\(.*$/, "").slice(0, 40), d: "", s: x.stage || "", l: x.lead ? 1 : 0, t: x.tier})));
   ((V.graph && V.graph.edges) || []).forEach(e => { if (!e.types.includes("invested") || (e.source !== slug && e.target !== slug)) return;
     const c = e.source === slug ? e.target : e.source; if (!out.has(c) && coBySlug[c]) out.set(c, {c, n: coBySlug[c].name, r: "", d: "", s: e.stg || "", l: 0, t: coBySlug[c].tier}); });
@@ -2525,6 +2644,7 @@ function openDoc(key) {
     // LPs: point to the spoken-word notes (podcasts, fireside chats) kept as sources/lp-voice-<slug>.md
     if (d.kind === "lp" && bySlug["lp-voice-" + d.slug]) html = html.replace(/(<h1[^>]*>.*?<\/h1>)/, `$1<p class="docnote">In their own words: ${link("lp-voice-" + d.slug, "podcast and fireside-chat notes")}</p>`);
     if (d.kind === "lp") html += lpAccess(d.slug);
+    if (d.kind === "firm") html += notableBackers(d.slug);
   }
   $("dpath").textContent = path;
   $("dbody").innerHTML = window.DOMPurify ? DOMPurify.sanitize(html) : html;
@@ -2630,7 +2750,7 @@ function route() {
   };
   box.addEventListener("mousedown", e => { const r = e.target.closest(".gr"); if (r) { e.preventDefault(); open(+r.dataset.i); } });
   document.addEventListener("click", e => { if (!e.target.closest(".gsearch")) box.classList.remove("on"); });
-  document.addEventListener("keydown", e => { if (e.key === "/" && !e.target.closest("input, textarea, select, [contenteditable]")) { e.preventDefault(); inp.focus(); } });
+  document.addEventListener("keydown", e => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); inp.focus(); inp.select(); return; } if (e.key === "/" && !e.target.closest("input, textarea, select, [contenteditable]")) { e.preventDefault(); inp.focus(); } });
   const today = new Date().toISOString().slice(0, 10), last = store.get("lastseen", "");
   if (last !== today) { if (last) store.set("prevseen", last); store.set("lastseen", today); }
 }
