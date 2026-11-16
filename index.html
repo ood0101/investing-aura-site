@@ -98,6 +98,28 @@
 .slegend{display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--muted);margin:6px 0 10px}
 .mix{display:grid;gap:4px;margin:8px 0}
 .mixbar{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--line);max-width:320px}
+/* Fund structure: rounds by stage (entry vs follow-on) and the Form D vehicles on one timeline */
+.fs{margin:14px 0 4px}
+.fs h2 small{font:400 12px var(--f-data);color:var(--muted);margin-left:6px}
+.fs .verdict{font-size:13.5px;margin:4px 0 10px}
+.fsb{display:grid;grid-template-columns:76px 1fr 64px;gap:4px 8px;align-items:center;font:12px var(--f-data);max-width:560px}
+.fs .fsb .bar{display:flex;height:12px;border-radius:3px;overflow:hidden;background:var(--line);padding:0;margin:0}
+.fs .fsb .bar span{display:block;height:100%;background:var(--st)} .fs .fsb .bar span.fo{opacity:.42}
+.fsb .n{color:var(--muted);text-align:right}
+.fs .key{display:flex;gap:14px;font-size:11.5px;color:var(--muted);margin:6px 0 2px}
+.fs .key i{display:inline-block;width:14px;height:8px;border-radius:2px;background:var(--ink);margin-right:5px;vertical-align:middle}
+.fs .key i.fo{opacity:.42}
+.fsy{display:grid;grid-template-columns:44px repeat(7,minmax(26px,1fr)) minmax(120px,2.4fr);gap:2px;font:11.5px var(--f-data);margin-top:12px;max-width:760px;overflow-x:auto}
+.fsy div{padding:3px 4px;border-radius:3px;text-align:center}
+.fsy .h{color:var(--muted);font-weight:500}
+.fsy .c{background:color-mix(in srgb,var(--st) calc(var(--a)*100%),transparent);color:var(--ink)}
+.fsy .v{text-align:left;color:var(--ink);font-size:11px}
+.fsy .v span{display:inline-block;border:1px solid var(--line);border-radius:3px;padding:0 4px;margin:0 3px 2px 0}
+.fsy .v span.k-opportunity{border-color:var(--st-late)} .fsy .v span.k-spv{border-style:dashed}
+.fst{border-collapse:collapse;font:12.5px var(--f-data);margin-top:10px;width:100%;max-width:760px}
+.fst th,.fst td{text-align:left;padding:4px 6px;border-bottom:1px solid var(--line)} .fst td.r,.fst th.r{text-align:right}
+.fst tr.cand td{color:var(--muted)}
+.fstw{overflow-x:auto}
 .mixbar span{background:var(--st)}
 .mixlab{font:11.5px var(--f-data);color:var(--muted)}
 /* Conviction bands */
@@ -572,7 +594,7 @@ a.chip:hover{background:var(--accent-soft);color:var(--accent)}
 <div class="toast" id="toast" role="status"></div>
 <div class="hc" id="hc" role="dialog" aria-label="Quick look"></div>
 
-<script src="data.js?b=e1b33a98b1"></script>
+<script src="data.js?b=998a0fe244"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
@@ -607,7 +629,7 @@ function mergePart(name) {
     V.cos.forEach(c => (p.rounds[c.slug] || []).forEach((d, i) => c.rounds[i] && Object.assign(c.rounds[i], d)));
     V.graph = p.graph;
     V.pdeals = p.pdeals; V.hot = p.hot; V.tbuyers = p.tbuyers || []; V.dealmakers = p.dealmakers || []; V.lpaccess = p.lpaccess || {}; V.emerging = p.emerging || {}; V.ppairs = p.ppairs || [];
-    V.backers = p.backers; V.conv = p.conv; A.syn = p.syn; V.teams = p.teams;
+    V.backers = p.backers; V.conv = p.conv; A.syn = p.syn; V.teams = p.teams; V.fstages = p.fstages || {}; V.vehicles = p.vehicles || {};
     Object.assign(CONV_C, dict((V.conv?.cos || []).map(r => [r.company_slug, r])));
     Object.assign(CONV_I, dict((V.conv?.inv || []).filter(r => r.slug).map(r => [r.slug, r])));
   }
@@ -2632,6 +2654,54 @@ function dealsFirst(d) {
     ${intel.length ? `<h2 style="margin-top:14px">Intel${c.nk ? ` <span class="sg s2">${c.nk} key</span>` : ""}</h2><div class="intel">${intel.map(i => `<div class="it${i.sig === 2 ? " s2" : ""}"><div>${esc(i.insight)}</div>${i.evidence_quote ? `<div class="q">“${esc(i.evidence_quote)}” ${src(i.source_url)}</div>` : ""}</div>`).join("")}</div>` : ""}
   </section>`;
 }
+
+// Fund structure (firm pages): rounds by stage, entry vs follow-on, against the fund vehicles it filed Form Ds for.
+const FST = [["pre-seed", "Pre-seed", "early", .55], ["seed", "Seed", "early", 1], ["a", "Series A", "a", 1], ["b", "Series B", "mid", 1],
+  ["c", "Series C", "late", .6], ["d+", "Series D+", "late", .8], ["growth", "Growth", "late", 1]];
+const VKIND = {fund: "Fund", opportunity: "Opportunity / expansion", parallel: "Parallel / affiliates", scout: "Scout", spv: "SPV", other: "Other vehicle"};
+const usd = v => { const n = +v; if (!v || isNaN(n)) return v === "Indefinite" ? "Indefinite" : ""; return n >= 1e9 ? "$" + (n / 1e9).toFixed(n >= 1e10 ? 0 : 1) + "B" : n >= 1e6 ? "$" + (n / 1e6).toFixed(n >= 1e8 ? 0 : 1).replace(/\.0$/, "") + "M" : n >= 1e3 ? "$" + Math.round(n / 1e3) + "K" : "$" + n; };
+function fundStructure(slug) {
+  const ev = ((V.fstages || {})[slug] || []).filter(e => e.s), veh = (V.vehicles || {})[slug] || [];
+  if (ev.length < 2 && !veh.length) return "";
+  let h = `<section class="fs"><h2>Stage mix and fund vehicles</h2>`;
+  if (ev.length >= 2) {
+    const cnt = {}; FST.forEach(([k]) => cnt[k] = {e: 0, f: 0, l: 0});
+    ev.forEach(e => { const c = cnt[e.s]; c[e.e ? "e" : "f"]++; if (e.l) c.l++; });
+    const max = Math.max(...FST.map(([k]) => cnt[k].e + cnt[k].f)), n = ev.length;
+    const late = ev.filter(e => ["b", "c", "d+", "growth"].includes(e.s)), lateNew = late.filter(e => e.e).length;
+    const early = ev.filter(e => ["pre-seed", "seed", "a"].includes(e.s)).length;
+    const vk = veh.filter(v => v.kind === "opportunity").sort((a, b) => (a.first_sale || a.first_filed).localeCompare(b.first_sale || b.first_filed));
+    const op = vk[0], opD = op && (op.first_sale || op.first_filed);
+    const lateAfter = opD ? late.filter(e => e.d && e.d >= opD).length : 0;
+    h += `<p class="verdict"><b>${Math.round(100 * early / n)}%</b> of its ${n} known rounds are seed or Series A; <b>${late.length}</b> are Series B or later` +
+      (late.length ? `, of which <b>${late.length - lateNew}</b> are follow-ons into companies it already held and <b>${lateNew}</b> are new entries at B or later` : "") + `.` +
+      (op ? ` Its first opportunity vehicle (${esc(op.vehicle)}${op.sold && +op.sold ? ", " + usd(op.sold) + " raised" : op.offering ? ", " + usd(op.offering) + " offered" : ""}) had its first sale on ${esc(opD)}; ${lateAfter} of the ${late.length} B-or-later rounds came after that.` :
+        late.length >= 3 ? ` No opportunity or expansion vehicle is on file, so later cheques came from the main funds or from vehicles not yet found.` : "") + `</p>`;
+    h += `<div class="fsb">${FST.map(([k, lab, sc, a]) => { const c = cnt[k], tot = c.e + c.f; if (!tot && !["seed", "a", "b"].includes(k)) return "";
+      return `<div>${lab}</div><div class="bar sd-${sc}" style="opacity:${a}" title="${c.e} new entries, ${c.f} follow-ons${c.l ? `, ${c.l} led` : ""}"><span style="width:${100 * c.e / max}%"></span><span class="fo" style="width:${100 * c.f / max}%"></span></div><div class="n">${tot}${c.l ? ` · ${c.l} led` : ""}</div>`; }).join("")}</div>
+      <div class="key"><span><i></i>first cheque in the company</span><span><i class="fo"></i>follow-on</span><span>rounds without a stage label are left out (${((V.fstages || {})[slug] || []).length - n})</span></div>`;
+  }
+  const years = [...new Set([...ev.map(e => e.d.slice(0, 4)), ...veh.map(v => (v.first_sale || v.first_filed || "").slice(0, 4))].filter(Boolean))].sort();
+  if (years.length) {
+    const yc = {}; ev.forEach(e => { const y = e.d.slice(0, 4); if (!y) return; (yc[y] ||= {}); yc[y][e.s] = (yc[y][e.s] || 0) + 1; });
+    const ym = Math.max(1, ...Object.values(yc).flatMap(o => Object.values(o)));
+    h += `<div class="fsy"><div class="h">Year</div>${FST.map(([, lab]) => `<div class="h">${lab.replace("Series ", "")}</div>`).join("")}<div class="h" style="text-align:left">Vehicles first sold</div>` +
+      years.map(y => `<div class="h">${y}</div>` + FST.map(([k, , sc]) => { const v = (yc[y] || {})[k] || 0;
+        return `<div class="c sd-${sc}" style="--a:${v ? .18 + .7 * v / ym : 0}">${v || ""}</div>`; }).join("") +
+        `<div class="v">${veh.filter(v => (v.first_sale || v.first_filed || "").startsWith(y)).map(v => `<span class="k-${esc(v.kind)}" title="${esc(VKIND[v.kind] || v.kind)}">${esc(v.vehicle.replace(/,?\s*(L\.?P\.?|LLC|Ltd\.?)$/i, ""))}${v.sold && +v.sold ? " " + usd(v.sold) : v.offering && v.offering !== "Indefinite" ? " " + usd(v.offering) + " target" : ""}</span>`).join("")}</div>`).join("") + `</div>`;
+  }
+  if (veh.length) {
+    const sum = k => veh.filter(v => v.kind === k && v.status !== "candidate");
+    const raised = (arr) => arr.reduce((a, v) => a + (+v.sold || 0), 0), offered = arr => arr.reduce((a, v) => a + (+v.sold ? 0 : +v.offering || 0), 0);
+    const amt = arr => [raised(arr) ? usd(raised(arr)) + " sold" : "", offered(arr) ? usd(offered(arr)) + " more targeted" : ""].filter(Boolean).join(", ");
+    const funds = sum("fund"), opp = sum("opportunity"), spv = veh.filter(v => v.kind === "spv"), par = sum("parallel");
+    const minor = veh.filter(v => v.kind === "spv" || v.status === "candidate"), keep = new Set(minor.slice(-8));
+    const shown = veh.filter(v => !minor.includes(v) || keep.has(v)), hidden = veh.length - shown.length;
+    h += `<p class="verdict" style="margin-top:12px"><b>${funds.length}</b> fund${funds.length === 1 ? "" : "s"}${amt(funds) ? ` (${amt(funds)})` : ""}, <b>${opp.length}</b> opportunity/expansion vehicle${opp.length === 1 ? "" : "s"}${amt(opp) ? ` (${amt(opp)})` : ""}, <b>${spv.length}</b> SPV${spv.length === 1 ? "" : "s"}${par.length ? `, ${par.length} parallel` : ""}, from SEC Form D. "Sold" is what the latest filing reports; a fund filed before its first close reports nothing sold and is counted at its target. "Indefinite" means the filing gave no size.</p>
+    <div class="fstw"><table class="fst"><tr><th>Vehicle</th><th>Type</th><th>First sale</th><th class="r">Size</th><th class="r">Sold</th><th class="r">LPs</th><th>Filing</th></tr>${shown.map(v => `<tr class="${v.status === "candidate" ? "cand" : ""}" title="${esc(v.officers || "")}${v.status === "candidate" ? " · Matched only because a partner signed it; unconfirmed" : ""}"><td>${esc(v.vehicle)}${v.status === "candidate" ? " <span class=\"muted\">(candidate)</span>" : ""}</td><td>${esc(VKIND[v.kind] || v.kind)}</td><td>${esc(v.first_sale || ("filed " + (v.first_filed || "")))}</td><td class="r">${usd(v.offering)}</td><td class="r">${+v.sold ? usd(v.sold) : "—"}</td><td class="r">${+v.investors ? esc(v.investors) : ""}</td><td>${v.source_url ? `<a href="${esc(v.source_url)}">Form D</a>` : ""}</td></tr>`).join("")}</table></div>${hidden ? `<div class="more">+${hidden} older SPVs and candidates not shown (all are in data/fund_vehicles.csv).</div>` : ""}`;
+  } else h += `<p class="muted" style="margin-top:10px">No Form D vehicles found for this firm yet (searched the SEC Form D data sets by firm name and partner names).</p>`;
+  return h + `</section>`;
+}
 // One line of fund facts on firm and LP pages: website, HQ, founded, AUM (first clause; the page body has the sources).
 const factClip = (t, n) => { t = String(t || "").replace(/\s*\(.*$/, "").split(/;\s/)[0].trim(); return /^(n\/a|unknown|not (stated|disclosed)|none)\b/i.test(t) ? "" : clip(t, n); };
 function fundFacts(d) {
@@ -2697,7 +2767,7 @@ function openDoc(key) {
   $("dpath").textContent = path;
   $("dbody").innerHTML = window.DOMPurify ? DOMPurify.sanitize(html) : html;
   const h1 = $("dbody").querySelector("h1"), bar = docBar(key);
-  const first = !key.startsWith("co:") && ["person", "firm"].includes(bySlug[key]?.kind) ? dealsFirst(bySlug[key]) : "";
+  const first = !key.startsWith("co:") && ["person", "firm"].includes(bySlug[key]?.kind) ? dealsFirst(bySlug[key]) + (bySlug[key]?.kind === "firm" ? fundStructure(key) : "") : "";
   if (h1) h1.insertAdjacentHTML("afterend", bar + first); else $("dbody").insertAdjacentHTML("afterbegin", bar + first);
   try { linkMentions($("dbody"), key.replace(/^co:/, "")); } catch (err) { console.warn(err); }
   $("dbody").querySelectorAll("a").forEach(a => { a.target = "_blank"; a.rel = "noopener"; });
