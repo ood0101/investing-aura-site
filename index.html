@@ -185,7 +185,7 @@ a{color:var(--accent)}
 .mem .nm{font-weight:600} .mem .rl{font-size:12px;color:var(--muted)}
 .mem .dl{margin-top:6px;display:flex;flex-wrap:wrap;gap:3px}
 .chip.lead{background:var(--accent-soft);color:var(--accent)}
-a.chip{text-decoration:none} .chip.sg-left{background:var(--warn-soft);color:var(--warn)} .chip.sg-fund,.chip.sg-new{background:var(--accent-soft);color:var(--accent)} .chip.sg-lp{background:var(--good-soft);color:var(--good)}
+a.chip{text-decoration:none} sup.weak{color:var(--warn);font-weight:600;margin-left:1px;cursor:help} .chip.sg-left{background:var(--warn-soft);color:var(--warn)} .chip.sg-fund,.chip.sg-new{background:var(--accent-soft);color:var(--accent)} .chip.sg-lp{background:var(--good-soft);color:var(--good)}
 .chip .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;margin-right:5px;vertical-align:1px}
 .tnote{font:inherit;font-size:12px;padding:3px 6px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);width:100%;min-width:120px;margin-top:4px}
 .tlog{width:100%;font-size:13px} .tlog div{padding:3px 0;border-top:1px solid var(--line)} .tlog b{font-weight:600;margin-right:6px;font-variant-numeric:tabular-nums}
@@ -572,7 +572,7 @@ a.chip:hover{background:var(--accent-soft);color:var(--accent)}
 <div class="toast" id="toast" role="status"></div>
 <div class="hc" id="hc" role="dialog" aria-label="Quick look"></div>
 
-<script src="data.js?b=ce1fd1127c"></script>
+<script src="data.js?b=c59fa2b78f"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
@@ -606,7 +606,7 @@ function mergePart(name) {
     if (p.cos5) p.cos5.forEach(c => { V.cos.push(c); coBySlug[c.slug] = c; });  // non-AI companies, kept out of the first load
     V.cos.forEach(c => (p.rounds[c.slug] || []).forEach((d, i) => c.rounds[i] && Object.assign(c.rounds[i], d)));
     V.graph = p.graph;
-    V.pdeals = p.pdeals; V.hot = p.hot; V.tbuyers = p.tbuyers || []; V.dealmakers = p.dealmakers || []; V.lpaccess = p.lpaccess || {}; V.emerging = p.emerging || {};
+    V.pdeals = p.pdeals; V.hot = p.hot; V.tbuyers = p.tbuyers || []; V.dealmakers = p.dealmakers || []; V.lpaccess = p.lpaccess || {}; V.emerging = p.emerging || {}; V.ppairs = p.ppairs || [];
     V.backers = p.backers; V.conv = p.conv; A.syn = p.syn; V.teams = p.teams;
     Object.assign(CONV_C, dict((V.conv?.cos || []).map(r => [r.company_slug, r])));
     Object.assign(CONV_I, dict((V.conv?.inv || []).filter(r => r.slug).map(r => [r.slug, r])));
@@ -1455,6 +1455,7 @@ VIEWS.coinvest = {
       const rows = syn.filter(s => s.kind === ST.sk && (!q || (s.a + " " + s.b).toLowerCase().includes(q)))
         .map(s => ({...s, cos: s.companies.filter(c => !ST.sf || (coBySlug[c]?.tier ?? 9) <= 2)})).filter(s => !ST.sf || s.cos.length >= (ST.sk === "hand-off" ? 1 : 2));
       $("sc").textContent = `${rows.length} ${ST.sk === "hand-off" ? "hand-offs" : "pairs"}`;
+      if (ST.sk === "partner pair" && (V.ppairs || []).length) return drawPP(q);
       $("snote").textContent = ST.sk === "partner pair" ? "Few named partners overlap at two or more companies so far. Most rounds name a firm but not the partner, so this list grows as round maps add partner names." : "";
       table($("st-t"), [
         {k: "a", t: ST.sk === "hand-off" ? "Led one round" : "Investor", h: r => `<span class="name">${link(r.a.replace(/\s*\(.*\)$/, ""), r.a)}</span>`},
@@ -1463,6 +1464,20 @@ VIEWS.coinvest = {
         {k: "colead", t: "Co-led", num: 1},
         {k: "cos", t: "Where", v: r => r.cos.join(" "), h: r => r.cos.map(c => `<span class="chip link" data-open="co:${esc(c)}">${esc(coBySlug[c]?.name || c)}</span>`).join("")},
         {k: "first", t: "First together", h: r => `<span class="date">${esc(r.first)}</span>`},
+      ], rows, {sort: ["n", -1], empty: "No pairs match."});
+      save();
+    };
+    const drawPP = q => {
+      const rows = V.ppairs.filter(r => !q || (r.an + " " + r.af + " " + r.bn + " " + r.bf).toLowerCase().includes(q));
+      $("sc").textContent = `${rows.length} pairs`;
+      $("snote").innerHTML = `Partners at different firms named on the same round at two or more hot companies. <b>Round-specific</b> counts the companies where both names come from a round-specific source (firm or company post, board, filing, press); <sup class="weak">*</sup> marks a company where at least one name was carried over from a bio or company page.`;
+      const pn = (sl, n, f) => `<span class="name">${bySlug[sl] ? link(sl, n) : esc(n)}</span><div class="muted">${esc(f)}</div>`;
+      table($("st-t"), [
+        {k: "an", t: "Partner", h: r => pn(r.a, r.an, r.af)},
+        {k: "bn", t: "Partner", h: r => pn(r.b, r.bn, r.bf)},
+        {k: "n", t: "Hot companies", num: 1, v: r => r.cos.length, h: r => `<span class="num">${r.cos.length}</span>`},
+        {k: "strong", t: "Round-specific", num: 1},
+        {k: "cos", t: "Where", v: r => r.cos.join(" "), h: r => r.cos.map(c => `<span class="chip link" data-open="co:${esc(c)}">${esc(coBySlug[c]?.name || c)}${r.weak.includes(c) ? `<sup class="weak">*</sup>` : ""}</span>`).join("")},
       ], rows, {sort: ["n", -1], empty: "No pairs match."});
       save();
     };
@@ -2083,9 +2098,10 @@ function togetherLens(m, modeArg) {
   const R = ridx();
   const roundsOf = (it, co) => {
     const c = coBySlug[co], h = (R[it.key] || {})[co];
-    if (c && h && h.length) return h.map(x => `${x.lead ? "led " : ""}${String(c.rounds[x.ri].round).replace(/\s*\(.*$/, "")}${c.rounds[x.ri].date ? " " + c.rounds[x.ri].date.slice(0, 4) : ""}`).join(", ");
+    if (c && h && h.length) return h.map(x => { const r = c.rounds[x.ri], pk = r.pp ? Object.keys(r.pp).find(k => k === it.name || X.resolve(k) === it.key) : null, ps = pk ? r.pp[pk] : null;
+      return `${x.lead ? "led " : ""}${esc(String(r.round).replace(/\s*\(.*$/, ""))}${r.date ? " " + r.date.slice(0, 4) : ""}` + (mode !== "funds" ? "" : ps ? ` (${ps.map(p => `${p[1] && bySlug[p[1]] ? `<a href="#doc/${esc(p[1])}">${esc(p[0])}</a>` : esc(p[0])}${p[2] ? `<sup class="weak" title="Name taken from a bio or company page, not a round-specific source">*</sup>` : ""}`).join(", ")})` : ` <span class="muted">(partner not named)</span>`); }).join(", ");
     const e = it.id && (X.inv[it.id] || []).find(e => X.other(e, it.id) === co);
-    return e ? (e.ev || []).slice(0, 2).join("; ") : "";
+    return e ? esc((e.ev || []).slice(0, 2).join("; ")) : "";
   };
   const who = it => it.id && gKind(it.id) ? `<a href="${gHref(it.id)}">${esc(it.name)}</a>` : esc(it.name);
   const mark = sel => { m.querySelectorAll(".mx-c.on,.mx-rh.on,.mx-ch.on").forEach(x => x.classList.remove("on")); sel.forEach(x => x && x.classList.add("on")); };
@@ -2093,7 +2109,7 @@ function togetherLens(m, modeArg) {
     const a = items[i], b = items[j], cos = shared(a, b).sort((x, y) => (coBySlug[x]?.tier || 9) - (coBySlug[y]?.tier || 9) || coName(x).localeCompare(coName(y)));
     mark([btn, m.querySelector(`.mx-rh[data-i="${i}"]`), m.querySelector(`.mx-ch[data-i="${j}"]`)]);
     sheetShow(`${a.name} × ${b.name}`, `<h3>${who(a)} × ${who(b)}</h3><div class="muted" style="margin-top:4px">${cos.length} compan${cos.length === 1 ? "y" : "ies"} in common, of ${a.cos.size} and ${b.cos.size}.</div>
-      ${cos.map(c => { const ra = roundsOf(a, c), rb = roundsOf(b, c); return `<div class="mx-co"><a href="#graph/company/${encodeURIComponent(c)}"><b>${esc(coName(c))}</b></a>${coBySlug[c]?.tier === 1 ? ` <span class="pill t-1">Frontier</span>` : ""}${ra || rb ? `<div class="ev">${ra ? `${esc(a.name)}: ${esc(ra)}` : ""}${ra && rb ? "<br>" : ""}${rb ? `${esc(b.name)}: ${esc(rb)}` : ""}</div>` : ""}</div>`; }).join("")}`);
+      ${cos.map(c => { const ra = roundsOf(a, c), rb = roundsOf(b, c); return `<div class="mx-co"><a href="#graph/company/${encodeURIComponent(c)}"><b>${esc(coName(c))}</b></a>${coBySlug[c]?.tier === 1 ? ` <span class="pill t-1">Frontier</span>` : ""}${ra || rb ? `<div class="ev">${ra ? `${esc(a.name)}: ${ra}` : ""}${ra && rb ? "<br>" : ""}${rb ? `${esc(b.name)}: ${rb}` : ""}</div>` : ""}</div>`; }).join("")}`);
   };
   m.querySelectorAll(".mx-c[data-a]").forEach(b => b.onclick = () => pair(+b.dataset.a, +b.dataset.b, b));
   m.querySelectorAll(".mx-rh,.mx-ch").forEach(b => b.onclick = () => {
