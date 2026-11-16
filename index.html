@@ -349,6 +349,10 @@ textarea.copy{width:100%;min-height:120px;font:12px var(--f-data);margin-top:8px
 .hc .hb{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center}
 .docbar{margin:14px 0 4px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--bg);display:grid;gap:8px}
 .docbar .kf{font-size:14px;line-height:1.45}
+.ffacts{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--ink)}
+.ffacts i{font:500 11px var(--f-data);font-style:normal;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-right:4px}
+.ffacts .ff-site{color:var(--accent);text-decoration:none;font-weight:600}
+.ffacts .ff-site:hover{text-decoration:underline}
 .trk{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .trk select,.trk input[type=date]{font:inherit;font-size:12px;padding:3px 6px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
 .trk textarea{width:100%;min-height:54px;font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);resize:vertical}
@@ -568,7 +572,7 @@ a.chip:hover{background:var(--accent-soft);color:var(--accent)}
 <div class="toast" id="toast" role="status"></div>
 <div class="hc" id="hc" role="dialog" aria-label="Quick look"></div>
 
-<script src="data.js?b=0dd3925e8f"></script>
+<script src="data.js?b=ce1fd1127c"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
@@ -1948,7 +1952,10 @@ function fundLens(m, id) {
   const X = gx(), d = bySlug[id], node = X.byId[id], name = d?.name || node?.name || id;
   const former = {};
   (X.at[id] || []).forEach(e => { const p = X.other(e, id); if (X.byId[p]?.kind === "person") former[p] = !!e.former; });
-  const mem = ((V.teams || {})[id] || []).map(t => ({...t, former: !!former[t.slug]}));
+  const mem = ((V.teams || {})[id] || []).map(t => ({...t, former: !!former[t.slug] || /^Former\b/.test(t.role || "")}));
+  // an unprofiled member comes in by name (no slug) and again from the graph by id: merge them, keeping the id so the chip links
+  const nk = s => (s || "").replace(/\s*\(.*?\)/g, "").trim().toLowerCase();
+  Object.keys(former).forEach(p => { const twin = !mem.some(t => t.slug === p) && mem.find(t => !t.slug && nk(t.name) === nk(X.byId[p].name)); if (twin) { twin.slug = p; twin.photo ||= X.byId[p].photo; } });
   Object.keys(former).forEach(p => { if (!mem.some(t => t.slug === p)) mem.push({slug: p, name: X.byId[p].name, photo: X.byId[p].photo, role: "", deals: [], former: former[p]}); });
   const credited = new Set(mem.flatMap(t => t.deals.map(x => x.slug)));
   const own = (X.inv[id] || []).map(e => ({e, n: X.byId[X.other(e, id)]})).filter(x => x.n?.kind === "company" && !credited.has(x.n.id))
@@ -2596,13 +2603,25 @@ function dealsFirst(d) {
     ${intel.length ? `<h2 style="margin-top:14px">Intel${c.nk ? ` <span class="sg s2">${c.nk} key</span>` : ""}</h2><div class="intel">${intel.map(i => `<div class="it${i.sig === 2 ? " s2" : ""}"><div>${esc(i.insight)}</div>${i.evidence_quote ? `<div class="q">“${esc(i.evidence_quote)}” ${src(i.source_url)}</div>` : ""}</div>`).join("")}</div>` : ""}
   </section>`;
 }
+// One line of fund facts on firm and LP pages: website, HQ, founded, AUM (first clause; the page body has the sources).
+const factClip = (t, n) => { t = String(t || "").replace(/\s*\(.*$/, "").split(/;\s/)[0].trim(); return /^(n\/a|unknown|not (stated|disclosed)|none)\b/i.test(t) ? "" : clip(t, n); };
+function fundFacts(d) {
+  if (!d || !["firm", "lp"].includes(d.kind)) return "";
+  const site = socialsOf(d.slug).find(x => x.k === "site");
+  const host = site ? site.url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "") : "";
+  const f = [host && `<a class="ff-site" href="${esc(site.url)}" target="_blank" rel="noopener">${esc(host)} ↗</a>`,
+    factClip(d.hq, 60) && `<span><i>HQ</i> ${factClip(d.hq, 60)}</span>`,
+    factClip(d.founded, 40) && `<span><i>Founded</i> ${factClip(d.founded, 40)}</span>`,
+    factClip(d.aum, 70) && `<span><i>AUM</i> ${factClip(d.aum, 70)}</span>`].filter(Boolean);
+  return f.length ? `<div class="ffacts">${f.join("")}</div>` : "";
+}
 let docKey = null;
 function docBar(key) {
   const slug = key.replace(/^co:/, ""), d = bySlug[slug];
   const kf = knownFor(slug), tk = key.startsWith("co:") ? key : (coBySlug[slug] && (!d || d.kind === "company") ? "co:" + slug : slug);
   const intro = d && ["person", "firm", "lp"].includes(d.kind) ? `<button class="btn sm" data-intro="${esc(slug)}">Who can introduce me</button>` : "";
   const skel = d && d.depth === "skeleton" ? `<div class="kf muted"><span class="chip">Facts only</span> Role, deals and filings are in; how they think and deal stories aren't written yet. Queue them to get the full write-up.</div>` : "";
-  return `<div class="docbar">${skel}${kf ? `<div class="kf"><b>Known for:</b> ${esc(kf)}</div>` : ""}${socials(slug) || (d && d.kind === "person" ? `<span class="muted">No verified social links yet.</span>` : "")}
+  return `<div class="docbar">${skel}${kf ? `<div class="kf"><b>Known for:</b> ${esc(kf)}</div>` : ""}${fundFacts(d)}${socials(slug) || (d && d.kind === "person" ? `<span class="muted">No verified social links yet.</span>` : "")}
     <div class="trk" style="gap:8px">${intro}</div>${trackCtl(tk, true)}</div>`;
 }
 document.addEventListener("click", e => {
