@@ -572,7 +572,7 @@ a.chip:hover{background:var(--accent-soft);color:var(--accent)}
 <div class="toast" id="toast" role="status"></div>
 <div class="hc" id="hc" role="dialog" aria-label="Quick look"></div>
 
-<script src="data.js?b=05fce3c565"></script>
+<script src="data.js?b=297f710f83"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
@@ -2576,10 +2576,23 @@ function renderGraph(m, opts = {}) {
   if (opts.intro) $("gsheet").classList.add("open");
 }
 
+// Investors on a round, one entry per firm with its named partners folded in ("Lightspeed (James Alcorn, Ravi Mhatre)"),
+// each name linked to its profile when we have one. "skip" = firms already shown as leads, so "Also in" doesn't repeat them.
+function invList(list, r, max, skip) {
+  const X = gx(), key = n => { const k = X.resolve(n) || slugify(n); return bySlug[k] || coBySlug[k] ? k : null; };
+  const lead = new Set((skip || []).map(x => invSplit(x).name));
+  const firms = new Map();
+  (list || []).forEach(x => { const {name, partners} = invSplit(x); if (!name) return; const f = firms.get(name) || []; partners.forEach(p => f.includes(p) || f.push(p)); firms.set(name, f); });
+  const items = [...firms].filter(([n, ps]) => !(lead.has(n) && !ps.length));
+  const one = n => { const k = key(n); return k ? link(k, n) : esc(n); };
+  const out = items.slice(0, max).map(([n, ps]) => one(n) + (ps.length ? ` <span class="muted">(${ps.map(p => { const w = (r.pp?.[n] || []).find(x => x[0] === p), k = w?.[1] && bySlug[w[1]] ? w[1] : key(p);
+    return (k ? link(k, p) : esc(p)) + (w?.[2] ? `<sup class="weak" title="Name taken from a bio or company page, not a round-specific source">*</sup>` : ""); }).join(", ")})</span>` : ""));
+  return out.join(", ") + (items.length > max ? ` <span class="muted">+${items.length - max}</span>` : "");
+}
 function roundsTable(c) {
   if (!c.rounds.length) return "<p class='muted'>No round data yet.</p>";
   return stageLegend() + `<table><thead><tr><th>Date</th><th>Round</th><th>Amount</th><th>Led by</th><th>Also in</th><th></th></tr></thead><tbody>${
-    c.rounds.map(r => `<tr><td>${esc(r.date)}</td><td>${esc(r.round)}${r.stage ? `<div>${stg(r.stage)}</div>` : ""}</td><td>${esc(r.amount)}${r.valuation ? `<div class="muted">${esc(r.valuation)}</div>` : ""}</td><td>${esc((r.leads || []).join(", "))}</td><td class="muted">${esc((r.others || []).slice(0, 14).join(", "))}${(r.others || []).length > 14 ? ` +${r.others.length - 14}` : ""}</td><td>${src(r.src)}</td></tr>`).join("")}</tbody></table>`;
+    c.rounds.map(r => `<tr><td>${esc(r.date)}</td><td>${esc(r.round)}${r.stage ? `<div>${stg(r.stage)}</div>` : ""}</td><td>${esc(r.amount)}${r.valuation ? `<div class="muted">${esc(r.valuation)}</div>` : ""}</td><td>${invList(r.leads, r, 99)}</td><td class="muted">${invList(r.others, r, 14, r.leads)}</td><td>${src(r.src)}</td></tr>`).join("")}</tbody></table>`;
 }
 // ---- profile "Deals first" block: the companies a person (or fund) is named on, hot and recent first, then top intel ----
 const CHIP_MAX = 24;
