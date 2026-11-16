@@ -594,7 +594,7 @@ a.chip:hover{background:var(--accent-soft);color:var(--accent)}
 <div class="toast" id="toast" role="status"></div>
 <div class="hc" id="hc" role="dialog" aria-label="Quick look"></div>
 
-<script src="data.js?b=998a0fe244"></script>
+<script src="data.js?b=af4bdc14ab"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
@@ -2672,14 +2672,17 @@ function fundStructure(slug) {
     const early = ev.filter(e => ["pre-seed", "seed", "a"].includes(e.s)).length;
     const vk = veh.filter(v => v.kind === "opportunity").sort((a, b) => (a.first_sale || a.first_filed).localeCompare(b.first_sale || b.first_filed));
     const op = vk[0], opD = op && (op.first_sale || op.first_filed);
-    const lateAfter = opD ? late.filter(e => e.d && e.d >= opD).length : 0;
+    const lateAfter = opD ? late.filter(e => e.d && e.d >= opD).length : 0, lateBefore = opD ? late.filter(e => e.d && e.d < opD).length : 0;
+    const share = arr => arr.length ? Math.round(100 * arr.filter(e => ["b", "c", "d+", "growth"].includes(e.s)).length / arr.length) : 0;
+    const shBefore = opD ? share(ev.filter(e => e.d && e.d < opD)) : 0, shAfter = opD ? share(ev.filter(e => e.d && e.d >= opD)) : 0;
+    const unl = ((V.fstages || {})[slug] || []).length - n;
     h += `<p class="verdict"><b>${Math.round(100 * early / n)}%</b> of its ${n} known rounds are seed or Series A; <b>${late.length}</b> are Series B or later` +
       (late.length ? `, of which <b>${late.length - lateNew}</b> are follow-ons into companies it already held and <b>${lateNew}</b> are new entries at B or later` : "") + `.` +
-      (op ? ` Its first opportunity vehicle (${esc(op.vehicle)}${op.sold && +op.sold ? ", " + usd(op.sold) + " raised" : op.offering ? ", " + usd(op.offering) + " offered" : ""}) had its first sale on ${esc(opD)}; ${lateAfter} of the ${late.length} B-or-later rounds came after that.` :
+      (op ? ` Its first opportunity vehicle (${esc(op.vehicle)}${op.sold && +op.sold ? ", " + usd(op.sold) + " raised" : op.offering ? ", " + usd(op.offering) + " offered" : ""}) had its first sale on ${esc(opD)}: ${lateBefore} of its B-or-later rounds came before it and ${lateAfter} after, and B-or-later went from ${shBefore}% of its rounds before to ${shAfter}% after. ${shAfter - shBefore >= 10 ? "The later-stage share rose once the pool existed, which fits growth cheques coming from it" : "The later-stage share barely moved, so the pool scaled with the rest of the book rather than shifting it later"}; Form D can't say which vehicle wrote which cheque.` :
         late.length >= 3 ? ` No opportunity or expansion vehicle is on file, so later cheques came from the main funds or from vehicles not yet found.` : "") + `</p>`;
     h += `<div class="fsb">${FST.map(([k, lab, sc, a]) => { const c = cnt[k], tot = c.e + c.f; if (!tot && !["seed", "a", "b"].includes(k)) return "";
       return `<div>${lab}</div><div class="bar sd-${sc}" style="opacity:${a}" title="${c.e} new entries, ${c.f} follow-ons${c.l ? `, ${c.l} led` : ""}"><span style="width:${100 * c.e / max}%"></span><span class="fo" style="width:${100 * c.f / max}%"></span></div><div class="n">${tot}${c.l ? ` · ${c.l} led` : ""}</div>`; }).join("")}</div>
-      <div class="key"><span><i></i>first cheque in the company</span><span><i class="fo"></i>follow-on</span><span>rounds without a stage label are left out (${((V.fstages || {})[slug] || []).length - n})</span></div>`;
+      <div class="key"><span><i></i>first cheque in the company</span><span><i class="fo"></i>follow-on</span><span${unl > n ? ' style="color:var(--st-late)"' : ""}>rounds without a stage label are left out (${unl}${unl > n ? ", more than are shown: read the mix with care" : ""})</span></div>`;
   }
   const years = [...new Set([...ev.map(e => e.d.slice(0, 4)), ...veh.map(v => (v.first_sale || v.first_filed || "").slice(0, 4))].filter(Boolean))].sort();
   if (years.length) {
@@ -2688,7 +2691,7 @@ function fundStructure(slug) {
     h += `<div class="fsy"><div class="h">Year</div>${FST.map(([, lab]) => `<div class="h">${lab.replace("Series ", "")}</div>`).join("")}<div class="h" style="text-align:left">Vehicles first sold</div>` +
       years.map(y => `<div class="h">${y}</div>` + FST.map(([k, , sc]) => { const v = (yc[y] || {})[k] || 0;
         return `<div class="c sd-${sc}" style="--a:${v ? .18 + .7 * v / ym : 0}">${v || ""}</div>`; }).join("") +
-        `<div class="v">${veh.filter(v => (v.first_sale || v.first_filed || "").startsWith(y)).map(v => `<span class="k-${esc(v.kind)}" title="${esc(VKIND[v.kind] || v.kind)}">${esc(v.vehicle.replace(/,?\s*(L\.?P\.?|LLC|Ltd\.?)$/i, ""))}${v.sold && +v.sold ? " " + usd(v.sold) : v.offering && v.offering !== "Indefinite" ? " " + usd(v.offering) + " target" : ""}</span>`).join("")}</div>`).join("") + `</div>`;
+        `<div class="v">${veh.filter(v => v.status !== "candidate" && (v.first_sale || v.first_filed || "").startsWith(y)).map(v => `<span class="k-${esc(v.kind)}" title="${esc(VKIND[v.kind] || v.kind)}">${esc(v.vehicle.replace(/,?\s*(L\.?P\.?|LLC|Ltd\.?)$/i, ""))}${v.sold && +v.sold ? " " + usd(v.sold) : v.offering && v.offering !== "Indefinite" ? " " + usd(v.offering) + " target" : ""}</span>`).join("")}</div>`).join("") + `</div>`;
   }
   if (veh.length) {
     const sum = k => veh.filter(v => v.kind === k && v.status !== "candidate");
