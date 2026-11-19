@@ -371,6 +371,25 @@ textarea.copy{width:100%;min-height:120px;font:12px var(--f-data);margin-top:8px
 .hc .hb{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center}
 .docbar{margin:14px 0 4px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--bg);display:grid;gap:8px}
 .docbar .kf{font-size:14px;line-height:1.45}
+.cosum{margin:16px 0 8px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.cosum h2{margin:0 0 8px}
+.cs-row{display:grid;grid-template-columns:96px 1fr;gap:10px;padding:6px 0;border-top:1px solid var(--line);font-size:14px;line-height:1.5}
+.cs-row:first-of-type{border-top:0} .cs-row>b{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);padding-top:2px}
+.cs-named{margin-top:4px;font-size:13px}
+.tie{font:600 10px var(--f-data);text-transform:uppercase;letter-spacing:.03em;color:#13895a;border:1px solid #9fd8bd;border-radius:4px;padding:0 4px;white-space:nowrap}
+.rc-bar{display:flex;align-items:center;gap:12px;margin-top:18px} .rc-bar h2{margin:0}
+.rcards{display:grid;gap:10px;margin-top:8px}
+.rcard{border:1px solid var(--line);border-left:4px solid var(--st,var(--line));border-radius:10px;padding:10px 12px;background:var(--bg)}
+.rc-h{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;margin-bottom:6px;font-size:14px} .rc-h .sd{flex:none} .rc-src{margin-left:auto;font-size:12px}
+.rc-lane{display:grid;grid-template-columns:78px 1fr;gap:8px;padding:4px 0;border-top:1px dashed var(--line)}
+.rc-k{font:600 11px var(--f-data);text-transform:uppercase;letter-spacing:.04em;color:var(--muted);padding-top:3px}
+.rc-lane.strat .rc-k{color:#b0306a}
+.rc-v{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13.5px;line-height:1.45}
+.rc-inv.ang{display:inline-flex;flex-direction:column;max-width:260px}
+.rc-inv .who{font-size:12px;color:var(--muted);line-height:1.3}
+.also{font:600 10px var(--f-data);color:var(--accent);border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-left:4px;cursor:help;white-space:nowrap}
+.rc-more{flex-basis:100%} .rc-more summary{cursor:pointer;color:var(--muted);font-size:12px} .rc-more[open]{display:flex;flex-wrap:wrap;gap:4px 14px}
+@media (max-width:760px){.cs-row,.rc-lane{grid-template-columns:1fr;gap:2px}}
 .segpill{display:inline-block;font:600 10px var(--f-data);letter-spacing:.03em;text-transform:uppercase;border-radius:4px;padding:1px 5px;margin:2px 4px 0 0;border:1px solid var(--line);color:var(--muted);vertical-align:middle;background:var(--panel)}
 .sp-semi{color:#a3570b;border-color:#e4b47a} .sp-neolab{color:#6b3fb0;border-color:#c6aae8} .sp-models{color:#1f6aa8;border-color:#9cc3e6} .sp-research{color:#15805a;border-color:#94d2b6}
 .sp-strat{color:#b0306a;border-color:#e8a6c4} .sp-angel{color:var(--muted)}
@@ -620,7 +639,7 @@ a.chip:hover{background:var(--accent-soft);color:var(--accent)}
 <div class="toast" id="toast" role="status"></div>
 <div class="hc" id="hc" role="dialog" aria-label="Quick look"></div>
 
-<script src="data.js?b=ef1bc775ac"></script>
+<script src="data.js?b=997530ee6c"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
@@ -655,7 +674,7 @@ function mergePart(name) {
     V.cos.forEach(c => (p.rounds[c.slug] || []).forEach((d, i) => c.rounds[i] && Object.assign(c.rounds[i], d)));
     V.graph = p.graph;
     V.pdeals = p.pdeals; V.hot = p.hot; V.tbuyers = p.tbuyers || []; V.dealmakers = p.dealmakers || []; V.lpaccess = p.lpaccess || {}; V.emerging = p.emerging || {}; V.ppairs = p.ppairs || [];
-    V.backers = p.backers; V.conv = p.conv; A.syn = p.syn; V.teams = p.teams; V.fstages = p.fstages || {}; V.vehicles = p.vehicles || {}; V.segs = p.segs || {};
+    V.backers = p.backers; V.conv = p.conv; A.syn = p.syn; V.teams = p.teams; V.fstages = p.fstages || {}; V.vehicles = p.vehicles || {}; V.segs = p.segs || {}; V.abook = p.abook || {}; V.imeta = p.imeta || {};
     Object.assign(CONV_C, dict((V.conv?.cos || []).map(r => [r.company_slug, r])));
     Object.assign(CONV_I, dict((V.conv?.inv || []).filter(r => r.slug).map(r => [r.slug, r])));
   }
@@ -928,7 +947,7 @@ function linkMentions(root, self) {
   linkMentions.n ||= 0;
   if (!MIX || (!MIX.leads && V.leadrows)) MIX = mentionIndex();
   const done = new Set([self, "co:" + self]), walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-    acceptNode: n => n.parentElement.closest("a, code, pre, h1, .pl, .who, .mention, .docbar, .team, .dl1") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+    acceptNode: n => n.parentElement.closest("a, code, pre, h1, .pl, .who, .mention, .docbar, .team, .dl1, .cosum, .rcards, .rtable") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
   const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
   nodes.forEach(node => {
     const s = node.nodeValue; MIX.re.lastIndex = 0; let m, last = 0, frag = null;
@@ -2737,6 +2756,83 @@ function invList(list, r, max, skip) {
     return (k ? link(k, p) : esc(p)) + (w?.[2] ? `<sup class="weak" title="Name taken from a bio or company page, not a round-specific source">*</sup>` : ""); }).join(", ")})</span>` : ""));
   return out.join(", ") + (items.length > max ? ` <span class="muted">+${items.length - max}</span>` : "");
 }
+// ---- company page: who the founders brought in, round by round ----
+const TIE = {customer: "customer", supplier: "supplier", compute: "compute partner", distribution: "distribution", partner: "partner", "acquirer-interest": "acquirer interest"};
+const AK = {founder: "founders", operator: "operators", researcher: "researchers", exec: "execs", investor: "investors", "public-figure": "public figures", other: "others"};
+const ORG_RE = /\b(OpenAI|Anthropic|Google DeepMind|DeepMind|Google Brain|Google|Meta|FAIR|Facebook|Microsoft|Apple|Amazon|Nvidia|NVIDIA|Tesla|SpaceX|Stripe|Airbnb|Dropbox|Box|Figma|Notion|Databricks|Scale AI|Hugging Face|Intel|AMD|Qualcomm|Broadcom|Marvell|Cadence|Synopsys|Arm|TSMC|Samsung|Apple|Uber|Coinbase|GitHub|Y Combinator|YC|xAI|Mistral|Character\.ai|Inflection|Adept|Cohere|Palantir|Anduril|Twitter|LinkedIn|PayPal|Salesforce|Snowflake|Cruise|Waymo)\b/g;
+const imeta = id => (V.imeta || {})[id] || {};
+const invNm = e => bySlug[e.id] ? link(e.id, e.n) : esc(e.n);
+function alsoIn(e, c) {
+  const book = (V.abook || {})[e.id]; if (!book) return "";
+  const others = book.filter(x => x !== c.slug && coBySlug[x]);
+  if (!others.length) return "";
+  const mine = new Set(c.seg || []), same = mine.size ? others.filter(x => (coBySlug[x].seg || []).some(g => mine.has(g))) : [];
+  const show = same.length ? same : others, segName = same.length ? (SEGS.find(g => mine.has(g[0]) && same.some(x => (coBySlug[x].seg || []).includes(g[0]))) || [, ""])[1].toLowerCase() : "";
+  return ` <span class="also" title="${esc("Also in: " + show.map(x => coBySlug[x].name).join(", "))}">+${show.length}${segName ? " " + esc(segName) : ""}</span>`;
+}
+function invChip(e, c, kind) {
+  const m = imeta(e.id);
+  const pp = e.p && e.p.length ? ` <span class="muted">(${e.p.map(esc).join(", ")})</span>` : "";
+  if (kind === "strat") return `<span class="rc-inv strat">${invNm(e)}${pp}${m.ind && m.ind !== "other" ? ` <span class="segpill sp-strat">${esc(m.ind)}</span>` : ""}${e.tie ? ` <span class="tie" title="${esc((e.te || "") + (e.tu ? " · " + e.tu : ""))}">${esc(TIE[e.tie] || e.tie)}</span>` : ""}${m.par && m.par.toLowerCase() !== e.n.toLowerCase() ? ` <span class="muted">· ${esc(m.par)}</span>` : ""}</span>`;
+  if (kind === "angel") return `<span class="rc-inv ang"><span>${invNm(e)}${alsoIn(e, c)}</span>${m.w ? `<span class="who">${esc(m.w)}</span>` : ""}</span>`;
+  return `<span class="rc-inv">${invNm(e)}${pp}${e.s && kind === "lead" ? ` <span class="segpill sp-strat">strategic</span>` : ""}</span>`;
+}
+function coSummary(c) {
+  const R = c.rounds.filter(r => r.inv && r.inv.length); if (!R.length) return "";
+  const rl = r => (r.round || "").replace(/\s*\(.*$/, "") + (r.date ? " " + r.date.slice(0, 7) : "");
+  const seen = new Map(), lines = [];
+  R.forEach((r, i) => r.inv.forEach(e => { const o = seen.get(e.id) || {e, rounds: [], led: []}; o.rounds.push(i); if (e.l) o.led.push(i); seen.set(e.id, o); }));
+  const all = [...seen.values()];
+  // strategics in order of entry
+  const st = all.filter(o => o.e.s).sort((a, b) => a.rounds[0] - b.rounds[0]);
+  if (st.length) lines.push(`<div class="cs-row"><b>Strategics</b><span>${st.slice(0, 10).map(o => { const m = imeta(o.e.id), t = R.flatMap(r => r.inv).find(x => x.id === o.e.id && x.tie); return `${invNm(o.e)}${t ? ` <span class="tie">${esc(TIE[t.tie] || t.tie)}</span>` : m.ind && m.ind !== "other" ? ` <span class="muted">(${esc(m.ind)})</span>` : ""} <span class="muted">at ${esc(rl(R[o.rounds[0]]))}</span>`; }).join("; ")}${st.length > 10 ? ` <span class="muted">+${st.length - 10}</span>` : ""}</span></div>`);
+  else lines.push(`<div class="cs-row"><b>Strategics</b><span class="muted">None recorded: no operating company or corporate venture arm on the cap table.</span></div>`);
+  // angels: how many, what kind, where they come from
+  const an = all.filter(o => o.e.k === "angel");
+  if (an.length) {
+    const byK = {}; an.forEach(o => { const k = imeta(o.e.id).ak; if (k) byK[k] = (byK[k] || 0) + 1; });
+    const orgs = {}; an.forEach(o => { const w = imeta(o.e.id).w || ""; new Set((w.match(ORG_RE) || []).map(x => x.replace(/^NVIDIA$/, "Nvidia").replace(/^DeepMind$/, "Google DeepMind"))).forEach(x => orgs[x] = (orgs[x] || 0) + 1); });
+    const topOrg = Object.entries(orgs).filter(([, n]) => n >= 2).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const early = an.filter(o => ["early", "a"].includes(R[o.rounds[0]].stage)).length;
+    const named = an.filter(o => imeta(o.e.id).w).slice(0, 6);
+    lines.push(`<div class="cs-row"><b>Angels</b><span>${an.length} individual${an.length === 1 ? "" : "s"}${early ? `, ${early} by Series A` : ""}${Object.keys(byK).length ? ": " + Object.entries(byK).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${n} ${AK[k] || k}`).join(", ") : ""}.${topOrg.length ? ` Clusters: ${topOrg.map(([o, n]) => `${n} from ${esc(o)}`).join(", ")}.` : ""}${named.length ? `<div class="muted cs-named">${named.map(o => `${invNm(o.e)} <span>(${esc(imeta(o.e.id).w)})</span>`).join("; ")}</div>` : ""}</span></div>`);
+  }
+  // insiders: re-ups and step-ups
+  const reup = all.filter(o => o.e.k !== "angel" && o.rounds.length >= 2).sort((a, b) => b.rounds.length - a.rounds.length);
+  const step = reup.filter(o => o.led.length && o.led[0] > o.rounds[0]);
+  if (reup.length) lines.push(`<div class="cs-row"><b>Insiders</b><span>${reup.slice(0, 8).map(o => `${invNm(o.e)} <span class="muted">${o.rounds.length} rounds</span>`).join(", ")}${reup.length > 8 ? ` <span class="muted">+${reup.length - 8}</span>` : ""}${step.length ? `. <b>Stepped up to lead:</b> ${step.slice(0, 5).map(o => `${invNm(o.e)} <span class="muted">(in at ${esc(rl(R[o.rounds[0]]))}, led ${esc(rl(R[o.led[0]]))})</span>`).join(", ")}` : ""}</span></div>`);
+  // pace and price
+  const val = r => { const m = String(r.valuation || "").match(/\$\s*([\d.,]+)\s*([KMBT])/i); return m ? +m[1].replace(/,/g, "") * {K: 1e3, M: 1e6, B: 1e9, T: 1e12}[m[2].toUpperCase()] : 0; };
+  const dated = R.filter(r => /^\d{4}-\d\d/.test(r.date || ""));
+  const steps = [];
+  for (let i = 1; i < dated.length; i++) {
+    const a = dated[i - 1], b = dated[i], va = val(a), vb = val(b);
+    const mo = Math.round((new Date(b.date.slice(0, 7) + "-01") - new Date(a.date.slice(0, 7) + "-01")) / 2.63e9);
+    if (va && vb && vb > va) steps.push(`${esc(usd(va))} → ${esc(usd(vb))} in ${mo} mo`);
+  }
+  if (dated.length >= 2) {
+    const mo = Math.round((new Date(dated[dated.length - 1].date.slice(0, 7) + "-01") - new Date(dated[0].date.slice(0, 7) + "-01")) / 2.63e9);
+    lines.push(`<div class="cs-row"><b>Pace</b><span>${dated.length} rounds over ${mo >= 24 ? (mo / 12).toFixed(1) + " years" : mo + " months"}${steps.length ? `; price steps ${steps.slice(-4).join(", ")}` : ""}.</span></div>`);
+  }
+  return `<section class="cosum"><h2>Who they brought in</h2>${lines.join("")}</section>`;
+}
+function roundCards(c) {
+  if (!c.rounds.some(r => r.inv)) return roundsTable(c);
+  const lane = (label, items, cls = "") => items.length ? `<div class="rc-lane ${cls}"><span class="rc-k">${label}</span><div class="rc-v">${items.join("")}</div></div>` : "";
+  const cards = c.rounds.map(r => {
+    const inv = r.inv || [], leads = inv.filter(e => e.l), strat = inv.filter(e => e.s && !e.l), funds = inv.filter(e => !e.l && !e.s && e.k !== "angel"), ang = inv.filter(e => e.k === "angel" && !e.l);
+    const angItems = ang.map(e => invChip(e, c, "angel"));
+    const angHtml = angItems.length > 8 ? angItems.slice(0, 8).join("") + `<details class="rc-more"><summary>+${angItems.length - 8} more angels</summary>${angItems.slice(8).join("")}</details>` : angItems.join("");
+    return `<div class="rcard${r.stage ? " sd-" + r.stage : ""}"><div class="rc-h"><span class="sd${r.stage ? " sd-" + r.stage : ""}"></span><b>${esc(r.round || "Round")}</b><span class="muted">${esc(r.date || "date unknown")}</span>${r.amount ? `<span>${esc(r.amount)}</span>` : ""}${r.valuation ? `<span class="muted">${esc(r.valuation)}</span>` : ""}<span class="rc-src">${src(r.src)}</span></div>
+      ${lane("Led by", leads.map(e => invChip(e, c, "lead")), "lead")}${lane("Strategic", strat.map(e => invChip(e, c, "strat")), "strat")}${lane("Funds", funds.map(e => invChip(e, c, "fund")))}${angItems.length ? `<div class="rc-lane ang"><span class="rc-k">Angels</span><div class="rc-v">${angHtml}</div></div>` : ""}${!inv.length ? `<div class="muted">No named investors for this round.</div>` : ""}</div>`;
+  }).join("");
+  return `${coSummary(c)}<div class="rc-bar"><h2>Rounds</h2><button class="btn sm" data-rtoggle="1">Table view</button></div>${stageLegend("Oldest first.")}<div class="rcards">${cards}</div><div class="rtable" hidden>${roundsTable(c)}</div>`;
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-rtoggle]"); if (!b) return;
+  const box = b.closest("#dbody") || document, cards = box.querySelector(".rcards"), tab = box.querySelector(".rtable");
+  const toTable = !cards.hidden; cards.hidden = toTable; tab.hidden = !toTable; b.textContent = toTable ? "Card view" : "Table view";
+});
 function roundsTable(c) {
   if (!c.rounds.length) return "<p class='muted'>No round data yet.</p>";
   return stageLegend() + `<table><thead><tr><th>Date</th><th>Round</th><th>Amount</th><th>Led by</th><th>Also in</th><th></th></tr></thead><tbody>${
@@ -2879,7 +2975,7 @@ function openDoc(key) {
     const c = coBySlug[key.slice(3)]; if (!c) return;
     const d = bySlug[c.slug];
     path = d ? d.path : "company";
-    html = `<h1>${esc(c.name)}</h1><p>${tierPill(c)} ${c.people.length ? "People we profiled: " + c.people.map(s => link(s)).join(", ") : ""}</p><h2>Rounds</h2>${roundsTable(c)}${whoTested(c.slug)}` +
+    html = `<h1>${esc(c.name)}</h1><p>${tierPill(c)} ${c.people.length ? "People we profiled: " + c.people.map(s => link(s)).join(", ") : ""}</p>${roundCards(c)}${whoTested(c.slug)}` +
       (d ? (window.marked ? marked.parse(d.body.replace(/^# .*\n/, "")) : `<pre>${esc(d.body)}</pre>`) : "<p class='muted'>No write-up yet.</p>");
   } else {
     const d = bySlug[key];
