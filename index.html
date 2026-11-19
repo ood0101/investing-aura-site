@@ -371,6 +371,32 @@ textarea.copy{width:100%;min-height:120px;font:12px var(--f-data);margin-top:8px
 .hc .hb{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center}
 .docbar{margin:14px 0 4px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--bg);display:grid;gap:8px}
 .docbar .kf{font-size:14px;line-height:1.45}
+.segpill{display:inline-block;font:600 10px var(--f-data);letter-spacing:.03em;text-transform:uppercase;border-radius:4px;padding:1px 5px;margin:2px 4px 0 0;border:1px solid var(--line);color:var(--muted);vertical-align:middle;background:var(--panel)}
+.sp-semi{color:#a3570b;border-color:#e4b47a} .sp-neolab{color:#6b3fb0;border-color:#c6aae8} .sp-models{color:#1f6aa8;border-color:#9cc3e6} .sp-research{color:#15805a;border-color:#94d2b6}
+.sp-strat{color:#b0306a;border-color:#e8a6c4} .sp-angel{color:var(--muted)}
+.segintro{margin:6px 0 10px}
+.segstats{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 18px}
+.segstats .stat{border:1px solid var(--line);border-radius:10px;padding:8px 14px;background:var(--panel);min-width:96px}
+.segstats .stat b{display:block;font:600 22px var(--f-data);color:var(--ink)} .segstats .stat span{font-size:12px;color:var(--muted)}
+.segsel{margin:6px 0 10px;padding:8px 12px;border-radius:8px;background:var(--accent-soft);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.emap{display:grid;gap:2px;margin-top:6px}
+.emrow{display:grid;grid-template-columns:minmax(120px,190px) 1fr 72px;align-items:center;gap:10px;min-height:28px;border-radius:6px;padding:0 4px}
+.emrow:hover{background:var(--panel)} .emrow.on{background:var(--accent-soft)}
+.emname{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap} .emname .link{cursor:pointer;font-weight:500}
+.emtrack{position:relative;height:26px}
+.emline{position:absolute;top:50%;height:2px;background:var(--line);transform:translateY(-50%)}
+.emdot{position:absolute;top:50%;transform:translate(-50%,-50%);border:2px solid var(--bg);box-sizing:content-box;opacity:.92}
+.emdot.dim{opacity:.25} .emdot.hit{outline:3px solid var(--ink);outline-offset:1px;z-index:2;opacity:1}
+.emlab{position:absolute;top:-2px;transform:translateX(8px);font:600 10px var(--f-data);white-space:nowrap;color:var(--ink);background:var(--bg);padding:0 3px;border-radius:3px;z-index:3}
+.emlab.l{transform:translateX(calc(-100% - 8px))} .emlab.unk{color:var(--muted);font-weight:500;transform:translateX(calc(-100% - 6px))}
+.emaxis{min-height:18px} .emaxis:hover{background:none}
+.emtick{position:absolute;top:2px;font:500 10px var(--f-data);color:var(--muted);transform:translateX(-50%)}
+.emtick::after{content:"";position:absolute;left:50%;top:14px;height:9999px;border-left:1px dashed var(--line);opacity:.0}
+.emval{font:600 12px var(--f-data);text-align:right}
+.mk{color:#13895a;font-family:var(--f-data)}
+.seg2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.seg2 .row{padding:8px 0;border-bottom:1px solid var(--line);cursor:pointer} .seg2 .row:hover{background:var(--panel)}
+@media (max-width:760px){.seg2{grid-template-columns:1fr}.emrow{grid-template-columns:96px 1fr 56px;gap:6px}.emname{font-size:12px}}
 .ffacts{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--ink)}
 .ffacts i{font:500 11px var(--f-data);font-style:normal;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-right:4px}
 .ffacts .ff-site{color:var(--accent);text-decoration:none;font-weight:600}
@@ -594,7 +620,7 @@ a.chip:hover{background:var(--accent-soft);color:var(--accent)}
 <div class="toast" id="toast" role="status"></div>
 <div class="hc" id="hc" role="dialog" aria-label="Quick look"></div>
 
-<script src="data.js?b=ad71301781"></script>
+<script src="data.js?b=ef1bc775ac"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/force-graph@1.43.5/dist/force-graph.min.js"></script>
@@ -629,7 +655,7 @@ function mergePart(name) {
     V.cos.forEach(c => (p.rounds[c.slug] || []).forEach((d, i) => c.rounds[i] && Object.assign(c.rounds[i], d)));
     V.graph = p.graph;
     V.pdeals = p.pdeals; V.hot = p.hot; V.tbuyers = p.tbuyers || []; V.dealmakers = p.dealmakers || []; V.lpaccess = p.lpaccess || {}; V.emerging = p.emerging || {}; V.ppairs = p.ppairs || [];
-    V.backers = p.backers; V.conv = p.conv; A.syn = p.syn; V.teams = p.teams; V.fstages = p.fstages || {}; V.vehicles = p.vehicles || {};
+    V.backers = p.backers; V.conv = p.conv; A.syn = p.syn; V.teams = p.teams; V.fstages = p.fstages || {}; V.vehicles = p.vehicles || {}; V.segs = p.segs || {};
     Object.assign(CONV_C, dict((V.conv?.cos || []).map(r => [r.company_slug, r])));
     Object.assign(CONV_I, dict((V.conv?.inv || []).filter(r => r.slug).map(r => [r.slug, r])));
   }
@@ -1186,18 +1212,19 @@ VIEWS.companies = {
   label: "Companies", n: V.cos.filter(c => c.tier <= 2).length, needs: ["extra"],
   render(m) {
     const tiers = [[1, "Frontier"], [2, "Applied AI"], [3, "AI apps"], [4, "Untagged"], [5, "Non-AI"]];
-    const on = S("ct", [1, 2]);
+    const on = S("ct", [1, 2]); S("cseg", "");
     m.innerHTML = `<p class="intro">One row per company. <b>Frontier</b> means labs, pre-training, AI chips and compute. <b>Applied AI</b> means automation, robotics and bio. AI apps (like Gumloop), untagged and non-AI companies are hidden until you switch them on. Click a company for its round-by-round history.</p>
       <div class="bar"><input type="search" id="cq" placeholder="Search companies or investors…" value="${esc(S("cq", ""))}">
       ${tiers.map(([t, l]) => `<button class="btn sm${on.includes(t) ? " on" : ""}" data-t="${t}">${l} <span class="num">${V.cos.filter(c => c.tier === t).length}</span></button>`).join("")}
+      ${seg("csg", [["", "Any segment"], ...SEGS.map(([k, l]) => [k, `${l} ${V.cos.filter(c => (c.seg || []).includes(k)).length}`])], ST.cseg)}
       <span class="count" id="cc"></span></div>${stageLegend("Dots under Rounds run oldest to newest.")}<div id="ct-t"></div>`;
     const draw = () => {
       const q = ST.cq.toLowerCase();
-      const rows = V.cos.filter(c => ST.ct.includes(c.tier) && (!q || (c.name + " " + c.rounds.map(r => (r.leads || []).join(" ") + " " + (r.others || []).join(" ")).join(" ")).toLowerCase().includes(q)));
+      const rows = V.cos.filter(c => (ST.cseg ? (c.seg || []).includes(ST.cseg) : ST.ct.includes(c.tier)) && (!q || (c.name + " " + c.rounds.map(r => (r.leads || []).join(" ") + " " + (r.others || []).join(" ")).join(" ")).toLowerCase().includes(q)));
       $("cc").textContent = `${rows.length} shown`;
       table($("ct-t"), [
         {k: "name", t: "Company", h: r => `<span class="name">${esc(r.name)}</span>${r.note ? ` <span class="chip">write-up</span>` : ""}${CONV_C[r.slug] ? ` ${band(CONV_C[r.slug].band)}` : ""}`},
-        {k: "tier", t: "Tier", num: 1, v: r => -r.tier, h: r => tierPill(r) + (r.category && r.category !== "non-ai" ? `<div class="muted">${esc(r.category)}</div>` : "")},
+        {k: "tier", t: "Tier", num: 1, v: r => -r.tier, h: r => tierPill(r) + (r.category && r.category !== "non-ai" ? `<div class="muted">${esc(r.category)}</div>` : "") + (r.seg || []).map(segPill).join("")},
         {k: "first", t: "First round", h: r => `<span class="date">${esc(r.first)}</span>`},
         {k: "first_in", t: "First in", v: r => r.first_in.join(" "), h: r => `<span class="muted">${esc(r.first_in.join(", "))}</span>`},
         {k: "latest", t: "Latest", h: r => `<span class="muted">${esc(r.latest)}</span>`},
@@ -1207,9 +1234,108 @@ VIEWS.companies = {
       save();
     };
     $("cq").oninput = e => { ST.cq = e.target.value; draw(); };
+    onSeg("csg", v => { ST.cseg = v; draw(); });
     m.querySelectorAll("[data-t]").forEach(b => b.onclick = () => {
       const t = +b.dataset.t; ST.ct = ST.ct.includes(t) ? ST.ct.filter(x => x !== t) : [...ST.ct, t]; b.classList.toggle("on"); draw();
     });
+    draw();
+  },
+};
+
+// ---- Segments: semi, neo-labs, model companies, research labs. Who backed them, how early, at what price, strategic or not ----
+const SEGS = [["semi", "Semi"], ["neolab", "Neo-labs"], ["models", "Models"], ["research", "Research"]];
+const SEG_INTRO = {
+  semi: "Chips, accelerators, photonics and optical interconnect, memory, EDA and chip-design AI.",
+  neolab: "New research-led labs, mostly from 2023 on, founded by people from OpenAI, DeepMind and FAIR.",
+  models: "Companies whose product is a model: the big labs, plus foundation models for voice, video, robots, biology and more.",
+  research: "Research groups, non-profits, safety and alignment labs, and labs that use AI to do science or automate research.",
+};
+const segPill = k => `<span class="segpill sp-${k}">${esc((SEGS.find(x => x[0] === k) || [k, k])[1])}</span>`;
+const xfmt = x => x ? (x >= 10 ? Math.round(x) : x.toFixed(1)) + "×" : "";
+VIEWS.segments = {
+  label: "Segments", n: "", needs: ["extra"],
+  render(m) {
+    const D = V.segs || {};
+    const sg = S("sg", "semi"), D0 = D[sg] || {cos: [], inv: []};
+    S("sgk", "all"); S("sgq", ""); S("sgall", false);
+    let pickId = ST.sgpick && D0.inv.some(i => i.id === ST.sgpick) ? ST.sgpick : "";
+    m.innerHTML = `<p class="intro"><b>Segments</b> cut across categories: a robotics or bio company can also be a model company. Pick a segment to see every company in it, every round we have, and every investor in those rounds: <b>how early</b> they came in, <b>at what valuation</b>, how that compares with the latest price, whether they <b>led</b>, and whether they were a <b>strategic</b> backer (an operating company or corporate venture arm). Click an investor to see where they came in on the map.</p>
+      <div class="bar">${seg("sgs", SEGS.map(([k, l]) => [k, `${l} ${(D[k] || {cos: []}).cos.length}`]), sg)}
+        ${seg("sgk", [["all", "All investors"], ["fund", "Funds"], ["strat", "Strategic"], ["angel", "Angels"]], ST.sgk)}
+        <input type="search" id="sgq" placeholder="Find an investor or company…" value="${esc(ST.sgq)}"><span class="count" id="sgc"></span></div>
+      <p class="muted segintro">${segPill(sg)} ${esc(SEG_INTRO[sg] || "")}</p>
+      <div class="segstats" id="sgst"></div>
+      <section class="segmap"><h2>Entry map <span class="muted num" id="sgmn"></span></h2>
+        <p class="muted">One row per company, newest-valued first. Each dot is a round, coloured by stage and sized by amount. The figure on the right is the latest valuation we have. ${stageLegend("")}</p>
+        <div id="sgpick"></div><div id="sgmap"></div></section>
+      <section><h2>Who backed the segment</h2><p class="muted"><b>First in</b> = in the earliest round we know of. <b>Typical entry</b> = median round number at entry (1 = first round). <b>Best markup</b> = latest valuation ÷ valuation at entry, where both are known. Click a row to see it on the map.</p><div id="sgt"></div></section>
+      <div class="seg2"><section><h2>Strategic backers</h2><div id="sgstrat"></div></section><section><h2>Angels</h2><div id="sgang"></div></section></div>`;
+    const kindOk = i => ST.sgk === "all" || (ST.sgk === "strat" ? i.strat : ST.sgk === "angel" ? i.kind === "angel" : i.kind === "firm" && !i.strat);
+    const qOk = i => { const q = ST.sgq.toLowerCase().trim(); return !q || i.n.toLowerCase().includes(q) || i.cos.some(c => c.n.toLowerCase().includes(q)); };
+    const entryChip = c => `<span class="chip link sc${c.st ? " sd-" + c.st : ""}${c.led ? " lead" : ""}" data-open="co:${esc(c.s)}" title="${esc(c.rl + (c.d ? " · " + c.d : "") + (c.i >= 0 ? " · round " + (c.i + 1) + " of " + c.nr : "") + (c.led ? " · led" : "") + (c.ev ? " · entered at " + usd(c.ev) : "") + (c.x ? " · " + xfmt(c.x) + " since" : ""))}">${esc(c.n)}${c.i === 0 ? " ①" : ""}${c.x ? ` <b class="mk">${xfmt(c.x)}</b>` : ""}</span>`;
+    const invName = i => (i.prof ? link(i.id, i.n) : `<span class="name">${esc(i.n)}</span>`) + (i.strat ? ` <span class="segpill sp-strat" title="${i.kind === "angel" ? "Industry operator investing personally" : "Operating company or corporate venture arm"}">${i.kind === "angel" ? "Operator" : "Strategic"}</span>` : "") + (i.kind === "angel" ? ` <span class="segpill sp-angel">Angel</span>` : "");
+    const drawMap = () => {
+      const sel = pickId && D0.inv.find(i => i.id === pickId);
+      const mine = sel ? new Map(sel.cos.map(c => [c.s, c])) : null;
+      let cos = D0.cos.filter(c => c.r.length);
+      const q = ST.sgq.toLowerCase().trim();
+      if (q && !sel) cos = cos.filter(c => c.n.toLowerCase().includes(q) || c.inv.some(i => i.n.toLowerCase().includes(q)));
+      if (sel) cos = cos.filter(c => mine.has(c.s));
+      const all = cos.length; if (!ST.sgall && !sel) cos = cos.slice(0, 40);
+      $("sgmn").textContent = `${all} with dated rounds`;
+      const yr = d => { const y = +d.slice(0, 4), mo = +(d.slice(5, 7) || 6); return y + (mo - 1) / 12; };
+      const ds = cos.flatMap(c => c.r.map(r => yr(r.d))).filter(Boolean);
+      // zoom to this view's rounds: from the 5th-percentile date (older outliers sit at the left edge) to now
+      const srt = ds.slice().sort((a, b) => a - b), p5 = srt[Math.floor(srt.length * 0.05)] || 2020;
+      const hi = Math.max(...ds, 2026.9) + 0.3, lo = Math.min(Math.floor(p5), Math.floor(hi) - 3);
+      const X = d => Math.max(0, Math.min(100, (yr(d) - lo) / (hi - lo) * 100));
+      const R = a => a ? Math.max(4.5, Math.min(11, 3 + Math.log10(a / 1e6 + 1) * 2.6)) : 4.5;
+      const ticks = []; const step = hi - lo > 12 ? 4 : hi - lo > 6 ? 2 : 1; for (let y = Math.floor(hi); y >= lo; y -= step) ticks.unshift(y);
+      $("sgpick").innerHTML = sel ? `<div class="segsel">Showing where <b>${esc(sel.n)}</b> came in: ${sel.cos.length} compan${sel.cos.length === 1 ? "y" : "ies"}, ${sel.first} as first money in, ${sel.led} led. <button class="btn sm" id="sgclr">Show everyone</button></div>` : "";
+      $("sgmap").innerHTML = `<div class="emap"><div class="emrow emaxis"><div class="emname"></div><div class="emtrack">${ticks.map(y => `<span class="emtick" style="left:${X(y + "-01")}%">${y}</span>`).join("")}</div><div class="emval"></div></div>${cos.map(c => {
+        const e = mine && mine.get(c.s);
+        return `<div class="emrow${e ? " on" : ""}"><div class="emname"><span class="link" data-open="co:${esc(c.s)}">${esc(c.n)}</span>${c.segs.filter(x => x !== sg).map(segPill).join("")}</div><div class="emtrack"><span class="emline" style="left:${X(c.r[0].d)}%;right:${100 - X(c.r[c.r.length - 1].d)}%"></span>${c.r.map((r, i) => {
+          const hit = e && e.i === i, r2 = R(r.a);
+          return `<span class="emdot sd${r.st ? " sd-" + r.st : ""}${hit ? " hit" : ""}${e && !hit ? " dim" : ""}" style="left:${X(r.d)}%;width:${r2 * 2}px;height:${r2 * 2}px" title="${esc(r.l + " · " + r.d + (r.a ? " · raised " + usd(r.a) : "") + (r.v ? " · valued " + usd(r.v) : "") + " · " + r.k + " investor" + (r.k === 1 ? "" : "s"))}"></span>${hit ? `<span class="emlab${X(r.d) > 62 ? " l" : ""}" style="left:${X(r.d)}%">${esc(r.l)}${e.led ? " · led" : ""}${e.ev ? " at " + usd(e.ev) : ""}</span>` : ""}`;
+        }).join("")}${e && e.i < 0 ? `<span class="emlab unk" style="left:${X(c.r[c.r.length - 1].d)}%">entry round unknown</span>` : ""}</div><div class="emval">${c.lv ? usd(c.lv) : `<span class="muted">n/a</span>`}${e && e.x ? `<div class="mk">${xfmt(e.x)}</div>` : ""}</div></div>`;
+      }).join("")}</div>${!sel && all > 40 ? `<button class="btn more" id="sgall">${ST.sgall ? "Show top 40" : `Show all ${all}`}</button>` : ""}`;
+      const b = $("sgall"); if (b) b.onclick = () => { ST.sgall = !ST.sgall; save(); drawMap(); };
+      const c = $("sgclr"); if (c) c.onclick = () => { pickId = ""; ST.sgpick = ""; save(); drawMap(); };
+    };
+    const draw = () => {
+      const rows = D0.inv.filter(i => kindOk(i) && qOk(i));
+      const nS = D0.inv.filter(i => i.strat && i.kind === "firm").length, nA = D0.inv.filter(i => i.kind === "angel").length;
+      const valued = D0.cos.filter(c => c.lv).length;
+      $("sgst").innerHTML = [[D0.cos.length, "companies"], [D0.cos.reduce((a, c) => a + c.r.length, 0), "dated rounds"], [D0.inv.length, "investors"], [nS, "strategic firms"], [nA, "angels"], [valued, "with a known valuation"]]
+        .map(([n, l]) => `<div class="stat"><b>${n}</b><span>${l}</span></div>`).join("");
+      $("sgc").textContent = `${rows.length} investors shown`;
+      table($("sgt"), [
+        {k: "n", t: "Investor", h: i => `<span data-pkid="${esc(i.id)}" hidden></span>` + invName(i)},
+        {k: "nc", t: "Companies", num: 1},
+        {k: "first", t: "First in", num: 1, h: r => r.first ? `<b>${r.first}</b>` : `<span class="muted">0</span>`},
+        {k: "led", t: "Led", num: 1},
+        {k: "mi", t: "Typical entry", num: 1, v: r => -(r.mi || 99), h: r => r.mi ? `round ${r.mi}` : `<span class="muted">unknown</span>`},
+        {k: "bx", t: "Best markup", num: 1, h: r => r.bx ? `<b class="mk">${xfmt(r.bx)}</b>` : `<span class="muted">n/a</span>`},
+        {k: "cos", t: "Where they came in (earliest first)", v: r => r.cos.length, h: r => r.cos.slice(0, 10).map(entryChip).join("") + (r.cos.length > 10 ? ` <span class="muted">+${r.cos.length - 10}</span>` : "")},
+      ], rows, {sort: ["nc", -1], limit: 150, empty: "No investors match."});
+      $("sgt").querySelectorAll("tbody tr").forEach((tr, k) => tr.classList.add("click"));
+      const strat = D0.inv.filter(i => i.strat && i.kind === "firm" && qOk(i)).slice(0, 30);
+      $("sgstrat").innerHTML = strat.map(i => `<div class="row" data-pk="${esc(i.id)}"><b>${invName(i)}</b> <span class="muted">${i.nc} compan${i.nc === 1 ? "y" : "ies"}${i.first ? ", first in at " + i.first : ""}${i.led ? ", led " + i.led : ""}</span><div>${i.cos.slice(0, 8).map(entryChip).join("")}</div></div>`).join("") || `<p class="muted">No strategic backers recorded.</p>`;
+      const ang = D0.inv.filter(i => i.kind === "angel" && qOk(i)).slice(0, 30);
+      $("sgang").innerHTML = ang.map(i => `<div class="row" data-pk="${esc(i.id)}"><b>${invName(i)}</b> <span class="muted">${i.nc} compan${i.nc === 1 ? "y" : "ies"}${i.first ? ", first round in " + i.first : ""}</span><div>${i.cos.slice(0, 8).map(entryChip).join("")}</div></div>`).join("") || `<p class="muted">No angels recorded.</p>`;
+      drawMap(); save();
+    };
+    // clicking an investor row (outside a link or chip) puts them on the map
+    m.addEventListener("click", e => {
+      if (e.target.closest("a, .chip, [data-open], button, input")) return;
+      const tr = e.target.closest("#sgt tbody tr, [data-pk]"); if (!tr) return;
+      const id = tr.dataset.pk || tr.querySelector("[data-pkid]")?.dataset.pkid;
+      if (!id) return; pickId = pickId === id ? "" : id; ST.sgpick = pickId; save(); drawMap();
+      $("sgmap").scrollIntoView({behavior: "smooth", block: "start"});
+    });
+    onSeg("sgs", v => { ST.sg = v; ST.sgpick = ""; ST.sgall = false; save(); VIEWS.segments.render(m); });
+    onSeg("sgk", v => { ST.sgk = v; draw(); });
+    $("sgq").oninput = e => { ST.sgq = e.target.value; draw(); };
     draw();
   },
 };
